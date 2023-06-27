@@ -1,0 +1,263 @@
+---
+title: "Data Preparation for Training an HMM"
+author: "Samantha Yuen"
+date: "Mon Jun 6, 2022"
+output: 
+    html_document:
+        toc: true
+        toc-depth: 3
+
+---
+
+R chunk template: 
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+
+```
+
+## Load librairies
+R version 4.0.2
+
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE }
+#load libraries and scripts
+.libPaths(c("/scratch/samkyy/gete-gbm/renv/library/R-4.0/x86_64-pc-linux-gnu",
+            "/tmp/RtmpJsRC8Z/renv-system-library", .libPaths()))
+.libPaths()
+
+resultsPath <- "~/scratch/gete-gbm/results" # nolint
+getwd()
+
+source("~/scratch/gete-gbm/bin/util.R")
+source("~/scratch/gete-gbm/bin/util_seurat.R")
+# source("~/scratch/gete-gbm/bin/util_viz.R")
+```
+
+```{r collapse=TRUE, cache=TRUE, cache.comments=FALSE}
+mkdirToday()
+```
+
+
+## Extract metadata from my preprocessing 
+
+Load the human-genome-mapped + retrotransposon-mapped dataset.
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE }
+## load dataset
+# gbmsc.ge <- readRDS("~/projects/def-ytanaka/common/te-gbm_proj/analysis/ge_gbmscIntUmap-subtypes.rds")
+gbmsc.gte <- readRDS("~/projects/def-ytanaka/common/te-gbm_proj/analysis/gte_gbmscIntUmap-subtypes.rds") 
+```
+
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+meta <- gbmsc.gte@meta.data
+head(meta)
+
+# Select columns
+meta <- meta[c("orig.ident", "cells", "sampleCombined", "gbm_subtype", "integrated_snn_res.0.3")]
+
+# Select rows corresponding to GBM dataset in Bhaduri et al. 2020
+meta <- meta %>% filter(grepl('SF', sampleCombined)) 
+
+# Number of cells per group
+counts <- meta %>% count(sampleCombined)
+counts
+```
+
+  sampleCombined     n
+1        SF11159  2915
+2        SF11209  7363
+3        SF11215  2940
+4        SF11232  4444
+5        SF11247  5279
+6        SF11285 13617
+
+Create a columm with IDs matching to the tumor metadata by Dr.Bhaduri. 
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+meta$tumor.id <- vapply(meta$cells, function(i){
+    barcode <- strsplit(i, split="-") 
+    return(barcode[[1]][1])
+}, character(1))
+
+meta$tumor.id <- paste(meta$tumor.id, meta$sampleCombined, sep="_")
+```
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+#export as tab-delimited file
+write.table(meta, "/home/samkyy/scratch/gete-gbm/results/2022-06-29/gbm-gte-metadata.txt")
+
+meta <- read.table("/home/samkyy/scratch/gete-gbm/results/2022-06-29/gbm-gte-metadata.txt", sep=" ", header=TRUE) 
+```
+
+## Filter and Create IDs from Bhaduri's metadata
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+# Raed the two metadata files provided by Bhaduri
+meta.all <- read.table("/home/samkyy/scratch/gete-gbm/data/2022-06-23_metaCNV/meta-GBMvsNormal_CNV_processed2.tsv", sep="\t", header=TRUE, row.names = 1)
+
+meta.all <- tibble::rownames_to_column(meta.all, "tumor.id")
+
+meta.all$tumor.id <- vapply(meta.all$tumor.id, function(i){
+    barcode <- strsplit(i, split="SF11") 
+    return(barcode[[1]][1])
+}, character(1))
+
+meta.all$tumor.id <- vapply(meta.all$tumor.id, function(i){
+    barcode <- strsplit(i, split="_") 
+    return(barcode[[1]][1])
+}, character(1))
+
+meta.all$tumor.id <- paste(meta.all$tumor.id, meta.all$Study_ID, sep="_")
+write.table(meta.all, "/home/samkyy/scratch/gete-gbm/results/2022-06-29/meta.all.txt", sep="\t", row.names=FALSE)
+```
+
+There are 13056 tumor cells based on Bhaduri CNV analysis (used `glimpse()` function from dplyr)
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+meta.tumor <- read.table("/home/samkyy/scratch/gete-gbm/data/2022-06-23_metaCNV/meta-GBM-tumor_cells_Bhaduri2020-processed2.txt", sep="\t", header=TRUE)
+
+meta.tumor$tumor.id <- vapply(meta.tumor$Cell_ID, function(i){
+    barcode <- strsplit(i, split="_") 
+    return(barcode[[1]][1])
+}, character(1))
+meta.tumor$tumor.id <- paste(meta.tumor$tumor.id, meta.tumor$Sample_ID, sep="_")
+write.table(meta.tumor, "/home/samkyy/scratch/gete-gbm/results/2022-06-29/meta.tumor.txt", sep="\t", row.names=FALSE)
+```
+
+Counts of the cells in each table:
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+meta.all %>% count(Study_ID)
+meta.all %>% count(Tumor.Normal.Classification)
+meta.tumor %>% count(Sample_ID)
+```
+
+Meta.all Number of cells by sample:
+
+  Study_ID     n
+1  SF11159  2546
+2  SF11209  3529
+3  SF11215  2638
+4  SF11232  1125
+5  SF11285 11650
+
+Meta.all Number of Tumor VS Normal cells:
+
+  Tumor.Normal.Classification     n
+1                              9250
+2                      Normal  1839
+3                       Tumor 10399
+
+Meta.tumor Number of cells by sample:
+
+  Sample_ID    n
+1   SF11159 1879
+2   SF11209 1502
+3   SF11215 2692
+4   SF11232  676
+5   SF11285 6307
+
+## Combine metadata from meta.all to meta.tumor
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+#load metadata
+meta_all <- read.table("/home/samkyy/scratch/gete-gbm/results/2022-06-29/meta.all.txt", sep="\t", header=TRUE)
+meta_tumor <- read.table("/home/samkyy/scratch/gete-gbm/results/2022-06-29/meta.tumor.txt", sep="\t", header=TRUE)
+
+joined_meta <- left_join(meta_tumor, meta_all, by = c("tumor.id"))
+dim(joined_meta) # 13105     7
+count(joined_meta, Study_ID) #meta.all
+count(joined_meta, Sample_ID) #meta.tumor
+dim(meta_all) # 21488     5
+dim(meta_tumor) # 13056     3
+```
+
+### Identify duplicate barcodes and remove them
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+# size = 300
+# png("./results/2022-06-29/Rplot.png", width = size, height = size)
+# count(joined_meta, tumor.id)[,2] %>% hist()
+# dev.off()
+
+dupes <- count(joined_meta, tumor.id) %>% dplyr::filter(n >= 2)
+dupes
+#meta_all %>% filter(grepl("TACTCGCTCTGCTGCT", tumor.id))
+dupes <- dupes$tumor.id
+joined_meta <- joined_meta %>% filter(!(tumor.id %in% dupes))
+dim(joined_meta) # 13007     7
+
+colnames(joined_meta) <- c("CellID", "SampleID_tumor", "tumor.id", "StudyID_all", "TumorVSNormal", "Subtype" , "Cell_Type")
+
+write.table(dupes, "/home/samkyy/scratch/gete-gbm/results/2022-07-04/joined_meta_dupes.txt", sep="\t", row.names=FALSE)
+write.table(joined_meta, "/home/samkyy/scratch/gete-gbm/results/2022-07-04/joined_meta.txt", sep="\t", row.names=FALSE)
+```
+
+## Combine my metadata with the Bhaduri's tumor metadata:
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+meta <- read.table("/home/samkyy/scratch/gete-gbm/results/2022-06-29/gbm-gte-metadata.txt", sep=" ", header=TRUE) 
+joined_meta <- read.table("/home/samkyy/scratch/gete-gbm/results/2022-07-04/joined_meta.txt", sep="\t", header=TRUE) 
+glimpse(joined_meta)
+glimpse(meta)
+```
+
+Rows: 13,007
+Columns: 7
+$ CellID         <chr> "AAACCTGAGCGCCTCA_1_1", "AAACGGGCAGCATACT_2_1", "AAACGG…
+$ SampleID_tumor <chr> "SF11159", "SF11159", "SF11159", "SF11159", "SF11159", …
+$ tumor.id       <chr> "AAACCTGAGCGCCTCA_SF11159", "AAACGGGCAGCATACT_SF11159",…
+$ StudyID_all    <chr> "SF11159", "SF11159", "SF11159", "SF11159", "SF11159", …
+$ TumorVSNormal  <chr> "Tumor", "Tumor", "Tumor", "Tumor", "Tumor", "Tumor", "…
+$ Subtype        <chr> "mesenchymal", "mesenchymal", "proneural", "mesenchymal…
+$ Cell_Type      <chr> "Radial Glia", "Immature Astrocyte", "Radial Glia", "Ra…
+
+Rows: 36,558
+Columns: 6
+$ orig.ident             <chr> "1", "1", "1", "1", "1", "1", "1", "1", "1", "1…
+$ cells                  <chr> "AAACCTGCAATTCCTT-1", "AAACCTGCACAGAGGT-1", "AA…
+$ sampleCombined         <fct> SF11232, SF11232, SF11232, SF11232, SF11232, SF…
+$ gbm_subtype            <chr> "Classical-Mesenchymal", "Mesenchymal", "Classi…
+$ integrated_snn_res.0.3 <fct> 1, 4, 0, 0, 2, 2, 2, 0, 2, 0, 6, 2, 0, 1, 2, 0,…
+$ tumor.id               <chr> "AAACCTGCAATTCCTT_SF11232", "AAACCTGCACAGAGGT_S…
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE}
+joined_meta2 <- left_join(meta, joined_meta, by = c("tumor.id"))
+joined_meta2 %>% group_by(sampleCombined) %>% count(TumorVSNormal)
+```
+
+Only about 186 cells were labelled as tumor cells and 205 cells in my dataset overlapped with that of the Bhaduri et al. dataset. 
+
+## Separate each patient
+- Run trajectory analysis on each, obtain the states
+- Create ordered cell matrix
+
+## Prep the entire dataset
+- Run trajectory analysis, obtain the states
+- Create ordered cell matrix
+
+## DEG 
+
+Date: 2022-07-20
+
+```{r message=FALSE, warning=FALSE, cache=TRUE, cache.comments=FALSE, collapse=TRUE }
+## load dataset
+gbmsc.ge <- readRDS("~/projects/def-ytanaka/common/te-gbm_proj/analysis/ge_gbmscIntUmap-subtypes.rds")
+
+# Plot UMAP to visualize the small cluster
+size = 500
+png("./Rplot.png", width = size*1.2, height = size)
+DimPlot(gbmsc.ge, group.by="integrated_snn_res.0.3", label=TRUE)
+dev.off()
+
+DefaultAssay(gbmsc.ge) <- "RNA"
+
+deg <- FindMarkers(gbmsc.ge, ident.1=8, group.by="integrated_snn_res.0.3", only.pos = FALSE, 
+                  min.pct = 0.1, min.diff.pct = -Inf, logfcthreshold = 0.25) # default settings
+save(deg, file="gbmsc_ge_c8.RData")
+
+
+deg <- FindAllMarkers(gbmsc.ge, group.by="integrated_snn_res.0.3", only.pos = FALSE, 
+                  min.pct = 0.1, min.diff.pct = -Inf, logfcthreshold = 0.25) # default settings
+save(deg, file="gbmsc_ge_all.RData")
+```

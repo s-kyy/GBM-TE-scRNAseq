@@ -1,0 +1,339 @@
+---
+title: "Cell Type Analysis"
+output:
+  html_document:
+    toc: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+## Load Libraries
+
+```{r}
+library(ggplot2)
+library(SeuratObject)
+library(Seurat)
+
+library(dplyr)
+
+library(conflicted)
+conflict_prefer("select", "dplyr") ## required in %>% dplyr
+
+set.seed(100)
+
+print(getwd())
+```
+
+## CNV figures (GTE)
+
+### Load Data
+
+```{r}
+gte <- readRDS("D:\\backup files\\2021-11-11\\Cluster\\scratch\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2021-09-02\\gte_gbmscIntUmap-subtypes.rds")
+
+meta <- read.csv("D:\\backup files\\getegbm\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2022-11-07_celltypes_gbmscte\\gbmscte_meta_celltypes.csv", row.names = 1)
+gte@meta.data <- meta
+
+#load bhaduri metadata
+cnv <- read.csv("D:\\backup files\\getegbm\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2022-11-24_cnv\\tumor_SM_id.txt", sep = "\t")
+print(dim(cnv)[1]/dim(gte@meta.data)[1])
+```
+
+28% of cells from the Bhaduri paper match with the cells we found in our assay.
+
+
+```{r}
+size = 5
+colnames(gte@meta.data)
+setwd("D:\\backup files\\getegbm\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2022-11-24_cnv")
+  ## Run this line again. 
+```
+
+### Create figures
+
+To compare which clusters have CNVs versus the ones in the Bhaduri paper I want to create some figures to visualize that. 
+
+First step is to combine the Bhaduri metadata to the seurat object:
+
+- Contains CNV: {0:no, 1: yes}
+
+```{r}
+## Update metadata with the Bhaduri IDs. 
+meta$bhaduriCNV <- 0
+print(length(unique(cnv$barcode)))
+
+# if barcode column in cnv matches rowname in meta, 
+# then add 1 in the bhaduriCNV column
+for (i in 1:length(cnv$barcode)) {
+  meta$bhaduriCNV[which(rownames(meta) == cnv$barcode[i])] <- 1
+}
+
+print(head(meta$bhaduriCNV))
+# write.csv(meta,"gbmsc_meta_celltypes.csv", row.names= TRUE)
+gte@meta.data <- meta
+```
+
+Visualize UMAP
+
+```{r}
+gte@meta.data$bhaduriCNV <- factor(gte@meta.data$bhaduriCNV, levels=c(0,1))
+gte <- SetIdent(gte, value = gte@meta.data$bhaduriCNV) 
+p <- DimPlot(gte, label=FALSE) +
+  labs(color = "CNV Status")
+p
+# ggsave("fig_gbmscte_gte_PC20r03_UMAP_CNV.tiff", plot = p, units="in", width=size*1.2, height=size*1, dpi=300, compression = 'lzw')
+```
+Create bar plot with cell counts grouped by cluster (or cell type) + CNV status.
+
+```{r}
+# Summarize cell counts grouped by bhaduriCNV
+meta$bhaduriCNV <- factor(meta$bhaduriCNV, levels=c(0,1))
+meta$integrated_snn_res.0.3 <- factor(meta$integrated_snn_res.0.3, levels=seq(0, 10))
+meta$integrated_snn_res.0.4 <- factor(meta$integrated_snn_res.0.4, levels=seq(0, 13))
+meta$int03_celltypes <- factor(meta$int03_celltypes, levels=c(
+  "Astrocyte", "Diff. Oligodendrocytes", "OPC", "Microglia", 
+  "Proliferating", "Intermediate", "Endothelial", "T-cell")
+  )
+
+
+df03 <- meta %>% 
+  select(integrated_snn_res.0.3, bhaduriCNV) %>% 
+  count(integrated_snn_res.0.3, bhaduriCNV, sort=TRUE) 
+  
+  
+df04 <- meta %>% 
+  select(integrated_snn_res.0.4,bhaduriCNV) %>% 
+  count(integrated_snn_res.0.4, bhaduriCNV, sort=TRUE) 
+
+dfct <- meta %>% 
+  select(int03_celltypes, bhaduriCNV) %>%
+  count(int03_celltypes, bhaduriCNV, sort=TRUE) 
+
+
+#plot
+p <- ggplot(df03, aes(x=integrated_snn_res.0.3, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() + 
+  xlab("Cluster ID") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_gte_PC20r03_cnv_bar.tiff", plot = p, units="in", width=size*1.2, height=size*1, dpi=300, compression = 'lzw')
+
+#plot
+p <- ggplot(df04, aes(x=integrated_snn_res.0.4, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() +
+  xlab("Cluster ID") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_gte_PC20r04_cnv_bar.tiff", plot = p, units="in", width=size*1.4, height=size*1, dpi=300, compression = 'lzw')
+
+#plot
+p <- ggplot(dfct, aes(x=int03_celltypes, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() + 
+  theme(axis.text.x = element_text(angle = 40, vjust = 0.9, hjust=1)) + 
+  xlab("Cell Type") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_gte_PC20r03_cnv_bar_celltypes.tiff", plot = p, units="in", width=size*1, height=size*1, dpi=300, compression = 'lzw')
+```
+
+```{r}
+#plot: order barplots according to the cnv status 1
+
+df03$integrated_snn_res.0.3 <- factor(df03$integrated_snn_res.0.3, 
+                                      levels = c(0, 1, 2, 5, 9, 3, 8, 6, 7, 4, 10))
+df04$integrated_snn_res.0.4 <- factor(df04$integrated_snn_res.0.4, 
+                                      levels = c(0, 1, 6, 2, 3, 10, 4, 8, 12, 11, 7, 5, 9, 13))
+dfct$int03_celltypes <- factor(dfct$int03_celltypes, 
+                               levels = c("Astrocyte", "Intermediate", 
+                                          "OPC", "Proliferating", "T-cell", 
+                                          "Diff. Oligodendrocytes", "Microglia","Endothelial"))
+
+p <- ggplot(df03, aes(x=integrated_snn_res.0.3, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() + 
+  xlab("Cluster ID") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_gte_PC20r03_cnv_bar_sorted.tiff", plot = p, units="in", width=size*1.2, height=size*1, dpi=300, compression = 'lzw')
+
+#plot
+p <- ggplot(df04, aes(x=integrated_snn_res.0.4, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() +
+  xlab("Cluster ID") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_gte_PC20r04_cnv_bar_sorted.tiff", plot = p, units="in", width=size*1.4, height=size*1, dpi=300, compression = 'lzw')
+
+#plot
+p <- ggplot(dfct, aes(x=int03_celltypes, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() + 
+  theme(axis.text.x = element_text(angle = 40, vjust = 0.9, hjust=1)) + 
+  xlab("Cell Type") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_gte_PC20r03_cnv_bar_celltypes_sorted.tiff", plot = p, units="in", width=size*1, height=size*1, dpi=300, compression = 'lzw')
+```
+
+```{r}
+# Export dataframes
+# write.csv(df03,"gbmscte_cnv-by-int03.csv", row.names= FALSE)
+# write.csv(df04,"gbmscte_cnv-by-int04.csv", row.names= FALSE)
+# write.csv(dfct,"gbmscte_cnv-by-celltype.csv", row.names= FALSE)
+```
+
+
+```{r}
+rm(gte)
+gc()
+```
+
+
+## CNV figures (GTE)
+
+### Load Data
+
+```{r}
+ge <- readRDS("D:\\backup files\\2021-11-11\\Cluster\\scratch\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2021-09-02\\ge_gbmscIntUmap-subtypes.rds")
+
+meta <- read.csv("D:\\backup files\\getegbm\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2022-11-09_celltypes_gbmsc\\gbmsc_meta_celltypes.csv", row.names = 1)
+ge@meta.data <- meta
+
+#load bhaduri metadata
+cnv <- read.csv("D:\\backup files\\getegbm\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2022-11-24_cnv\\tumor_SM_id.txt", sep = "\t")
+print(dim(cnv)[1]/dim(ge@meta.data)[1])
+```
+
+28% of cells from the Bhaduri paper match with the cells we found in our assay.
+
+
+```{r}
+size = 5
+colnames(ge@meta.data)
+setwd("D:\\backup files\\getegbm\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2022-11-24_cnv")
+  ## Run this line again. 
+```
+
+### Create figures
+
+```{r}
+## Update metadata with the Bhaduri IDs. 
+meta$bhaduriCNV <- 0
+print(length(unique(cnv$barcode)))
+
+# if barcode column in cnv matches rowname in meta, 
+# then add 1 in the bhaduriCNV column
+for (i in 1:length(cnv$barcode)) {
+  meta$bhaduriCNV[which(rownames(meta) == cnv$barcode[i])] <- 1
+}
+
+print(head(meta$bhaduriCNV))
+# write.csv(meta,"gbmsc_meta_celltypes.csv", row.names= TRUE)
+ge@meta.data <- meta
+```
+
+Visualize UMAP
+
+```{r}
+ge@meta.data$bhaduriCNV <- factor(ge@meta.data$bhaduriCNV, levels=c(0,1))
+ge <- SetIdent(ge, value = ge@meta.data$bhaduriCNV) 
+p <- DimPlot(ge, label=FALSE) +
+  labs(color = "CNV Status")
+p
+# ggsave("fig_gbmscte_ge_PC20r03_UMAP_CNV.tiff", plot = p, units="in", width=size*1.2, height=size*1, dpi=300, compression = 'lzw')
+```
+Create bar plot with cell counts grouped by cluster (or cell type) + CNV status.
+
+```{r}
+# Summarize cell counts grouped by bhaduriCNV
+meta$bhaduriCNV <- factor(meta$bhaduriCNV, levels=c(0,1))
+meta$integrated_snn_res.0.3 <- factor(meta$integrated_snn_res.0.3, levels=seq(0, 11))
+meta$integrated_snn_res.0.4 <- factor(meta$integrated_snn_res.0.4, levels=seq(0, 14))
+meta$int03_celltypes <- factor(meta$int03_celltypes, levels=c(
+  "Astrocyte", "Diff. Oligodendrocytes", "OPC", "Microglia", 
+  "Proliferating", "Intermediate", "Endothelial", "T-cell")
+  )
+
+
+df03 <- meta %>% 
+  select(integrated_snn_res.0.3, bhaduriCNV) %>% 
+  count(integrated_snn_res.0.3, bhaduriCNV, sort=TRUE) 
+  
+  
+df04 <- meta %>% 
+  select(integrated_snn_res.0.4,bhaduriCNV) %>% 
+  count(integrated_snn_res.0.4, bhaduriCNV, sort=TRUE) 
+
+dfct <- meta %>% 
+  select(int03_celltypes, bhaduriCNV) %>%
+  count(int03_celltypes, bhaduriCNV, sort=TRUE) 
+
+
+#plot
+p <- ggplot(df03, aes(x=integrated_snn_res.0.3, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() + 
+  xlab("Cluster ID") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_ge_PC20r03_cnv_bar.tiff", plot = p, units="in", width=size*1.2, height=size*1, dpi=300, compression = 'lzw')
+
+#plot
+p <- ggplot(df04, aes(x=integrated_snn_res.0.4, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() +
+  xlab("Cluster ID") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_ge_PC20r04_cnv_bar.tiff", plot = p, units="in", width=size*1.4, height=size*1, dpi=300, compression = 'lzw')
+
+#plot
+p <- ggplot(dfct, aes(x=int03_celltypes, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() + 
+  theme(axis.text.x = element_text(angle = 40, vjust = 0.9, hjust=1)) + 
+  xlab("Cell Type") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_ge_PC20r03_cnv_bar_celltypes.tiff", plot = p, units="in", width=size*1, height=size*1, dpi=300, compression = 'lzw')
+```
+
+```{r}
+#plot: order barplots according to the cnv status 1
+
+df03$integrated_snn_res.0.3 <- factor(df03$integrated_snn_res.0.3, 
+                                      levels = c(0, 2, 6, 4, 1, 3, 7, 9, 10, 5, 11, 8))
+df04$integrated_snn_res.0.4 <- factor(df04$integrated_snn_res.0.4, 
+                                      levels = c(0, 1, 4, 6, 7, 8, 9, 11, 2, 5, 12, 3, 13,14,10))
+dfct$int03_celltypes <- factor(dfct$int03_celltypes, 
+                               levels = c("Astrocyte", "Intermediate", 
+                                          "Proliferating", "OPC", "T-cell", 
+                                          "Diff. Oligodendrocytes", "Microglia","Endothelial"))
+
+p <- ggplot(df03, aes(x=integrated_snn_res.0.3, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() + 
+  xlab("Cluster ID") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_ge_PC20r03_cnv_bar_sorted.tiff", plot = p, units="in", width=size*1.2, height=size*1, dpi=300, compression = 'lzw')
+
+#plot
+p <- ggplot(df04, aes(x=integrated_snn_res.0.4, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() +
+  xlab("Cluster ID") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_ge_PC20r04_cnv_bar_sorted.tiff", plot = p, units="in", width=size*1.4, height=size*1, dpi=300, compression = 'lzw')
+
+#plot
+p <- ggplot(dfct, aes(x=int03_celltypes, y=n, fill=bhaduriCNV)) + 
+  geom_bar(stat="identity") + theme_classic() + 
+  theme(axis.text.x = element_text(angle = 40, vjust = 0.9, hjust=1)) + 
+  xlab("Cell Type") + ylab("Cell Count") + labs(fill="CNV Status")
+p
+# ggsave("fig_ge_PC20r03_cnv_bar_celltypes_sorted.tiff", plot = p, units="in", width=size*1, height=size*1.2, dpi=300, compression = 'lzw')
+```
+
+```{r}
+# Export dataframes
+# write.csv(df03,"gbmsc_cnv-by-int03.csv", row.names= FALSE)
+# write.csv(df04,"gbmsc_cnv-by-int04.csv", row.names= FALSE)
+# write.csv(dfct,"gbmsc_cnv-by-celltype.csv", row.names= FALSE)
+```
+
+```{r}
+rm(ge)
+gc()
+```
+
+
+## Session INFO
+
+```{r}
+sessionInfo()
+```
+

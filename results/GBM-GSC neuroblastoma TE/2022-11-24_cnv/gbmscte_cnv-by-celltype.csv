@@ -1,0 +1,17 @@
+int03_celltypes,bhaduriCNV,n,perc
+Astrocyte,1,4627,0.527293447
+Astrocyte,0,4148,0.472706553
+Diff. Oligodendrocytes,0,2182,0.931284678
+Diff. Oligodendrocytes,1,161,0.068715322
+Endothelial,0,400,0.968523002
+Endothelial,1,13,0.031476998
+Intermediate,0,7422,0.631982289
+Intermediate,1,4322,0.368017711
+Microglia,0,4971,0.994597839
+Microglia,1,27,0.005402161
+OPC,0,6064,0.749567367
+OPC,1,2026,0.250432633
+Proliferating,0,4221,0.67525196
+Proliferating,1,2030,0.32474804
+T-cell,0,6165,0.87372449
+T-cell,1,891,0.12627551

@@ -1,0 +1,33 @@
+producer_class	xtools.gsea.Gsea
+producer_timestamp	1643302393552
+param	zip_report	false
+param	num	200
+param	scoring_scheme	weighted
+param	norm	meandiv
+param	out	/scratch/samkyy/gete-gbm/data/2022-01-27_gbmscGSEA/jan27
+param	mode	Max_probe
+param	include_only_symbols	true
+param	set_max	1000
+param	gmx	/home/samkyy/scratch/gete-gbm/data/2022-01-27_gbmscGSEA/senescence.gmx
+param	plot_top_x	20
+param	nperm	1000
+param	order	descending
+param	rpt_label	cluster6_Senescence_GTE_table
+param	rnd_seed	160
+param	set_min	5
+param	res	/home/samkyy/scratch/gete-gbm/data/2021-08-30_gbmscGSEA/GTE_table.gct
+param	create_svgs	false
+param	cls	/home/samkyy/scratch/gete-gbm/data/2021-08-30_gbmscGSEA/phenotypes_gte.cls#cluster6_versus_REST
+param	sort	real
+param	create_gcts	false
+param	help	false
+param	save_rnd_lists	false
+param	median	false
+param	metric	Signal2Noise
+param	make_sets	true
+param	rnd_type	no_balance
+param	gui	false
+param	permute	gene_set
+param	collapse	No_Collapse
+
+file	/scratch/samkyy/gete-gbm/data/2022-01-27_gbmscGSEA/jan27/cluster6_Senescence_GTE_table.Gsea.1643302393552/index.html

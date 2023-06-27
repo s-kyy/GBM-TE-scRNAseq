@@ -1,0 +1,171 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> #!usr/bin/env Rscript
+> 
+> # R version 4.0
+> 
+> set.seed(108)
+> 
+> ## Import arguements
+> source("~/scratch/gete-gbm/bin/util.R")
+> setwd("~/scratch/temp/")
+> resultsPath <- "~/scratch/temp"
+> print(paste0("Results path:", getwd()))
+[1] "Results path:/scratch/samkyy/temp"
+> mkdirToday()
+[1] "Current working directory: /scratch/samkyy/temp"
+[1] "New working directory: /scratch/samkyy/temp/2023-02-28"
+Warning message:
+In dir.create(file.path(maindir, subdir)) :
+  '/home/samkyy/scratch/temp/2023-02-28' already exists
+> print(paste0("Output path:", getwd()))
+[1] "Output path:/scratch/samkyy/temp/2023-02-28"
+> 
+> ## Set library path
+> .libPaths(c("/scratch/samkyy/gete-gbm/renv/library/R-4.0/x86_64-pc-linux-gnu",
++             "/tmp/RtmpJsRC8Z/renv-system-library",
++             .libPaths()))
+> .libPaths()
+[1] "/home/samkyy/R/x86_64-pc-linux-gnu-library/tcga-gbm-R4/renv/library/R-4.0/x86_64-pc-linux-gnu"
+[2] "/home/samkyy/R/x86_64-pc-linux-gnu-library/4.0"                                               
+[3] "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Core/r/4.0.2/lib64/R/library"       
+> 
+> ## Import libraries
+> library(Seurat)
+Attaching SeuratObject
+> library(Matrix)
+> 
+> ## Import data and set ident
+> gte <- readRDS("~/projects/def-ytanaka/common/te-gbm_proj/analysis/gte_gbmscIntUmap-subtypes.rds")
+> colnames(gte@meta.data)
+ [1] "orig.ident"                 "nUMI"                      
+ [3] "nGene"                      "log10GenesPerUMI"          
+ [5] "mitoRatio"                  "cells"                     
+ [7] "sample"                     "nCount_RNA"                
+ [9] "nFeature_RNA"               "GBM_integrated_snn_res.0.8"
+[11] "GBM_seurat_clusters"        "neuro.ident"               
+[13] "nCount_integrated"          "nFeature_integrated"       
+[15] "integrated_snn_res.0.7"     "seurat_clusters"           
+[17] "MGMTme"                     "sampleCombined"            
+[19] "integrated_snn_res.0.2"     "integrated_snn_res.0.3"    
+[21] "integrated_snn_res.0.4"     "integrated_snn_res.0.5"    
+[23] "integrated_snn_res.0.6"     "teRatio"                   
+[25] "gbm_subtype"               
+> head(gte$integrated_snn_res.0.3)
+GBM_AAACCTGCAATTCCTT-1 GBM_AAACCTGCACAGAGGT-1 GBM_AAACCTGGTGTGGCTC-1 
+                     1                      4                      0 
+GBM_AAACGGGGTCCGAATT-1 GBM_AAACGGGTCGAATGGG-1 GBM_AAAGATGGTCTCAACA-1 
+                     0                      2                      2 
+Levels: 0 1 2 3 4 5 6 7 8 9 10
+> head(Idents(gte))
+GBM_AAACCTGCAATTCCTT-1 GBM_AAACCTGCACAGAGGT-1 GBM_AAACCTGGTGTGGCTC-1 
+                     1                      4                      0 
+GBM_AAACGGGGTCCGAATT-1 GBM_AAACGGGTCGAATGGG-1 GBM_AAAGATGGTCTCAACA-1 
+                     0                      2                      2 
+Levels: 0 1 2 3 4 5 6 7 8 9 10
+> 
+> Idents(gte) <- "integrated_snn_res.0.3"
+> DefaultAssay(gte) <- "integrated"
+> 
+> ## run function
+> gte_markers <- FindAllMarkers(gte, only.pos = FALSE, min.pct = 0.25, min.diff.pct = 0.25, logfc.threshold = 0.25)
+Calculating cluster 0
+Calculating cluster 1
+Calculating cluster 2
+Calculating cluster 3
+Calculating cluster 4
+Calculating cluster 5
+Calculating cluster 6
+Calculating cluster 7
+Calculating cluster 8
+Calculating cluster 9
+Calculating cluster 10
+Warning messages:
+1: In FindMarkers.default(object = data.use, slot = data.slot, counts = counts,  :
+  No features pass logfc.threshold threshold; returning empty data.frame
+2: In FindMarkers.default(object = data.use, slot = data.slot, counts = counts,  :
+  No features pass logfc.threshold threshold; returning empty data.frame
+> 
+> ## export to csv file
+> write.csv(gte_markers, "./gte_markers.csv", row.names=TRUE)
+> 
+> sessionInfo()
+R version 4.0.2 (2020-06-22)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: CentOS Linux 7 (Core)
+
+Matrix products: default
+BLAS/LAPACK: /cvmfs/soft.computecanada.ca/easybuild/software/2020/Core/imkl/2020.1.217/compilers_and_libraries_2020.1.217/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
+
+locale:
+ [1] LC_CTYPE=en_CA.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_CA.UTF-8        LC_COLLATE=en_CA.UTF-8    
+ [5] LC_MONETARY=en_CA.UTF-8    LC_MESSAGES=en_CA.UTF-8   
+ [7] LC_PAPER=en_CA.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_CA.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] Matrix_1.3-2       SeuratObject_4.0.0 Seurat_4.0.1      
+
+loaded via a namespace (and not attached):
+  [1] nlme_3.1-152          matrixStats_0.58.0    spatstat.sparse_2.0-0
+  [4] RcppAnnoy_0.0.19      RColorBrewer_1.1-2    httr_1.4.2           
+  [7] sctransform_0.3.2     tools_4.0.2           utf8_1.2.2           
+ [10] R6_2.5.0              irlba_2.3.3           rpart_4.1-15         
+ [13] KernSmooth_2.23-18    uwot_0.1.10           mgcv_1.8-34          
+ [16] DBI_1.1.1             lazyeval_0.2.2        colorspace_2.0-2     
+ [19] tidyselect_1.1.1      gridExtra_2.3         compiler_4.0.2       
+ [22] plotly_4.9.4.1        scales_1.1.1          lmtest_0.9-38        
+ [25] spatstat.data_2.1-0   ggridges_0.5.3        pbapply_1.4-3        
+ [28] goftest_1.2-2         stringr_1.4.0         digest_0.6.27        
+ [31] spatstat.utils_2.2-0  pkgconfig_2.0.3       htmltools_0.5.1.1    
+ [34] parallelly_1.27.0     limma_3.46.0          fastmap_1.1.0        
+ [37] htmlwidgets_1.5.3     rlang_0.4.11          shiny_1.6.0          
+ [40] generics_0.1.0        zoo_1.8-9             jsonlite_1.7.2       
+ [43] ica_1.0-2             dplyr_1.0.7           magrittr_2.0.1       
+ [46] patchwork_1.1.1       Rcpp_1.0.7            munsell_0.5.0        
+ [49] fansi_0.5.0           abind_1.4-5           reticulate_1.20      
+ [52] lifecycle_1.0.0       stringi_1.7.3         MASS_7.3-54          
+ [55] Rtsne_0.15            plyr_1.8.6            grid_4.0.2           
+ [58] parallel_4.0.2        listenv_0.8.0         promises_1.2.0.1     
+ [61] ggrepel_0.9.1         crayon_1.4.1          miniUI_0.1.1.1       
+ [64] deldir_0.2-10         lattice_0.20-41       cowplot_1.1.1        
+ [67] splines_4.0.2         tensor_1.5            pillar_1.6.2         
+ [70] igraph_1.2.6          spatstat.geom_2.2-2   future.apply_1.7.0   
+ [73] reshape2_1.4.4        codetools_0.2-18      leiden_0.3.9         
+ [76] glue_1.6.2            data.table_1.14.0     png_0.1-7            
+ [79] vctrs_0.3.8           httpuv_1.6.1          gtable_0.3.0         
+ [82] RANN_2.6.1            purrr_0.3.4           spatstat.core_2.3-0  
+ [85] polyclip_1.10-0       tidyr_1.1.3           scattermore_0.7      
+ [88] future_1.21.0         assertthat_0.2.1      ggplot2_3.3.5        
+ [91] mime_0.11             xtable_1.8-4          later_1.2.0          
+ [94] survival_3.2-13       viridisLite_0.4.0     tibble_3.1.3         
+ [97] cluster_2.1.1         globals_0.14.0        fitdistrplus_1.1-5   
+[100] ellipsis_0.3.2        ROCR_1.0-11          
+> print("Script complete. Exiting")
+[1] "Script complete. Exiting"
+> 
+> proc.time()
+    user   system  elapsed 
+1247.440   78.552 1340.402 

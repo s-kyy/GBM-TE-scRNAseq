@@ -1,0 +1,3 @@
+/home/samkyy/scratch/temp
+/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Core/r/4.0.2/lib64/R/bin/BATCH: line 60: 28866 Killed                  ${R_HOME}/bin/R -f ${in} ${opts} ${R_BATCH_OPTIONS} > ${out} 2>&1
+slurmstepd: error: Detected 1 oom-kill event(s) in StepId=61409608.batch. Some of your processes may have been killed by the cgroup out-of-memory handler.

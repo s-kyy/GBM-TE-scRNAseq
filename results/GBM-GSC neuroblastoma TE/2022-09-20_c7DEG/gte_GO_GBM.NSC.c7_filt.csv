@@ -1,0 +1,18 @@
+GOID,Term,Class,Pvalue,p.adj,nlog10p.adj,OddsRatio,ExpCount,Count,Size,cluster,group
+GO:0043618,regulation of transcription from RNA polymerase II promoter in response to stress,BP,3.35E-05,0.000557501,3.253754276,25.48163265,0.184882858,4,109,7,GBM
+GO:0043620,regulation of DNA-templated transcription in response to stress,BP,4.13E-05,0.000640976,3.193158064,24.0965251,0.195059896,4,115,7,GBM
+GO:0042127,regulation of cell population proliferation,BP,1.13E-06,7.76E-05,4.11022881,3.544314862,8.799109509,25,1766,7,NSC
+GO:0050673,epithelial cell proliferation,BP,1.56E-05,0.000497776,3.302966152,5.496102055,2.257076222,11,453,7,NSC
+GO:0008285,negative regulation of cell population proliferation,BP,3.34E-05,0.000895612,3.047879861,4.080310881,3.916251458,14,786,7,NSC
+GO:0071456,cellular response to hypoxia,BP,8.14E-05,0.001802521,2.7441196,7.433922342,1.036361709,7,208,7,NSC
+GO:0010464,regulation of mesenchymal cell proliferation,BP,0.000586428,0.008899909,2.050614422,20.5956044,0.164422771,3,33,7,NSC
+GO:0006119,oxidative phosphorylation,BP,6.95E-22,6.12E-20,19.21301688,11.62751678,3.790946677,33,149,7,TE-enriched
+GO:0071456,cellular response to hypoxia,BP,5.94E-20,4.04E-18,17.39333582,8.586109365,5.29205979,36,208,7,TE-enriched
+GO:0043620,regulation of DNA-templated transcription in response to stress,BP,7.91E-19,4.99E-17,16.3022247,12.39328718,2.925898442,27,115,7,TE-enriched
+GO:0043618,regulation of transcription from RNA polymerase II promoter in response to stress,BP,2.31E-18,1.37E-16,15.86340314,12.62878828,2.773242871,26,109,7,TE-enriched
+GO:0033554,cellular response to stress,BP,4.23E-13,1.67E-11,10.77770301,2.38933152,53.4294498,108,2100,7,TE-enriched
+GO:1902750,negative regulation of cell cycle G2/M phase transition,BP,1.94E-09,4.58E-08,7.338938754,7.381743526,2.747800276,17,108,7,TE-enriched
+GO:1990169,stress response to copper ion,BP,2.54E-05,0.000287436,3.541459088,19.34315789,0.381638927,5,15,7,TE-enriched
+GO:0097501,stress response to metal ion,BP,5.02E-05,0.000511054,3.291532852,16.11754386,0.432524117,5,17,7,TE-enriched
+GO:1990144,intrinsic apoptotic signaling pathway in response to hypoxia,BP,0.000530765,0.003857706,2.413670873,28.90251572,0.178098166,3,7,7,TE-enriched
+GO:0007568,aging,BP,0.000563977,0.004069468,2.390462385,2.484699928,8.116187851,19,319,7,TE-enriched

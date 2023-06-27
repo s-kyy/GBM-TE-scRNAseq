@@ -1,0 +1,369 @@
+[1] "Results path:/scratch/samkyy/temp/analysis"
+[1] "Current working directory: /scratch/samkyy/temp/analysis"
+[1] "New working directory: /scratch/samkyy/temp/analysis/2023-03-08"
+[1] "Output path:/scratch/samkyy/temp/analysis/2023-03-08"
+[1] "/home/samkyy/R/x86_64-pc-linux-gnu-library/tcga-gbm-R4/renv/library/R-4.0/x86_64-pc-linux-gnu"
+[2] "/home/samkyy/R/x86_64-pc-linux-gnu-library/4.0"                                               
+[3] "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Core/r/4.0.2/lib64/R/library"       
+[1] "Dimensions of hg38 annotated matrix: "
+[1] 36601 60065
+[1] "First ten cell names "
+ [1] "AAACCTGAGCGCCTCA-1" "AAACCTGGTCACCCAG-1" "AAACCTGGTTTGCATG-1"
+ [4] "AAACGGGAGTGTACGG-1" "AAACGGGCAGCATACT-1" "AAACGGGCATGAGCGA-1"
+ [7] "AAACGGGGTTCGGCAC-1" "AAACGGGGTTGGTTTG-1" "AAACGGGTCGCCGTGA-1"
+[10] "AAAGATGAGCTGCGAA-1"
+[1] "First ten genes"
+ [1] "MIR1302-2HG" "FAM138A"     "OR4F5"       "AL627309.1"  "AL627309.3" 
+ [6] "AL627309.2"  "AL627309.5"  "AL627309.4"  "AP006222.2"  "AL732372.1" 
+[1] "Dimensions of TE annotated matrix: "
+[1]  1180 37204
+[1] "First ten cell names"
+ [1] "AAACCTGAGCGCCTCA-1" "AAACCTGGTCACCCAG-1" "AAACCTGGTTTGCATG-1"
+ [4] "AAACGGGCAGCATACT-1" "AAACGGGCATGAGCGA-1" "AAACGGGGTTCGGCAC-1"
+ [7] "AAACGGGTCGCCGTGA-1" "AAAGCAACAAGCGATG-1" "AAAGCAACAGTGGGAT-1"
+[10] "AAAGCAATCCTCGCAT-1"
+[1] "First ten genes"
+ [1] "TAR1"    "L1MC5a"  "MER5B"   "MIR3"    "L2a"     "L3"      "Plat_L3"
+ [8] "MLT1K"   "MIR"     "L2b"    
+[1] "Imported original ge object as ge original"
+[1] "Imported original gte object as gte_original"
+[1] "Number of intersecting cell names37104"
+[1] "SC1 = SRR10353960"
+[1] "SC2 = SRR10353961"
+[1] "SC3 = SRR10353962"
+             used   (Mb) gc trigger    (Mb)   max used    (Mb)
+Ncells    2679437  143.1    4380364   234.0    4380364   234.0
+Vcells 1012373663 7723.8 1894290219 14452.3 1660053775 12665.3
+[1] "SC1 = SRR10353960"
+[1] "SC2 = SRR10353961"
+[1] "SC3 = SRR10353962"
+            used   (Mb) gc trigger    (Mb)   max used    (Mb)
+Ncells   2606430  139.2    4380364   234.0    4380364   234.0
+Vcells 601675113 4590.5 1894290219 14452.3 1660053775 12665.3
+            used   (Mb) gc trigger    (Mb)   max used    (Mb)
+Ncells   2670145  142.7    4380364   234.0    4380364   234.0
+Vcells 683355788 5213.6 1894290219 14452.3 1786645931 13631.1
+[1] "Metadata of gte_combined"
+                       orig.ident nCount_RNA nFeature_RNA nUMI nGene
+GBM_AAACCTGAGCGCCTCA-1          1       3233         1439   NA    NA
+GBM_AAACCTGGTCACCCAG-1          1       2633         1228   NA    NA
+GBM_AAACCTGGTTTGCATG-1          1       2326          877   NA    NA
+GBM_AAACGGGCAGCATACT-1          1      25792         5441   NA    NA
+GBM_AAACGGGCATGAGCGA-1          1       9393         3175   NA    NA
+GBM_AAACGGGGTTCGGCAC-1          1       2286         1088   NA    NA
+                       log10GenesPerUMI mitoRatio cells sample
+GBM_AAACCTGAGCGCCTCA-1               NA        NA  <NA>   <NA>
+GBM_AAACCTGGTCACCCAG-1               NA        NA  <NA>   <NA>
+GBM_AAACCTGGTTTGCATG-1               NA        NA  <NA>   <NA>
+GBM_AAACGGGCAGCATACT-1               NA        NA  <NA>   <NA>
+GBM_AAACGGGCATGAGCGA-1               NA        NA  <NA>   <NA>
+GBM_AAACGGGGTTCGGCAC-1               NA        NA  <NA>   <NA>
+                       GBM_integrated_snn_res.0.8 GBM_seurat_clusters
+GBM_AAACCTGAGCGCCTCA-1                       <NA>                <NA>
+GBM_AAACCTGGTCACCCAG-1                       <NA>                <NA>
+GBM_AAACCTGGTTTGCATG-1                       <NA>                <NA>
+GBM_AAACGGGCAGCATACT-1                       <NA>                <NA>
+GBM_AAACGGGCATGAGCGA-1                       <NA>                <NA>
+GBM_AAACGGGGTTCGGCAC-1                       <NA>                <NA>
+                       neuro.ident nCount_integrated nFeature_integrated
+GBM_AAACCTGAGCGCCTCA-1        <NA>                NA                  NA
+GBM_AAACCTGGTCACCCAG-1        <NA>                NA                  NA
+GBM_AAACCTGGTTTGCATG-1        <NA>                NA                  NA
+GBM_AAACGGGCAGCATACT-1        <NA>                NA                  NA
+GBM_AAACGGGCATGAGCGA-1        <NA>                NA                  NA
+GBM_AAACGGGGTTCGGCAC-1        <NA>                NA                  NA
+                       integrated_snn_res.0.7 seurat_clusters MGMTme
+GBM_AAACCTGAGCGCCTCA-1                   <NA>            <NA>     NA
+GBM_AAACCTGGTCACCCAG-1                   <NA>            <NA>     NA
+GBM_AAACCTGGTTTGCATG-1                   <NA>            <NA>     NA
+GBM_AAACGGGCAGCATACT-1                   <NA>            <NA>     NA
+GBM_AAACGGGCATGAGCGA-1                   <NA>            <NA>     NA
+GBM_AAACGGGGTTCGGCAC-1                   <NA>            <NA>     NA
+                       sampleCombined integrated_snn_res.0.2
+GBM_AAACCTGAGCGCCTCA-1           <NA>                   <NA>
+GBM_AAACCTGGTCACCCAG-1           <NA>                   <NA>
+GBM_AAACCTGGTTTGCATG-1           <NA>                   <NA>
+GBM_AAACGGGCAGCATACT-1           <NA>                   <NA>
+GBM_AAACGGGCATGAGCGA-1           <NA>                   <NA>
+GBM_AAACGGGGTTCGGCAC-1           <NA>                   <NA>
+                       integrated_snn_res.0.3 integrated_snn_res.0.4
+GBM_AAACCTGAGCGCCTCA-1                   <NA>                   <NA>
+GBM_AAACCTGGTCACCCAG-1                   <NA>                   <NA>
+GBM_AAACCTGGTTTGCATG-1                   <NA>                   <NA>
+GBM_AAACGGGCAGCATACT-1                   <NA>                   <NA>
+GBM_AAACGGGCATGAGCGA-1                   <NA>                   <NA>
+GBM_AAACGGGGTTCGGCAC-1                   <NA>                   <NA>
+                       integrated_snn_res.0.5 integrated_snn_res.0.6 teRatio
+GBM_AAACCTGAGCGCCTCA-1                   <NA>                   <NA>      NA
+GBM_AAACCTGGTCACCCAG-1                   <NA>                   <NA>      NA
+GBM_AAACCTGGTTTGCATG-1                   <NA>                   <NA>      NA
+GBM_AAACGGGCAGCATACT-1                   <NA>                   <NA>      NA
+GBM_AAACGGGCATGAGCGA-1                   <NA>                   <NA>      NA
+GBM_AAACGGGGTTCGGCAC-1                   <NA>                   <NA>      NA
+                       gbm_subtype
+GBM_AAACCTGAGCGCCTCA-1        <NA>
+GBM_AAACCTGGTCACCCAG-1        <NA>
+GBM_AAACCTGGTTTGCATG-1        <NA>
+GBM_AAACGGGCAGCATACT-1        <NA>
+GBM_AAACGGGCATGAGCGA-1        <NA>
+GBM_AAACGGGGTTCGGCAC-1        <NA>
+            used   (Mb) gc trigger    (Mb)   max used  (Mb)
+Ncells   2653045  141.7    4380364   234.0    4380364   234
+Vcells 784917363 5988.5 1894290219 14452.3 1866845770 14243
+[1] "Metadata of ge_combined"
+                       orig.ident nCount_RNA nFeature_RNA nUMI nGene
+GBM_AAACCTGAGCGCCTCA-1          1       2292         1285   NA    NA
+GBM_AAACCTGGTCACCCAG-1          1       1680         1073   NA    NA
+GBM_AAACCTGGTTTGCATG-1          1       1605          731   NA    NA
+GBM_AAACGGGAGTGTACGG-1          1       1219          713   NA    NA
+GBM_AAACGGGCAGCATACT-1          1      21164         5115   NA    NA
+GBM_AAACGGGCATGAGCGA-1          1       7447         2939   NA    NA
+                       log10GenesPerUMI mitoRatio cells sample
+GBM_AAACCTGAGCGCCTCA-1               NA        NA  <NA>   <NA>
+GBM_AAACCTGGTCACCCAG-1               NA        NA  <NA>   <NA>
+GBM_AAACCTGGTTTGCATG-1               NA        NA  <NA>   <NA>
+GBM_AAACGGGAGTGTACGG-1               NA        NA  <NA>   <NA>
+GBM_AAACGGGCAGCATACT-1               NA        NA  <NA>   <NA>
+GBM_AAACGGGCATGAGCGA-1               NA        NA  <NA>   <NA>
+                       GBM_integrated_snn_res.0.8 GBM_seurat_clusters
+GBM_AAACCTGAGCGCCTCA-1                       <NA>                <NA>
+GBM_AAACCTGGTCACCCAG-1                       <NA>                <NA>
+GBM_AAACCTGGTTTGCATG-1                       <NA>                <NA>
+GBM_AAACGGGAGTGTACGG-1                       <NA>                <NA>
+GBM_AAACGGGCAGCATACT-1                       <NA>                <NA>
+GBM_AAACGGGCATGAGCGA-1                       <NA>                <NA>
+                       neuro.ident nCount_integrated nFeature_integrated
+GBM_AAACCTGAGCGCCTCA-1        <NA>                NA                  NA
+GBM_AAACCTGGTCACCCAG-1        <NA>                NA                  NA
+GBM_AAACCTGGTTTGCATG-1        <NA>                NA                  NA
+GBM_AAACGGGAGTGTACGG-1        <NA>                NA                  NA
+GBM_AAACGGGCAGCATACT-1        <NA>                NA                  NA
+GBM_AAACGGGCATGAGCGA-1        <NA>                NA                  NA
+                       integrated_snn_res.0.7 seurat_clusters MGMTme
+GBM_AAACCTGAGCGCCTCA-1                   <NA>            <NA>     NA
+GBM_AAACCTGGTCACCCAG-1                   <NA>            <NA>     NA
+GBM_AAACCTGGTTTGCATG-1                   <NA>            <NA>     NA
+GBM_AAACGGGAGTGTACGG-1                   <NA>            <NA>     NA
+GBM_AAACGGGCAGCATACT-1                   <NA>            <NA>     NA
+GBM_AAACGGGCATGAGCGA-1                   <NA>            <NA>     NA
+                       sampleCombined integrated_snn_res.0.2
+GBM_AAACCTGAGCGCCTCA-1           <NA>                   <NA>
+GBM_AAACCTGGTCACCCAG-1           <NA>                   <NA>
+GBM_AAACCTGGTTTGCATG-1           <NA>                   <NA>
+GBM_AAACGGGAGTGTACGG-1           <NA>                   <NA>
+GBM_AAACGGGCAGCATACT-1           <NA>                   <NA>
+GBM_AAACGGGCATGAGCGA-1           <NA>                   <NA>
+                       integrated_snn_res.0.3 integrated_snn_res.0.4
+GBM_AAACCTGAGCGCCTCA-1                   <NA>                   <NA>
+GBM_AAACCTGGTCACCCAG-1                   <NA>                   <NA>
+GBM_AAACCTGGTTTGCATG-1                   <NA>                   <NA>
+GBM_AAACGGGAGTGTACGG-1                   <NA>                   <NA>
+GBM_AAACGGGCAGCATACT-1                   <NA>                   <NA>
+GBM_AAACGGGCATGAGCGA-1                   <NA>                   <NA>
+                       integrated_snn_res.0.5 integrated_snn_res.0.6
+GBM_AAACCTGAGCGCCTCA-1                   <NA>                   <NA>
+GBM_AAACCTGGTCACCCAG-1                   <NA>                   <NA>
+GBM_AAACCTGGTTTGCATG-1                   <NA>                   <NA>
+GBM_AAACGGGAGTGTACGG-1                   <NA>                   <NA>
+GBM_AAACGGGCAGCATACT-1                   <NA>                   <NA>
+GBM_AAACGGGCATGAGCGA-1                   <NA>                   <NA>
+                       gbm_subtype
+GBM_AAACCTGAGCGCCTCA-1        <NA>
+GBM_AAACCTGGTCACCCAG-1        <NA>
+GBM_AAACCTGGTTTGCATG-1        <NA>
+GBM_AAACGGGAGTGTACGG-1        <NA>
+GBM_AAACGGGCAGCATACT-1        <NA>
+GBM_AAACGGGCATGAGCGA-1        <NA>
+GBM_AAACCTGAGCGCCTCA-1 GBM_AAACCTGGTCACCCAG-1 GBM_AAACCTGGTTTGCATG-1 
+             0.8998335              0.9031553              0.8741731 
+GBM_AAACGGGCAGCATACT-1 GBM_AAACGGGCATGAGCGA-1 GBM_AAACGGGGTTCGGCAC-1 
+             0.8468075              0.8814287              0.9040071 
+GBM_AAACCTGAGCGCCTCA-1 GBM_AAACCTGGTCACCCAG-1 GBM_AAACCTGGTTTGCATG-1 
+             0.9252097              0.9396307              0.8934455 
+GBM_AAACGGGAGTGTACGG-1 GBM_AAACGGGCAGCATACT-1 GBM_AAACGGGCATGAGCGA-1 
+             0.9245256              0.8574181              0.8957170 
+                       orig.ident nCount_RNA nFeature_RNA nUMI nGene
+GBM_AAACCTGAGCGCCTCA-1          1       3233         1439   NA    NA
+GBM_AAACCTGGTCACCCAG-1          1       2633         1228   NA    NA
+GBM_AAACCTGGTTTGCATG-1          1       2326          877   NA    NA
+GBM_AAACGGGCAGCATACT-1          1      25792         5441   NA    NA
+GBM_AAACGGGCATGAGCGA-1          1       9393         3175   NA    NA
+GBM_AAACGGGGTTCGGCAC-1          1       2286         1088   NA    NA
+                       log10GenesPerUMI   mitoRatio cells sample
+GBM_AAACCTGAGCGCCTCA-1        0.8998335 0.044231364  <NA>   <NA>
+GBM_AAACCTGGTCACCCAG-1        0.9031553 0.008355488  <NA>   <NA>
+GBM_AAACCTGGTTTGCATG-1        0.8741731 0.001719690  <NA>   <NA>
+GBM_AAACGGGCAGCATACT-1        0.8468075 0.047727978  <NA>   <NA>
+GBM_AAACGGGCATGAGCGA-1        0.8814287 0.007984669  <NA>   <NA>
+GBM_AAACGGGGTTCGGCAC-1        0.9040071 0.013123360  <NA>   <NA>
+                       GBM_integrated_snn_res.0.8 GBM_seurat_clusters
+GBM_AAACCTGAGCGCCTCA-1                       <NA>                <NA>
+GBM_AAACCTGGTCACCCAG-1                       <NA>                <NA>
+GBM_AAACCTGGTTTGCATG-1                       <NA>                <NA>
+GBM_AAACGGGCAGCATACT-1                       <NA>                <NA>
+GBM_AAACGGGCATGAGCGA-1                       <NA>                <NA>
+GBM_AAACGGGGTTCGGCAC-1                       <NA>                <NA>
+                       neuro.ident nCount_integrated nFeature_integrated
+GBM_AAACCTGAGCGCCTCA-1        <NA>                NA                  NA
+GBM_AAACCTGGTCACCCAG-1        <NA>                NA                  NA
+GBM_AAACCTGGTTTGCATG-1        <NA>                NA                  NA
+GBM_AAACGGGCAGCATACT-1        <NA>                NA                  NA
+GBM_AAACGGGCATGAGCGA-1        <NA>                NA                  NA
+GBM_AAACGGGGTTCGGCAC-1        <NA>                NA                  NA
+                       integrated_snn_res.0.7 seurat_clusters MGMTme
+GBM_AAACCTGAGCGCCTCA-1                   <NA>            <NA>     NA
+GBM_AAACCTGGTCACCCAG-1                   <NA>            <NA>     NA
+GBM_AAACCTGGTTTGCATG-1                   <NA>            <NA>     NA
+GBM_AAACGGGCAGCATACT-1                   <NA>            <NA>     NA
+GBM_AAACGGGCATGAGCGA-1                   <NA>            <NA>     NA
+GBM_AAACGGGGTTCGGCAC-1                   <NA>            <NA>     NA
+                       sampleCombined integrated_snn_res.0.2
+GBM_AAACCTGAGCGCCTCA-1           <NA>                   <NA>
+GBM_AAACCTGGTCACCCAG-1           <NA>                   <NA>
+GBM_AAACCTGGTTTGCATG-1           <NA>                   <NA>
+GBM_AAACGGGCAGCATACT-1           <NA>                   <NA>
+GBM_AAACGGGCATGAGCGA-1           <NA>                   <NA>
+GBM_AAACGGGGTTCGGCAC-1           <NA>                   <NA>
+                       integrated_snn_res.0.3 integrated_snn_res.0.4
+GBM_AAACCTGAGCGCCTCA-1                   <NA>                   <NA>
+GBM_AAACCTGGTCACCCAG-1                   <NA>                   <NA>
+GBM_AAACCTGGTTTGCATG-1                   <NA>                   <NA>
+GBM_AAACGGGCAGCATACT-1                   <NA>                   <NA>
+GBM_AAACGGGCATGAGCGA-1                   <NA>                   <NA>
+GBM_AAACGGGGTTCGGCAC-1                   <NA>                   <NA>
+                       integrated_snn_res.0.5 integrated_snn_res.0.6 teRatio
+GBM_AAACCTGAGCGCCTCA-1                   <NA>                   <NA>      NA
+GBM_AAACCTGGTCACCCAG-1                   <NA>                   <NA>      NA
+GBM_AAACCTGGTTTGCATG-1                   <NA>                   <NA>      NA
+GBM_AAACGGGCAGCATACT-1                   <NA>                   <NA>      NA
+GBM_AAACGGGCATGAGCGA-1                   <NA>                   <NA>      NA
+GBM_AAACGGGGTTCGGCAC-1                   <NA>                   <NA>      NA
+                       gbm_subtype
+GBM_AAACCTGAGCGCCTCA-1        <NA>
+GBM_AAACCTGGTCACCCAG-1        <NA>
+GBM_AAACCTGGTTTGCATG-1        <NA>
+GBM_AAACGGGCAGCATACT-1        <NA>
+GBM_AAACGGGCATGAGCGA-1        <NA>
+GBM_AAACGGGGTTCGGCAC-1        <NA>
+                       orig.ident nCount_RNA nFeature_RNA nUMI nGene
+GBM_AAACCTGAGCGCCTCA-1          1       2292         1285   NA    NA
+GBM_AAACCTGGTCACCCAG-1          1       1680         1073   NA    NA
+GBM_AAACCTGGTTTGCATG-1          1       1605          731   NA    NA
+GBM_AAACGGGAGTGTACGG-1          1       1219          713   NA    NA
+GBM_AAACGGGCAGCATACT-1          1      21164         5115   NA    NA
+GBM_AAACGGGCATGAGCGA-1          1       7447         2939   NA    NA
+                       log10GenesPerUMI   mitoRatio cells sample
+GBM_AAACCTGAGCGCCTCA-1        0.9252097 0.062390925  <NA>   <NA>
+GBM_AAACCTGGTCACCCAG-1        0.9396307 0.013095238  <NA>   <NA>
+GBM_AAACCTGGTTTGCATG-1        0.8934455 0.002492212  <NA>   <NA>
+GBM_AAACGGGAGTGTACGG-1        0.9245256 0.037735849  <NA>   <NA>
+GBM_AAACGGGCAGCATACT-1        0.8574181 0.058164808  <NA>   <NA>
+GBM_AAACGGGCATGAGCGA-1        0.8957170 0.010071170  <NA>   <NA>
+                       GBM_integrated_snn_res.0.8 GBM_seurat_clusters
+GBM_AAACCTGAGCGCCTCA-1                       <NA>                <NA>
+GBM_AAACCTGGTCACCCAG-1                       <NA>                <NA>
+GBM_AAACCTGGTTTGCATG-1                       <NA>                <NA>
+GBM_AAACGGGAGTGTACGG-1                       <NA>                <NA>
+GBM_AAACGGGCAGCATACT-1                       <NA>                <NA>
+GBM_AAACGGGCATGAGCGA-1                       <NA>                <NA>
+                       neuro.ident nCount_integrated nFeature_integrated
+GBM_AAACCTGAGCGCCTCA-1        <NA>                NA                  NA
+GBM_AAACCTGGTCACCCAG-1        <NA>                NA                  NA
+GBM_AAACCTGGTTTGCATG-1        <NA>                NA                  NA
+GBM_AAACGGGAGTGTACGG-1        <NA>                NA                  NA
+GBM_AAACGGGCAGCATACT-1        <NA>                NA                  NA
+GBM_AAACGGGCATGAGCGA-1        <NA>                NA                  NA
+                       integrated_snn_res.0.7 seurat_clusters MGMTme
+GBM_AAACCTGAGCGCCTCA-1                   <NA>            <NA>     NA
+GBM_AAACCTGGTCACCCAG-1                   <NA>            <NA>     NA
+GBM_AAACCTGGTTTGCATG-1                   <NA>            <NA>     NA
+GBM_AAACGGGAGTGTACGG-1                   <NA>            <NA>     NA
+GBM_AAACGGGCAGCATACT-1                   <NA>            <NA>     NA
+GBM_AAACGGGCATGAGCGA-1                   <NA>            <NA>     NA
+                       sampleCombined integrated_snn_res.0.2
+GBM_AAACCTGAGCGCCTCA-1           <NA>                   <NA>
+GBM_AAACCTGGTCACCCAG-1           <NA>                   <NA>
+GBM_AAACCTGGTTTGCATG-1           <NA>                   <NA>
+GBM_AAACGGGAGTGTACGG-1           <NA>                   <NA>
+GBM_AAACGGGCAGCATACT-1           <NA>                   <NA>
+GBM_AAACGGGCATGAGCGA-1           <NA>                   <NA>
+                       integrated_snn_res.0.3 integrated_snn_res.0.4
+GBM_AAACCTGAGCGCCTCA-1                   <NA>                   <NA>
+GBM_AAACCTGGTCACCCAG-1                   <NA>                   <NA>
+GBM_AAACCTGGTTTGCATG-1                   <NA>                   <NA>
+GBM_AAACGGGAGTGTACGG-1                   <NA>                   <NA>
+GBM_AAACGGGCAGCATACT-1                   <NA>                   <NA>
+GBM_AAACGGGCATGAGCGA-1                   <NA>                   <NA>
+                       integrated_snn_res.0.5 integrated_snn_res.0.6
+GBM_AAACCTGAGCGCCTCA-1                   <NA>                   <NA>
+GBM_AAACCTGGTCACCCAG-1                   <NA>                   <NA>
+GBM_AAACCTGGTTTGCATG-1                   <NA>                   <NA>
+GBM_AAACGGGAGTGTACGG-1                   <NA>                   <NA>
+GBM_AAACGGGCAGCATACT-1                   <NA>                   <NA>
+GBM_AAACGGGCATGAGCGA-1                   <NA>                   <NA>
+                       gbm_subtype
+GBM_AAACCTGAGCGCCTCA-1        <NA>
+GBM_AAACCTGGTCACCCAG-1        <NA>
+GBM_AAACCTGGTTTGCATG-1        <NA>
+GBM_AAACGGGAGTGTACGG-1        <NA>
+GBM_AAACGGGCAGCATACT-1        <NA>
+GBM_AAACGGGCATGAGCGA-1        <NA>
+[1] "Exported initial gte seurat object"
+[1] "Exported initial ge seurat object"
+R version 4.0.2 (2020-06-22)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: CentOS Linux 7 (Core)
+
+Matrix products: default
+BLAS/LAPACK: /cvmfs/soft.computecanada.ca/easybuild/software/2020/Core/imkl/2020.1.217/compilers_and_libraries_2020.1.217/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
+
+locale:
+ [1] LC_CTYPE=en_CA.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_CA.UTF-8        LC_COLLATE=en_CA.UTF-8    
+ [5] LC_MONETARY=en_CA.UTF-8    LC_MESSAGES=en_CA.UTF-8   
+ [7] LC_PAPER=en_CA.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_CA.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] Matrix_1.3-2       SeuratObject_4.0.0 Seurat_4.0.1      
+
+loaded via a namespace (and not attached):
+  [1] nlme_3.1-152          matrixStats_0.58.0    spatstat.sparse_2.0-0
+  [4] RcppAnnoy_0.0.19      RColorBrewer_1.1-2    httr_1.4.2           
+  [7] sctransform_0.3.2     tools_4.0.2           utf8_1.2.2           
+ [10] R6_2.5.0              irlba_2.3.3           rpart_4.1-15         
+ [13] KernSmooth_2.23-18    uwot_0.1.10           mgcv_1.8-34          
+ [16] DBI_1.1.1             lazyeval_0.2.2        colorspace_2.0-2     
+ [19] tidyselect_1.1.1      gridExtra_2.3         compiler_4.0.2       
+ [22] plotly_4.9.4.1        scales_1.1.1          lmtest_0.9-38        
+ [25] spatstat.data_2.1-0   ggridges_0.5.3        pbapply_1.4-3        
+ [28] goftest_1.2-2         stringr_1.4.0         digest_0.6.27        
+ [31] spatstat.utils_2.2-0  pkgconfig_2.0.3       htmltools_0.5.1.1    
+ [34] parallelly_1.27.0     fastmap_1.1.0         htmlwidgets_1.5.3    
+ [37] rlang_0.4.11          rstudioapi_0.13       shiny_1.6.0          
+ [40] generics_0.1.0        zoo_1.8-9             jsonlite_1.7.2       
+ [43] ica_1.0-2             dplyr_1.0.7           magrittr_2.0.1       
+ [46] patchwork_1.1.1       Rcpp_1.0.7            munsell_0.5.0        
+ [49] fansi_0.5.0           abind_1.4-5           reticulate_1.20      
+ [52] lifecycle_1.0.0       stringi_1.7.3         MASS_7.3-54          
+ [55] Rtsne_0.15            plyr_1.8.6            grid_4.0.2           
+ [58] parallel_4.0.2        listenv_0.8.0         promises_1.2.0.1     
+ [61] ggrepel_0.9.1         crayon_1.4.1          miniUI_0.1.1.1       
+ [64] deldir_0.2-10         lattice_0.20-41       cowplot_1.1.1        
+ [67] splines_4.0.2         tensor_1.5            pillar_1.6.2         
+ [70] igraph_1.2.6          spatstat.geom_2.2-2   future.apply_1.7.0   
+ [73] reshape2_1.4.4        codetools_0.2-18      leiden_0.3.9         
+ [76] glue_1.6.2            data.table_1.14.0     png_0.1-7            
+ [79] vctrs_0.3.8           httpuv_1.6.1          gtable_0.3.0         
+ [82] RANN_2.6.1            purrr_0.3.4           spatstat.core_2.3-0  
+ [85] polyclip_1.10-0       tidyr_1.1.3           scattermore_0.7      
+ [88] future_1.21.0         assertthat_0.2.1      ggplot2_3.3.5        
+ [91] mime_0.11             xtable_1.8-4          later_1.2.0          
+ [94] survival_3.2-13       viridisLite_0.4.0     tibble_3.1.3         
+ [97] cluster_2.1.1         globals_0.14.0        fitdistrplus_1.1-5   
+[100] ellipsis_0.3.2        ROCR_1.0-11          
+[1] "Script complete. Exiting"
