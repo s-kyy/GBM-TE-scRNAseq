@@ -1,0 +1,93 @@
+---
+title: "Fix Sample ID"
+output:
+  html_document:
+    toc: yes
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "./"
+    )
+  })
+editor_options:
+  chunk_output_type: inline
+---
+
+**Goal**: Check and fix the labeling of samples from `orig.ident` to sample names
+
+## Load Libraries
+
+```{r}
+set.seed(100)
+
+library(ggplot2)
+library(SeuratObject)
+library(Seurat)
+
+library(dplyr)
+
+library(conflicted)
+conflict_prefer("select", "dplyr") ## required in %>% dplyr
+
+print(getwd())
+size = 5
+```
+
+## Check GTE sampleIDs
+
+```{r Load-GTE}
+gte <- readRDS("D:\\backup files\\2021-11-11\\Cluster\\scratch\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2021-09-02\\gte_gbmscIntUmap-subtypes.rds")
+print(head(DefaultAssay(gte)))
+# DefaultAssay(gte) <- "integrated"
+# DefaultAssay(ge) <- "integrated"
+# DefaultAssay(gte) <- "RNA"
+# DefaultAssay(ge) <- "RNA"
+
+colnames(gte@meta.data)
+```
+
+List unique orig.ident, sample and samplename columns for gte
+
+```{r preview-metadata-gte}
+meta <- gte@meta.data
+meta %>% 
+    select(c(orig.ident, sampleCombined, sample)) %>% 
+    distinct(orig.ident, sampleCombined, .keep_all = TRUE) %>% 
+    arrange(sample)
+```
+
+Remove object from memory
+
+```{r}
+rm(gte)
+gc()
+```
+
+## Check GE sampleIDs
+
+```{r Load-GE}
+ge <- readRDS("D:\\backup files\\2021-11-11\\Cluster\\scratch\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2021-09-02\\ge_gbmscIntUmap-subtypes.rds")
+print(head(DefaultAssay(ge)))
+colnames(ge@meta.data)
+```
+
+List unique orig.ident, sample and samplename columns for ge
+
+```{r preview-metadata-ge}
+meta <- ge@meta.data
+meta %>% 
+    select(c(orig.ident, sampleCombined, sample)) %>% 
+    distinct(orig.ident, sampleCombined, .keep_all = TRUE) %>% 
+    arrange(sample)
+```
+
+Remove object from memory
+
+```{r}
+rm(ge)
+gc()
+```
+
+## Conclusion
+
+There samples + orig.idents for both objects overlap properly so there shouldn't be anything to worry about.
