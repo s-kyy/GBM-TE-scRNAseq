@@ -70,16 +70,16 @@ p <- ge_gbmsc@meta.data %>%
     stat_smooth(method=lm) +
     scale_x_log10() + 
     scale_y_log10() + 
-    labs(x = "log 10 UMI per Transcript", y = "log 10 Genes Detected per Cell") +
+    labs(x = "log10 UMI Detected per Cell", y = "log10 Genes Detected per Cell") +
     theme_classic() +
-    geom_vline(xintercept = 500, linetype = "dashed", colour = "red") +
-    geom_hline(yintercept = 250, linetype = "dashed", colour = "red") +
+    geom_vline(xintercept = 1000, linetype = "dashed", colour = "red") +
+    geom_hline(yintercept = 300, linetype = "dashed", colour = "red") +
     facet_wrap(~sample) + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), axis.title.y = element_text(size=11, hjust=0.8), 
           strip.background = element_blank(),
           panel.border = element_rect(fill = NA, colour = "black"))
-# p
-ggsave("fig_gsc_ge_umigenemitoratio.tiff", plot = p, units="in", width=size*1.2, height=size*0.5, dpi=300, compression = 'lzw')
+p
+ggsave("fig_gsc_ge_umigenemitoratio_intercepts.tiff", plot = p, units="in", width=size*1.2, height=size*0.5, dpi=300, compression = 'lzw')
 
 p <- gte_gbmsc@meta.data %>% 
     ggplot(aes(x=nUMI, y=nGene, color=mitoRatio)) + 
@@ -88,20 +88,59 @@ p <- gte_gbmsc@meta.data %>%
     stat_smooth(method=lm) +
     scale_x_log10() + 
     scale_y_log10() + 
-    labs(x = "log 10 UMI per Transcript", y = "log 10 Genes Detected per Cell") +
+    labs(x = "log10 UMI Detected per Cell", y = "log10 Genes Detected per Cell") +
     theme_classic() +
-    geom_vline(xintercept = 500, linetype = "dashed", colour = "red") +
-    geom_hline(yintercept = 250, linetype = "dashed", colour = "red") +
+    geom_vline(xintercept = 1000, linetype = "dashed", colour = "red") +
+    geom_hline(yintercept = 300, linetype = "dashed", colour = "red") +
     facet_wrap(~sample) + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), axis.title.y = element_text(size=11, hjust=0.8), 
           strip.background = element_blank(),
           panel.border = element_rect(fill = NA, colour = "black"))
 # p
-ggsave("fig_gsc_gte_umigenemitoratio.tiff", plot = p, units="in", width=size*1.2, height=size*0.5, dpi=300, compression = 'lzw')
+ggsave("fig_gsc_gte_umigenemitoratio_intercepts.tiff", plot = p, units="in", width=size*1.2, height=size*0.5, dpi=300, compression = 'lzw')
 
+## MitoRatio
+p <- ge_gbmsc@meta.data %>% 
+  	ggplot(aes(color=sample, x=mitoRatio, fill=sample)) + 
+  	geom_density(alpha = 0.2) + 
+    scale_color_manual(values = samplePaletteSC) +
+    scale_fill_manual(values = samplePaletteSC) +
+  	theme_classic() +
+  	geom_vline(xintercept = 0.2, linetype = "dashed", colour = "red")
+p
+ggsave("fig_gsc_ge_mitoratio_density.tiff", plot = p, units="in", width=size*0.9, height=size*0.5, dpi=300, compression = 'lzw')
 
-## Genes x Cells (violin plot)
-## UMI x Cell (violin plot)
+p <- gte_gbmsc@meta.data %>% 
+  	ggplot(aes(color=sample, x=mitoRatio, fill=sample)) + 
+  	geom_density(alpha = 0.2) + 
+    scale_color_manual(values = samplePaletteSC) +
+    scale_fill_manual(values = samplePaletteSC) +
+  	theme_classic() +
+  	geom_vline(xintercept = 0.2, linetype = "dashed", colour = "red")
+p
+ggsave("fig_gsc_gte_mitoratio_density.tiff", plot = p, units="in", width=size*0.9, height=size*0.5, dpi=300, compression = 'lzw')
+
+## Genes x UMI (Density plot)
+p <- ge_gbmsc@meta.data %>% 
+  	ggplot(aes(color=sample, x=log10GenesPerUMI, fill=sample)) + 
+  	geom_density(alpha = 0.2) + 
+    scale_color_manual(values = samplePaletteSC) +
+    scale_fill_manual(values = samplePaletteSC) +
+  	theme_classic() +
+  	geom_vline(xintercept = 0.8, linetype = "dashed", colour = "red")
+p
+ggsave("fig_gsc_ge_log10GenesUMI_density.tiff", plot = p, units="in", width=size*0.9, height=size*0.5, dpi=300, compression = 'lzw')
+
+p <- gte_gbmsc@meta.data %>% 
+  	ggplot(aes(color=sample, x=log10GenesPerUMI, fill=sample)) + 
+  	geom_density(alpha = 0.2) + 
+    scale_color_manual(values = samplePaletteSC) +
+    scale_fill_manual(values = samplePaletteSC) +
+  	theme_classic() +
+  	geom_vline(xintercept = 0.8, linetype = "dashed", colour = "red")
+p
+ggsave("fig_gsc_gte_log10GenesUMI_density.tiff", plot = p, units="in", width=size*0.9, height=size*0.5, dpi=300, compression = 'lzw')
+
 ```
 
 ## Remove objects from memory
@@ -154,6 +193,8 @@ for(i in 1:length(sampleNames)) {
     gte_meta$sampleName[which(gte_meta$seq_folder == i)] <- sampleNames[i]
 }
 
+ge_meta$sampleName <- factor(ge_meta$sampleName, levels = sort(unique(ge_meta$sampleName)))
+gte_meta$sampleName <- factor(gte_meta$sampleName, levels = sort(unique(gte_meta$sampleName)))
 
 ## MitoRatio x UMI x Genes
 p <- ge_meta%>% 
@@ -161,18 +202,18 @@ p <- ge_meta%>%
     geom_point() + 
     scale_colour_gradient(low = "gray90", high = "black") +
     stat_smooth(method=lm) +
-    scale_x_log10() + 
-    scale_y_log10() + 
-    labs(x = "log 10 UMI per Transcript", y = "log 10 Genes Detected per Cell") +
+    scale_x_log10() +
+    scale_y_log10() +
+    labs(x = "log10 UMI Detected per Cell", y = "log10 Genes Detected per Cell") +
     theme_classic() +
-    geom_vline(xintercept = 500, linetype = "dashed", colour = "red") +
-    geom_hline(yintercept = 250, linetype = "dashed", colour = "red") +
+    geom_vline(xintercept = 1000, linetype = "dashed", colour = "red") +
+    geom_hline(yintercept = 300, linetype = "dashed", colour = "red") +
     facet_wrap(~sampleName) + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), 
           strip.background = element_blank(),
           panel.border = element_rect(fill = NA, colour = "black"))
-# p
-ggsave("fig_gbm_ge_umigenemitoratio.tiff", plot = p, units="in", width=size*1.2, height=size*0.8, dpi=300, compression = 'lzw')
+p
+ggsave("fig_gbm_ge_umigenemitoratio_intercepts.tiff", plot = p, units="in", width=size*1.2, height=size*0.8, dpi=300, compression = 'lzw')
 
 p <- gte_meta %>% 
     ggplot(aes(x=nUMI, y=nGene, color=mitoRatio)) + 
@@ -181,16 +222,60 @@ p <- gte_meta %>%
     stat_smooth(method=lm) +
     scale_x_log10() + 
     scale_y_log10() + 
-    labs(x = "log 10 UMI per Transcript", y = "log 10 Genes Detected per Cell") +
+    labs(x = "log10 UMI Detected per Cell", y = "log10 Genes Detected per Cell") +
     theme_classic() +
-    geom_vline(xintercept = 500, linetype = "dashed", colour = "red") +
-    geom_hline(yintercept = 250, linetype = "dashed", colour = "red") +
+    geom_vline(xintercept = 1000, linetype = "dashed", colour = "red") +
+    geom_hline(yintercept = 300, linetype = "dashed", colour = "red") +
     facet_wrap(~sampleName) + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
           strip.background = element_blank(),
           panel.border = element_rect(fill = NA, colour = "black"))
-# p
-ggsave("fig_gbm_gte_umigenemitoratio.tiff", plot = p, units="in", width=size*1.2, height=size*0.8, dpi=300, compression = 'lzw')
+p
+ggsave("fig_gbm_gte_umigenemitoratio_intercepts.tiff", plot = p, units="in", width=size*1.2, height=size*0.8, dpi=300, compression = 'lzw')
+
+## MitoRatio
+p <- ge_meta %>% 
+  	ggplot(aes(color=sampleName, x=mitoRatio, fill=sampleName)) + 
+  	geom_density(alpha = 0.2) + 
+    scale_color_manual(values = samplePaletteGBM) +
+    scale_fill_manual(values = samplePaletteGBM) +
+  	theme_classic() +
+  	geom_vline(xintercept = 0.2, linetype = "dashed", colour = "red")
+p
+ggsave("fig_gbm_ge_mitoratio_density.tiff", plot = p, units="in", width=size*0.9, height=size*0.5, dpi=300, compression = 'lzw')
+
+p <- gte_meta %>% 
+  	ggplot(aes(color=sampleName, x=mitoRatio, fill=sampleName)) + 
+  	geom_density(alpha = 0.2) + 
+    scale_color_manual(values = samplePaletteGBM) +
+    scale_fill_manual(values = samplePaletteGBM) +
+  	theme_classic() +
+  	geom_vline(xintercept = 0.2, linetype = "dashed", colour = "red")
+p
+ggsave("fig_gbm_gte_mitoratio_density.tiff", plot = p, units="in", width=size*0.9, height=size*0.5, dpi=300, compression = 'lzw')
+
+
+## Genes x UMI (Density plot)
+p <- ge_meta %>% 
+  	ggplot(aes(color=sampleName, x=log10GenesPerUMI, fill=sampleName)) + 
+  	geom_density(alpha = 0.2) + 
+    scale_color_manual(values = samplePaletteGBM) +
+    scale_fill_manual(values = samplePaletteGBM) +
+  	theme_classic() +
+  	geom_vline(xintercept = 0.8, linetype = "dashed", colour = "red")
+p
+ggsave("fig_gbm_ge_log10GenesUMI_density.tiff", plot = p, units="in", width=size*0.9, height=size*0.5, dpi=300, compression = 'lzw')
+
+p <- gte_meta %>% 
+  	ggplot(aes(color=sampleName, x=log10GenesPerUMI, fill=sampleName)) + 
+  	geom_density(alpha = 0.2) + 
+    scale_color_manual(values = samplePaletteGBM) +
+    scale_fill_manual(values = samplePaletteGBM) +
+  	theme_classic() +
+  	geom_vline(xintercept = 0.8, linetype = "dashed", colour = "red")
+p
+ggsave("fig_gbm_gte_log10GenesUMI_density.tiff", plot = p, units="in", width=size*0.9, height=size*0.5, dpi=300, compression = 'lzw')
+
 ```
 
 ## End of Notebook

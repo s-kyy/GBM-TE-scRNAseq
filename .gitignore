@@ -5,6 +5,7 @@
 *.RDS
 *.rds
 data/
+*.tiff
 
 **/*_cache/
 **/*GSEA*/

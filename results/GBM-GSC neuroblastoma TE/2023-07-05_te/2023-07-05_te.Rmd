@@ -1,0 +1,176 @@
+---
+title: "Figures GTE related to TEs"
+date: 2023-07-05
+author: Samantha Yuen
+output:
+  html_document:
+    toc: yes
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "./"
+    )
+  })
+editor_options:
+  chunk_output_type: inline
+---
+
+**Goal**: Optimizing formatting of figures for my thesis
+
+## Load Libraries
+
+```{r}
+set.seed(100)
+
+library(ggplot2)
+library(SeuratObject)
+library(Seurat)
+
+library(dplyr)
+
+library(conflicted)
+conflict_prefer("select", "dplyr") ## required in %>% dplyr
+
+print(getwd())
+size = 5
+
+samplePalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#CC79A7", "#ff716e", "#999999", 
+               "#0072B2", "#194c76", "#D55E00")
+  # SF11159, SF11209, SF11215, SF11232, SF11247, SF11285, 
+  # SRR10353960, SRR10353961, SRR10353962
+
+gbmPaletteGTE <- c("#FF6B6B", "#56B4E9", "#80DB84",  # CL, MES, PN,
+                   "#985F99", "#F4EC7B",  "#1CB086", "#A5B6AD") # CL-MES, CL-PN, MES-PN, NA
+gbmsubtypes <- c("Classical", "Mesenchymal", "Proneural", 
+                 "Classical-Mesenchymal", "Classical-Proneural", "Mesenchymal-Proneural", "NA")
+gbmsubtypes_labels <- c("CL", "MES", "PN", "CL-MES", "CL-PN", "MES-PN", "NA")
+
+
+celltypePalette <- c("#E69F00", "#ff716e", "#CC79A7", "#56B4E9", "#009E73", "#0072B2", "#F0E442", "#A5B6AD")
+celltypes <- c(
+  "Astrocyte",
+  "OPC",
+  "Diff. Oligodendrocytes",
+  "Microglia",
+  "Proliferating",
+  "Endothelial",
+  "T-cell",
+  "Intermediate")
+```
+
+## Load Data
+
+```{r Load-GTE}
+data <- readRDS("D:\\backup files\\2021-11-11\\Cluster\\scratch\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2021-09-02\\gte_gbmscIntUmap-subtypes.rds")
+print(head(DefaultAssay(data)))
+DefaultAssay(data) <- "RNA"
+# DefaultAssay(data) <- "RNA"
+
+colnames(data@meta.data)
+```
+
+Number of Genes in GE: 31527
+
+Number of Genes in GTE: 32501
+
+SetDiff between rownames of GE & GTE: 1163
+
+```{r}
+te_genes <- read.table("D:\\backup files\\2021-12-20\\Cluster\\scratch\\gete-gbm\\data\\geneName_TE_v23-1gtf.txt", 
+               sep=",", header = TRUE,
+               col.names=c("gene_id", "TE_class", "TE_family"), 
+               fill=FALSE, 
+               strip.white=TRUE)
+
+te_genes$gene_id <- sub("_", "-", te_genes$gene_id) # in seurat object, `_` were replaced with `-`.
+rownames(te_genes) <- te_genes$gene_id
+
+dim(te_genes)
+head(te_genes,10)
+```
+
+```{r}
+## Total number of retrotransposons detected in our transcriptome experiment. 
+
+matched_intersect <- intersect(te_genes$gene_id, rownames(data))
+non.matched <- te_genes$gene_id[!te_genes$gene_id %in% matched_intersect]
+head(non.matched)
+length(non.matched)
+
+matched_te <- te_genes$gene_id[te_genes$gene_id %in% matched_intersect]
+length(matched_te)
+
+write.csv(non.matched, file="te_undetected.csv", row.names=F)
+write.csv(matched_te, file="te_detected.csv", row.names = F)
+```
+
+Number of Total TEs in annotations (total and unique): 1180
+
+Number of TEs detected in GTE: 1160
+
+Number of TEs not detected in GTE: 20
+
+```{r}
+DefaultAssay(data) <- "integrated"
+matched_deg_te <- intersect(matched_te, rownames(data))
+matched_deg_te
+length(matched_deg_te)
+
+matched_deg_te_names <- te_genes$gene_id[te_genes$gene_id %in% matched_deg_te]
+
+write.csv(matched_deg_te_names, file="te_integrated.csv", row.names = F)
+```
+
+Number of TEs out integrated list of genes in GTE: 15 / 2000 total features
+
+```{r}
+# subset table to only detected TEs
+dim(te_genes[!rownames(te_genes) %in% (matched_te),])
+te_detected <- te_genes[te_genes$gene_id %in% rownames(data),]
+
+te_detected
+```
+
+## UMAP teRatio
+
+```{r}
+Idents(data) <- "integrated_snn_res.0.3"
+FeaturePlot(data, label = T, features = "teRatio") + labs(title = "") 
+ggsave("fig_gte_PC20r03_UMAP_teratio_labels.tiff", units="in", width=size*1.1, height=size, dpi=300, compression = 'lzw')
+FeaturePlot(data, label = F, features = "teRatio") + labs(title = "") 
+ggsave("fig_gte_PC20r03_UMAP_teratio.tiff", units="in", width=size*1.1, height=size, dpi=300, compression = 'lzw')
+FeaturePlot(data, label = T, features = "teRatio", min.cutoff = 20) + labs(title = "") 
+ggsave("fig_gte_PC20r03_UMAP_teratio_min20_labels.tiff", units="in", width=size*1.1, height=size, dpi=300, compression = 'lzw')
+FeaturePlot(data, label = F, features = "teRatio", min.cutoff = 20) + labs(title = "") 
+ggsave("fig_gte_PC20r03_UMAP_teratio_min20.tiff", units="in", width=size*1.1, height=size, dpi=300, compression = 'lzw')
+```
+
+## TeRatio (Violin plot)
+
+```{r}
+# load library for calculating statistics in graph. 
+library(ggpubr)
+# factor levels for gbm subtypes
+data$gbm_subtype <- factor(data@meta.data$gbm_subtype, levels = gbmsubtypes, labels = gbmsubtypes_labels)
+```
+
+```{r}
+p <- ggplot(data@meta.data, aes(x=integrated_snn_res.0.3, y=teRatio, fill=gbm_subtype)) + 
+  geom_violin(trim=FALSE) + geom_boxplot(width=0.1, fill="white") + 
+  scale_fill_manual(values = gbmPaletteGTE) +
+  xlab("Cluster ID") + ylab("TE Expressed (%)") + theme_classic() + theme(legend.position = "none") +
+  geom_hline(yintercept = mean(data@meta.data$teRatio), linetype = 2, color = "red")
+ggsave("fig_gte_PC20r03_violin_teratio.tiff",plot = p, units="in", width=size*1.1, height=size*0.7, dpi=300, compression = 'lzw')
+
+p <- p + stat_compare_means(method = "kruskal.test", label.y = 85)+
+  stat_compare_means(label = "p.format", method = "wilcox.test", ref.group = ".all.", method.args=list(p.adjust.method = "BH"),
+                     hide.ns = TRUE, label.y = 80)  
+ggsave("fig_gte_PC20r03_violin_teratio_stats.tiff",  plot = p, units="in", width=size*2.1, height=size, dpi=300, compression = 'lzw')
+
+```
+
+## Volcano plot highlighting the 15 TE-DEGs per cluster
+
+```{r}
+
+```
