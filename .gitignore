@@ -6,6 +6,9 @@
 *.rds
 data/
 *.tiff
+*.Rout
+*.out
+*.csv
 
 **/*_cache/
 **/*GSEA*/

@@ -2,10 +2,10 @@
 
 # R version 4.0
 
-set.seed(108)
+set.seed(34)
 
 ## Import arguements
-source("~/scratch/gete-gbm/bin/util.R")
+source("~/script/gete-gbm/bin/util.R")
 setwd("~/scratch/temp/")
 resultsPath <- "~/scratch/temp"
 print(paste0("Results path:", getwd()))
@@ -25,14 +25,29 @@ library(Matrix)
 ## Import data and set ident
 ge <- readRDS("~/projects/def-ytanaka/common/te-gbm_proj/analysis/ge_gbmscIntUmap-subtypes.rds")
 colnames(ge@meta.data)
-head(ge$integrated_snn_res.0.4)
+head(ge$integrated_snn_res.0.3)
 head(Idents(ge))
 DefaultAssay(ge) <- "integrated"
 
-Idents(ge) <- "integrated_snn_res.0.4"
+Idents(ge) <- "integrated_snn_res.0.3"
 
 ## run function
-ge_markers <- FindAllMarkers(ge, only.pos = FALSE, min.pct = 0.1, logfc.threshold = 0.25)
+ge_markers <- FindAllMarkers(ge, only.pos = FALSE, min.pct = 0.25, logfc.threshold = 0.25)
+
+## export to csv file
+write.csv(ge_markers, "./ge_markers_0.3.csv", row.names=TRUE)
+
+rm(ge_markers)
+gc()
+
+## DEG of resolution 0.4 clusters
+head(ge$integrated_snn_res.0.4)
+Idents(ge) <- "integrated_snn_res.0.4"
+head(Idents(ge))
+DefaultAssay(ge) <- "integrated"
+
+## run function
+ge_markers <- FindAllMarkers(ge, only.pos = FALSE, min.pct = 0.25, logfc.threshold = 0.25)
 
 ## export to csv file
 write.csv(ge_markers, "./ge_markers_0.4.csv", row.names=TRUE)

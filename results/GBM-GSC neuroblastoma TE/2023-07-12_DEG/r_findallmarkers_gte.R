@@ -2,10 +2,10 @@
 
 # R version 4.0
 
-set.seed(108)
+set.seed(34)
 
 ## Import arguements
-source("~/scratch/gete-gbm/bin/util.R")
+source("~/script/gete-gbm/bin/util.R")
 setwd("~/scratch/temp/")
 resultsPath <- "~/scratch/temp"
 print(paste0("Results path:", getwd()))
@@ -25,19 +25,37 @@ library(Matrix)
 ## Import data and set ident
 gte <- readRDS("~/projects/def-ytanaka/common/te-gbm_proj/analysis/gte_gbmscIntUmap-subtypes.rds")
 colnames(gte@meta.data)
-head(gte$integrated_snn_res.0.4)
+head(gte$integrated_snn_res.0.3)
 head(Idents(gte))
 DefaultAssay(gte) <- "integrated"
 
-## DEG of resolution 0.4 clusters
-Idents(gte) <- "integrated_snn_res.0.4"
+## DEG of resolution 0.3 clusters
+Idents(gte) <- "integrated_snn_res.0.3"
 
 ## run function
-gte_markers <- FindAllMarkers(gte, only.pos = FALSE, min.pct = 0.05, logfc.threshold = 0.25)
+gte_markers <- FindAllMarkers(gte, only.pos = FALSE, min.pct = 0.10, logfc.threshold = 0.25)
+    # min.diff.pct = -Inf (default to see all genes regardless of how little differences there are between groups)
+
+## export to csv file
+write.csv(gte_markers, "./gte_markers_0.3.csv", row.names=TRUE)
+
+rm(gte_markers)
+gc()
+
+## DEG of resolution 0.4 clusters
+head(gte$integrated_snn_res.0.4)
+Idents(gte) <- "integrated_snn_res.0.4"
+head(Idents(gte))
+DefaultAssay(gte) <- "integrated"
+
+
+## run function
+gte_markers <- FindAllMarkers(gte, only.pos = FALSE, min.pct = 0.10, logfc.threshold = 0.25)
     # min.diff.pct = -Inf (default to see all genes regardless of how little differences there are between groups)
 
 ## export to csv file
 write.csv(gte_markers, "./gte_markers_0.4.csv", row.names=TRUE)
+
 
 sessionInfo()
 print("Script complete. Exiting")
