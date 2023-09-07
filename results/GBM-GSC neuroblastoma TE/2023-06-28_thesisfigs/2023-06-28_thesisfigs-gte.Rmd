@@ -34,8 +34,8 @@ conflict_prefer("select", "dplyr") ## required in %>% dplyr
 print(getwd())
 size = 5
 
-samplePalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#CC79A7", "#ff716e", "#999999", 
-               "#0072B2", "#194c76", "#D55E00")
+samplePalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#CC79A7", "#ff716e", 
+                   "#999999", "#0072B2", "#194c76", "#D55E00")
   # SF11159, SF11209, SF11215, SF11232, SF11247, SF11285, 
   # SRR10353960, SRR10353961, SRR10353962
 
@@ -109,6 +109,18 @@ write.csv(df, file="gte_cellcountscluster0.4.csv", row.names = F)
 
 df <- data@meta.data %>% select(integrated_snn_res.0.3, gbm_subtype) %>% count(integrated_snn_res.0.3, gbm_subtype) 
 write.csv(df, file="gte_cellcountssubtypes.csv", row.names = F)
+
+## Genes x UMI (Density plot)
+p <- data@meta.data %>% 
+	ggplot(aes(color=sampleCombined, x=log10GenesPerUMI, fill=sampleCombined)) + 
+	geom_density(alpha = 0.2) + 
+  scale_color_manual(values = samplePalette) +
+  scale_fill_manual(values = samplePalette) +
+  labs(fill="Samples", color="Samples", y = "Cell Density", x = "log10 Genes+TE per UMI") +
+	theme_classic() +
+	geom_vline(xintercept = 0.8, linetype = "dashed", colour = "red") 
+p
+ggsave("fig_gbmgsc_gte_log10GenesUMI_density.tiff", plot = p, units="in", width=size*0.9, height=size*0.5, dpi=300, compression = 'lzw')
 ```
 
 ## Cells per Cluster per Sample

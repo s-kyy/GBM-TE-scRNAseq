@@ -1,0 +1,307 @@
+---
+title: "Healthy ASD Control Samples Quality Control + Dimensionality Reduction Figures (GE)"
+date: 2023-08-09
+author: Samantha Yuen
+output:
+  html_document:
+    toc: yes
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "./figs-ge/"
+    )
+  })
+editor_options:
+  chunk_output_type: inline
+---
+
+**Goal**: Optimizing formatting of figures for my thesis
+
+## Load Libraries
+
+```{r}
+set.seed(100)
+
+library(ggplot2)
+library(SeuratObject)
+library(Seurat)
+library(ggbreak)
+library(dplyr)
+
+library(conflicted)
+conflict_prefer("select", "dplyr") ## required in %>% dplyr
+
+print(getwd())
+size = 5
+
+samplePalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#CC79A7", 
+                   "#ff716e", "#999999", "#0072B2", "#194c76", "#D55E00", 
+                   "#3a4f41", "#6699cc", "#713e5a")
+    # "SRR9262920" "SRR9262922" "SRR9262923" "SRR9262932" "SRR9262937" 
+    # "SRR9262938" "SRR9262946" "SRR9262956" "SRR9264382" "SRR9264383" 
+    # "SRR9264385" "SRR9264388" "SRR9264389"
+
+
+celltypePalette <- c("#E69F00", "#ff716e", "#CC79A7", "#56B4E9", "#009E73", "#0072B2", "#F0E442", "#A5B6AD")
+celltypes <- c(
+  "Astrocyte",
+  "OPC",
+  "Diff. Oligodendrocytes",
+  "Microglia",
+  "Proliferating",
+  "Endothelial",
+  "T-cell",
+  "Intermediate")
+```
+
+## Load Data
+
+```{r Load-GE}
+data <- readRDS("D:\\backup files\\getegbm\\gete-gbm\\results\\GBMGSCTE3_Healthy\\2023-03-20_gbmgsc_healthy_raw\\ge_healthy_raw.rds") 
+print(head(DefaultAssay(data)))
+DefaultAssay(data) <- "RNA"
+
+colnames(data@meta.data)
+
+sampleIDs <- sort(unique(data$sampleID))
+print(sampleIDs)
+
+# Factor sample names
+data$sampleID <- factor(data$sampleID, levels = sampleIDs)
+```
+
+## Filter Cells
+
+```{r}
+subset_data <- subset(x = data, subset= (nCount_RNA >= 1000) &
+                                              (nFeature_RNA >= 300) & 
+                                              (log10GenesPerUMI > 0.80) &
+                                              (mitoRatio < 0.20))
+print(dim(subset_data))
+print(dim(data)[2]-dim(subset_data)[2])
+```
+
+Match the cells in ge data to gte dataset
+
+```{r}
+barcodes <- colnames(subset_data)
+View(barcodes)
+write.csv(barcodes, file="healthy_ge_qc_barcodes.csv", row.names = F)
+```
+
+Compute Cell counts per sample after filtering
+
+```{r}
+df <- subset_data@meta.data %>% select(sampleID) %>% count(sampleID) 
+write.csv(df, file="healthy_ge_samplecounts_qc.csv", row.names = F)
+```
+
+Save filtered dataset
+
+```{r}
+saveRDS(subset_data, file = "D:\\backup files\\getegbm\\gete-gbm\\results\\GBMGSCTE3_Healthy\\2023-09-07_qc\\ge_healthy_qc.rds")
+```
+
+## QC Figures post QC
+
+```{r}
+# Cell Count (Bar)
+p <- subset_data@meta.data %>%
+    ggplot(aes(x=sampleID, fill=sampleID)) + 
+    labs(fill="Samples") + labs(x = "", y = "Unfiltered Cell Count") +
+    scale_fill_manual(values = samplePalette) +
+    # scale_x_discrete(labels = sampleID) +
+    # scale_fill_discrete(labels = sampleID) +
+    geom_bar() + theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), axis.text = element_text(size=10), legend.position = "none")
+p
+ggsave("fig_ge_cellcount-bar_qc.tiff", plot = p, units="in", width=size*1, height=size*0.6, dpi=300, compression = 'lzw')
+
+## MitoRatio x UMI x Genes
+p <- subset_data@meta.data %>% 
+    ggplot(aes(x=nCount_RNA, y=nFeature_RNA, color=mitoRatio)) + 
+    geom_point() + 
+    scale_colour_gradient(low = "gray90", high = "black") +
+    stat_smooth(method=lm) +
+    scale_x_log10() + 
+    scale_y_log10() + 
+    labs(x = "log10 UMI Detected per Cell", y = "log10 Genes Detected per Cell") +
+    theme_classic() +
+    geom_vline(xintercept = 1000, linetype = "dashed", colour = "red") +
+    geom_hline(yintercept = 300, linetype = "dashed", colour = "red") +
+    facet_wrap(~sampleID) + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), axis.title.y = element_text(size=11, hjust=0.5), 
+          strip.background = element_blank(),
+          panel.border = element_rect(fill = NA, colour = "black"))
+p
+ggsave("fig_healthy_ge_umigenemitoratio_intercepts_qc.tiff", plot = p, units="in", width=size*1.5, height=size*1.5, dpi=300, compression = 'lzw')
+
+## MitoRatio
+p <- subset_data@meta.data %>% 
+  	ggplot(aes(color=sampleID, x=mitoRatio, fill=sampleID)) + 
+  	geom_density(alpha = 0.2) + 
+    scale_color_manual(values = samplePalette, name = "Sample") +
+    scale_fill_manual(values = samplePalette, name = "Sample") +
+    labs(x = "Mitochondrial Expression (%)", y = "Cell Density") +
+  	theme_classic() + 
+    theme(axis.title.x = element_text(size=11, hjust=0.35)) +
+  	geom_vline(xintercept = 0.2, linetype = "dashed", colour = "red")
+p
+# ggsave("fig_healthy_ge_mitoratio_density_legend_qc.tiff", plot = p, units="in", width=size*1.3, height=size*0.8, dpi=300, compression = 'lzw')
+ggsave("fig_healthy_ge_mitoratio_density_qc.tiff", plot = p, units="in", width=size*1.1, height=size*0.6, dpi=300, compression = 'lzw')
+
+## Genes per UMI (Density plot)
+p <- subset_data@meta.data %>% 
+  	ggplot(aes(color=sampleID, x=log10GenesPerUMI, fill=sampleID)) + 
+  	geom_density(alpha = 0.2) + 
+    scale_color_manual(values = samplePalette) +
+    scale_fill_manual(values = samplePalette) +
+  	theme_classic() +
+    labs(x = "log10 Genes Detected per Cell", y = "Cell Density") +
+  	geom_vline(xintercept = 0.8, linetype = "dashed", colour = "red")
+p
+ggsave("fig_healthy_ge_log10GenesUMI_density_qc.tiff", plot = p, units="in", width=size*1.1, height=size*0.6, dpi=300, compression = 'lzw')
+
+```
+
+Remove object from memory
+
+```{r}
+rm(subset_data)
+gc()
+```
+
+## Normalization, and Clustering
+
+Load Filtered Data
+
+```{r Load-GE}
+data <- readRDS("D:\\backup files\\getegbm\\gete-gbm\\results\\GBMGSCTE3_Healthy\\2023-09-07_qc\\ge_healthy_qc.rds") 
+print(head(DefaultAssay(data)))
+DefaultAssay(data) <- "RNA"
+
+colnames(data@meta.data)
+
+sampleIDs <- sort(unique(data$sampleID))
+print(sampleIDs)
+
+# Factor sample names
+data$sampleID <- factor(data$sampleID, levels = sampleIDs)
+```
+
+### PCA figures
+
+```{r}
+# PCA Elbow Plot
+p <- ElbowPlot(data)
+ggsave("fig_gte_elbowplot.tiff", plot = p, units="in", width=size*0.7, height=size*0.7, dpi=300, compression = 'lzw')
+
+# Mito Ratio x Te Ratio
+
+# Te Barplot
+
+# Cell Count to csv
+DefaultAssay(data) <- "RNA"
+df <- data@meta.data %>% count(sampleID) 
+df$genes.cell <- (dim(data)[1])/df$n
+write.csv(df, file="healthy_ge_cellcounts.csv", row.names = F)
+
+df <- data@meta.data %>% count(integrated_snn_res.0.3) 
+write.csv(df, file="healthy_ge_cellcountscluster0.3.csv", row.names = F)
+
+df <- data@meta.data %>% count(integrated_snn_res.0.4) 
+write.csv(df, file="healthy_ge_cellcountscluster0.4.csv", row.names = F)
+
+df <- data@meta.data %>% select(integrated_snn_res.0.3, gbm_subtype) %>% count(integrated_snn_res.0.3, gbm_subtype) 
+write.csv(df, file="healthy_ge_cellcountssubtypes.csv", row.names = F)
+```
+
+## Cells per Cluster per Sample
+
+```{r}
+# PC20r03
+DefaultAssay(data) <- "integrated"
+df <- data@meta.data %>%
+                group_by(sampleID) %>%
+                count(integrated_snn_res.0.3)
+
+df <- df %>% 
+            group_by(integrated_snn_res.0.3) %>% 
+            mutate(freq = (n / sum(n))*100) %>%
+            mutate(rounded = round(freq, 2))
+head(df)
+
+p <- df %>% ggplot(aes(x=integrated_snn_res.0.3, y=rounded, fill=sampleID)) + 
+        scale_fill_manual(values = samplePalette) +
+        geom_bar( stat="identity", width = 0.9) + theme_classic() + 
+        labs(y = "Cells per Cluster per Sample (%)", x = "hg38 + TE Mapped Cluster ID", fill= "Samples") +
+        theme(axis.title = element_text(size=10), legend.position = "none")
+ggsave("fig_gte_cellsxClusterxSamples_PC20r03.tiff", plot = p, units="in", width=size*0.6, height=size*0.6, dpi=300, compression = 'lzw')
+
+# PC20r04
+df <- data@meta.data %>%
+                group_by(sampleID) %>%
+                count(integrated_snn_res.0.4)
+
+df <- df %>% 
+            group_by(integrated_snn_res.0.4) %>% 
+            mutate(freq = (n / sum(n))*100) %>%
+            mutate(rounded = round(freq, 2))
+head(df)
+
+
+p <- df %>% ggplot(aes(x=integrated_snn_res.0.4, y=rounded, fill=sampleID)) + 
+        scale_fill_manual(values = samplePalette) +
+        geom_bar( stat="identity", width = 0.9) + theme_classic() + 
+        labs(y = "Cells per Cluster per Sample (%)", x = "hg38 Mapped Cluster ID", fill= "Samples") +
+        theme(axis.title = element_text(size=10), legend.position = "none")
+ggsave("fig_gte_cellsxClusterxSamples_PC20r04.tiff", plot = p, units="in", width=size*0.6, height=size*0.6, dpi=300, compression = 'lzw')
+
+# Celltype Ratio per Sample
+```
+
+## UMAPs
+
+```{r}
+# Clusters (resolution 0.3)
+Idents(data) <- "integrated_snn_res.0.3"
+DimPlot(data, label=TRUE) 
+p <-DimPlot(data, label=FALSE) 
+ggsave("fig_gte_PC20r03_UMAP.tiff", plot = p, units="in", width=size*1.1, height=size, dpi=300, compression = 'lzw')
+
+# Clusters (resolution 0.4)
+Idents(data) <- "integrated_snn_res.0.4"
+head(Idents(data))
+DimPlot(data, label=TRUE) 
+p <- DimPlot(data, label=FALSE) 
+ggsave("fig_gte_PC20r04_UMAP.tiff", plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
+
+# Samples
+Idents(data) <- "sampleID"
+p <- DimPlot(data, label=FALSE, cols = samplePalette) 
+ggsave("fig_gte_UMAP_samplesCombined.tiff", plot = p, units="in", width=size*1.2, height=size*1, dpi=300, compression = 'lzw')
+
+# Cell Types
+  # Move celltype labels to meta files
+celltypeMeta <- read.csv("D:\\backup files\\getegbm\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2022-11-07_celltypes_gbmscte\\gbmscte_meta_celltypes.csv", row.names = 1)
+data@meta.data$int03_celltypes <- factor(celltypeMeta$int03_celltypes, levels = celltypes)
+Idents(data) <- "int03_celltypes"
+p <- DimPlot(data, label=FALSE, cols = celltypePalette) 
+ggsave("fig_gte_UMAP_celltypes.tiff", plot = p, units="in", width=size*1.3, height=size*1, dpi=300, compression = 'lzw')
+
+df <- data@meta.data %>% select(integrated_snn_res.0.3, int03_celltypes) %>% count(integrated_snn_res.0.3, int03_celltypes) 
+write.csv(df, file="gte_celltypecounts.csv", row.names = F)
+
+data@meta.data$int04_celltypes <- factor(celltypeMeta$int04_celltypes, levels = celltypes)
+df <- data@meta.data %>% select(integrated_snn_res.0.4, ) %>% count(integrated_snn_res.0.3, int03_celltypes) 
+write.csv(df, file="gte_celltypecounts.csv", row.names = F)
+
+# GBM subtypes
+data$gbm_subtype <- factor(data@meta.data$gbm_subtype, levels = gbmsubtypes, labels = gbmsubtypes_labels)
+Idents(data) <- "gbm_subtype"
+# data <- SetIdent(data, value = data@meta.data$gbm_subtype) 
+p <- DimPlot(data, label=FALSE, cols = gbmPaletteGTE) 
+ggsave("fig_gte_UMAP_gbmsubtypes.tiff", plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
+```
+
+## Dot Plots

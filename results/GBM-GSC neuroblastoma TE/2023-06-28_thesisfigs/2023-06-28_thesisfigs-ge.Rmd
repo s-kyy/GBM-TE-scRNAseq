@@ -59,7 +59,7 @@ celltypes <- c(
 
 ## Load Data
 
-```{r Load-GTE}
+```{r Load-GE}
 data <- readRDS("D:\\backup files\\2021-11-11\\Cluster\\scratch\\gete-gbm\\results\\GBM-GSC neuroblastoma TE\\2021-09-02\\ge_gbmscIntUmap-subtypes.rds")
 print(head(DefaultAssay(data)))
 # DefaultAssay(data) <- "integrated"
@@ -98,6 +98,18 @@ write.csv(df, file="ge_cellcountssubtypes.csv", row.names = F)
 # PCA Elbow Plot
 p <- ElbowPlot(data)
 ggsave("fig_ge_elbowplot.tiff", plot = p, units="in", width=size*0.7, height=size*0.7, dpi=300, compression = 'lzw')
+
+## Genes x UMI (Density plot)
+p <- data@meta.data %>% 
+	ggplot(aes(color=sampleCombined, x=log10GenesPerUMI, fill=sampleCombined)) + 
+	geom_density(alpha = 0.2) + 
+  scale_color_manual(values = samplePalette) +
+  scale_fill_manual(values = samplePalette) +
+  labs(fill="Samples", color="Samples", y = "Cell Density", x = "log10 Genes per UMI") +
+	theme_classic() +
+	geom_vline(xintercept = 0.8, linetype = "dashed", colour = "red") 
+p
+ggsave("fig_gbmgsc_ge_log10GenesUMI_density.tiff", plot = p, units="in", width=size*0.9, height=size*0.5, dpi=300, compression = 'lzw')
 
 ```
 
