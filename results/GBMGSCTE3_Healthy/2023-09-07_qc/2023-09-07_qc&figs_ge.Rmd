@@ -189,13 +189,143 @@ print(sampleIDs)
 data$sampleID <- factor(data$sampleID, levels = sampleIDs)
 ```
 
+Find Variable objects
+
+```{r}
+## Split by meta.group
+data.list <- SplitObject(object=data, split.by="sampleID")
+
+#### Normalize and identify variable features for each sample
+    # Normalization Method: Log Normalization
+cat("Normalize object: by sample \n")
+for(sample in 1:length(data.list)) {
+    cat("Processing sample :", sample, "\n")
+    ### Change active.ident as orig.ident
+    data.list[[sample]]@active.ident <- factor(data.list[[sample]]@meta.data$orig.ident)
+    
+    DefaultAssay(data.list[[sample]]) <- "RNA"
+    data.list[[sample]] <- NormalizeData(data.list[[sample]],verbose=TRUE)
+    data.list[[sample]] <- FindVariableFeatures(data.list[[sample]],selection.method="vst",nfeatures=2500,verbose=TRUE)
+}## End of for-loop for each sample
+```
+
+Export Variable Feature plots
+
+```{r}
+samplenames <- names(data.list)
+for(sample in 1:length(data.list)) {
+  top10 <- head(VariableFeatures(data.list[[sample]]), 10)
+  p <- VariableFeaturePlot(data.list[[sample]])
+  p <- LabelPoints(plot = p, points = top10, repel = TRUE, xnudge=0,ynudge=0)
+  filename <- paste(".\\variablefeatures_ge\\fig_ge_variablefeatures_",samplenames[sample],".tiff", sep="")
+  ggsave(filename, plot = p, units="in", width=size*1.5, height=size, dpi=300, compression = 'lzw')
+}## End of for-loop for each sample
+```
+
+Integrate and Anchor Samples into one Seurat Object
+
+```{r}
+nDims <- 25
+
+## Integrating seurat object
+cat("Number of samples in this seurat object", length(data.list), "\n")
+
+### Find Integration Anchors (Takes more memory and time)
+anchors <- FindIntegrationAnchors(data.list,dims=1:nDims) 
+data.integrated <- IntegrateData(anchorset = anchors,dims=1:nDims)
+```
+
+Save object
+
+```{r}
+saveRDS(data.integrated, file ="D:\\backup files\\getegbm\\gete-gbm\\results\\GBMGSCTE3_Healthy\\2023-09-07_qc\\ge_healthy_integrated.rds")
+```
+
+Perform Dimensionality Reduction with PCA & Visualize with UMAP projection in two dimensions
+
+```{r}
+# Set default assay to integrated (should be so be default after integration step)
+DefaultAssay(data.integrated) <- "integrated"
+
+#PCA on 25 dimensions
+data.dimred <- data.integrated %>% ScaleData(verbose = TRUE) %>% RunPCA(npcs = nDims, verbose = TRUE)
+
+#UMAP with resolution 0.3 and 0.4 and map to k-nearest neighbor graph
+data.dimred <- data.dimred %>% RunUMAP(reduction = "pca", dims = 1:nDims, umap.method = "uwot", metric = "cosine") %>% FindNeighbors(dims=1:nDims,reduction="pca")
+
+data.dimred <- FindClusters(data.dimred, resolution = 0.3)
+data.dimred <- FindClusters(data.dimred, resolution = 0.4)
+
+head(data.dimred@meta.data)
+
+## OUTPUT
+## Warning: The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric
+## To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'
+## This message will be shown once per session16:00:11 UMAP embedding parameters a = 0.9922 b = 1.112
+##..
+## PC_ 1 
+# Positive:  CLDN5, EPAS1, IGFBP7, A2M, NEAT1, FLT1, ABCG2, IFI27, ID1, HLA-E 
+# 	   RGS5, ABCB1, ID3, SLC38A5, ITM2A, ITIH5, B2M, ENG, ATP1A2, HIGD1B 
+# 	   GNG11, XAF1, NOTCH3, NDUFA4L2, MT2A, VIM, BST2, SLCO1A2, IFI44L, VAMP5 
+# Negative:  CHN1, RTN1, CAMK2A, PRKCB, SLC17A7, ENC1, SYT1, ARPP19, RTN4, ATP2B1 
+# 	   CREG2, THY1, OLFM1, FBXW7, SV2B, MAP1B, ARPP21, RTN3, NELL2, LMO4 
+# 	   SNAP25, LINGO1, APLP1, PPP3CA, NEFL, CLSTN1, NRGN, NUAK1, SNCA, PGM2L1 
+# PC_ 2 
+# Positive:  CLDN5, IFI27, EPAS1, A2M, ABCG2, ITM2A, FLT1, ID1, GNG11, ITIH5 
+# 	   ABCB1, HLA-E, SLC38A5, HIGD1B, PODXL, NOTCH3, ID3, ENG, FOXQ1, IGFBP7 
+# 	   ADGRF5, XAF1, NDUFA4L2, IFI44L, SLCO1A2, VIM, VAMP5, BST2, GPCPD1, SLC2A1 
+# Negative:  GAD1, ERBB4, DLX6-AS1, GAD2, ZNF385D, SLC32A1, NXPH1, DNER, IGF1, SPOCK3 
+# 	   PNOC, ARL4C, TAC1, GRIK1, SLC6A1, RAB3IP, NRIP3, GRIP2, KCNC2, LGI2 
+# 	   SST, MAFB, RAB3B, CRH, SYNPR, ANK1, ZNF536, CORT, THSD7A, AC092376.2 
+# PC_ 3 
+# Positive:  AC009041.2, C6orf141, KCNIP4-IT1, U95743.1, LINC02822, MEIS2, NECTIN3, FAM153CP, LINC02263, R3HDM1 
+# 	   AC011287.1, SERPINE2, RGS12, AL117329.1, CHRM3-AS2, ARPP21, INHBA, LINC02717, MDGA1, MEG3 
+# 	   C1QL2, ITPR2, PCDH8, ENC1, GRB14, LINC00507, ANO3, TMEM215, AC027251.1, DOCK4 
+# Negative:  MT-CO2, SPOCK2, MT-ND3, MT-ND4, MT-ND2, MT-CO3, MT-ND1, MT-ATP6, MT-CO1, NEFH 
+# 	   MT-CYB, KCNC2, ELAVL2, RGS5, TAC1, SLC24A2, DNM3, MT-ND5, GAD2, GAD1 
+# 	   ZNF385D, NDRG4, SPARCL1, CPLX1, SLC38A1, PGAM1, MAP1B, RAB3C, SNCG, NSF 
+# PC_ 4 
+# Positive:  RASGRF2, GRIA4, HS6ST3, PCDH8, AJ009632.2, LINC00507, NECTIN3, FREM3, C6orf141, U95743.1 
+# 	   LINC02822, TESPA1, GNAL, SERPINE2, AC117453.1, INHBA, CUX2, GPR26, VSTM2L, AC009041.2 
+# 	   CA10, TMEM215, ENC1, VSTM2A, MIR3976HG, HOPX, DGKB, COL5A2, CDH13, CALB1 
+# Negative:  SLC1A2, FOXP2, IPCEF1, RORB, DIRAS2, SEMA3E, AL033539.2, TSHZ2, HS3ST4, TRMT9B 
+# 	   RPRM, RXFP1, B3GALT2, TLE4, NXPH3, ETV1, APOE, GABRG1, SEMA3A, CLSTN2 
+# 	   SLC35F1, CYP26B1, EFHD2, AC109466.1, SLC1A3, HS3ST2, PDE1A, PHLDB2, PCSK1, FEZF2 
+# PC_ 5 
+# Positive:  VIP, CRH, PROX1, TAC3, CHRNA2, MEG3, RGS12, CNR1, CALB2, SYNPR 
+# 	   DLX6-AS1, NR2F2, TRMT9B, SHISA8, NPR3, CXCL14, FXYD6, CBLN1, PWRN1, VWC2L 
+# 	   SCG2, TP53I11, FAM153CP, LYPD1, CD24, AC007614.1, ROBO2, PTGFR, CNTNAP4, CHRM3-AS2 
+# Negative:  SLC1A3, APOE, SPARCL1, GJA1, MLC1, COL5A3, WIF1, GJB6, AQP4, EDNRB 
+# 	   SLC39A12, GPR37L1, GLUL, ADGRV1, KCNJ10, NDRG2, PTGDS, CST3, CLU, SLC1A2 
+# 	   BCAN, LINC00499, SLC25A18, S1PR1, CSRP1, AGT, ACSS1, PLPP3, MT1G, EZR 
+```
+
+ScaleData output: Centering and scaling data matrix \|=========================================================================================================================\| 100% PC\_ 1 Positive: AluSg, L1M4c, AluSc, AluSc5, AluYm1, AluYa5, AluYb8, FLAM-C, NEAT1, SLC1A3 GLUL, ZBTB20, ATP1A2, APOE, MT2A, COL5A3, NDRG2, PTGDS, MT1E, QKI ADGRV1, PTPRZ1, PTN, GJA1, IGFBP7, S100A1, SOX2, AQP4, ZFP36L1, SLC6A1 Negative: SYT1, MAP1B, RTN1, SNAP25, CALM1, CHN1, RTN3, NEFL, YWHAH, NRGN TUBA1B, CALM2, RTN4, STMN2, THY1, VSNL1, CALM3, CLSTN1, ARPP19, OLFM1 NEFM, YWHAG, HSP90AA1, SLC17A7, UCHL1, SNCA, ATP6V0C, BEX1, MT-CO1, TUBB2A PC\_ 2 Positive: MEG3, LINC00632, FAM153CP, AluYb8, ALR/Alpha, AluYa5, AluYm1, AluSc5, AluSc, AluSg MEG8, KCNIP4-IT1, CES4A, R3HDM1, L1M4c, RIMS2, CHRM3-AS2, ARPP21, FLAM-C, LINC02263 HERVS71-int, AC009041.2, AC024610.2, LY86-AS1, LINC02595, AC068587.4, LINC02822, STARD4-AS1, GRIA4, AL117329.1 Negative: CLDN5, A2M, IGFBP7, IFI27, EPAS1, ABCG2, ID1, FLT1, ID3, ITM2A IFITM3, HIGD1B, HLA-E, ABCB1, ATP1A2, GNG11, ITIH5, MT2A, ENG, SLC38A5 NOTCH3, CST3, SLC6A12, PDGFRB, MT1E, VAMP5, VIM, HLA-B, B2M, ICAM2 PC\_ 3 Positive: ARPP21, R3HDM1, KCNIP4-IT1, LY86-AS1, ENC1, CHN1, LINC02263, FBXW7, AC009041.2, AL117329.1 LINC02822, ANO3, LMO3, PRKCB, AC093843.2, SATB2, STARD4-AS1, HOMER1, NRGN, TESPA1 CAMK2A, ARPP19, MRTFB, PART1, LINC02595, NPTX1, CABP1, SLC17A7, LINC00507, SV2B Negative: GAD1, DLX6-AS1, GAD2, ERBB4, SLC6A1, ZNF385D, DNER, SPOCK3, IGF1, NXPH1 SST, GRIK1, ARL4C, TAC1, SLC32A1, RAB3IP, NRIP3, SYNPR, ATP1B1, ZNF536 GRIP2, PNOC, SOX2-OT, ARX, KCNC2, CORT, ELAVL2, MAF, TIMP2, RND3 PC\_ 4 Positive: PLP1, TF, AL359091.1, MAG, MBP, CLDN11, MOBP, PTGDS, SELENOP, CARNS1 TMEM144, UGT8, CMTM5, TRIM59, CNP, S100B, TSC22D4, MYRF, ENPP2, SCD CERCAM, HEPACAM, PPP1R14A, ABCA8, CRYAB, SPP1, GPR37, SLC1A3, S100A1, FAM107B Negative: MEG3, FAM153CP, LINC00632, CLDN5, ALR/Alpha, IFI27, FLT1, A2M, ABCG2, MEG8 ABCB1, EPAS1, ENG, ITIH5, HIGD1B, GNG11, ITM2A, HLA-E, RGS5, FLAM-C NDUFA4L2, SLC38A5, AluSc5, DCN, PODXL, ICAM2, COBLL1, NOTCH3, DUSP1, AluYb8 PC\_ 5 Positive: PLP1, MBP, CLDN11, TF, MOBP, MAG, PPP1R14A, TRIM59, AL359091.1, CNP ENPP2, UGT8, SELENOP, CARNS1, FAM107B, CERCAM, ABCA8, RNASE1, MYRF, GPR37 DBNDD2, EVI2A, SPP1, MARCKSL1, ANLN, ERMN, TMEM144, CRYAB, CMTM5, SCD Negative: ADGRV1, FGFR3, SLC1A2, APOE, GJA1, COL5A3, AQP4, SLC1A3, EDNRB, SLC25A18 CST3, ETNPPL, F3, AGT, SLC7A11, ID4, ACSS1, MLC1, SLCO1C1, ANGPTL4 EFEMP1, PLPP3, PRDM16-DT, CLU, LINC00499, SPARCL1, ATP13A4, ID2, MGST1, MT1G
+
+Save object
+
+```{r}
+saveRDS(data.dimred, file ="D:\\backup files\\getegbm\\gete-gbm\\results\\GBMGSCTE3_Healthy\\2023-09-07_qc\\ge_healthy_dimred.rds")
+```
+
 ### PCA figures
 
 ```{r}
 # PCA Elbow Plot
-p <- ElbowPlot(data)
-ggsave("fig_gte_elbowplot.tiff", plot = p, units="in", width=size*0.7, height=size*0.7, dpi=300, compression = 'lzw')
+p <- ElbowPlot(data.dimred, ndims = nDims)
+ggsave("fig_healthy_ge_elbowplot.tiff", plot = p, units="in", width=size*0.7, height=size*0.7, dpi=300, compression = 'lzw')
 
+# Compute the explained variance for each principal component 
+eigenValues <- Stdev(data.dimred, reduction = "pca")^2
+varExplained <- eigenValues / data.dimred@reductions$pca@misc$total.variance 
+  #total variance of the 2000 most variable genes 
+write.csv(varExplained, file="healthy_ge_pca_varExplained.csv", row.names = T)
+
+sum(varExplained)
+# 0.1901663
+```
+
+```{r}
 # Mito Ratio x Te Ratio
 
 # Te Barplot
