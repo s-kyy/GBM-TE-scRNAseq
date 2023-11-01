@@ -1,6 +1,7 @@
 .Rproj.user
 *.Rhistory
 *.RData
+*.RDataTmp
 .Ruserdata
 *.RDS
 *.rds
@@ -9,6 +10,7 @@ data/
 *.Rout
 *.out
 *.csv
+*.rar
 
 **/*_cache/
 **/*GSEA*/
