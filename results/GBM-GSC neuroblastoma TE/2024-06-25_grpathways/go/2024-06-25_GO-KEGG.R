@@ -119,7 +119,15 @@ genes.df %>% dplyr::filter(ID == "GO:0098990" & cluster == "1")
 # ID Genes Class cluster
 # GO.0098990.1 GO:0098990  PLP1    BP       1
 
-### Repeat for GTE analysis. 
+# deg.go <- read.csv("ge_GO_GR.csv", header = TRUE, row.names = 1)
+# genes.df <- read.csv("ge_geneIDbyGO-KEGG.csv")
+
+goid <- deg.go %>% dplyr::filter(p.adj <=0.05)
+
+genes.df[which(match(goid$GOID,genes.df$GOID)),]
+
+
+##### Repeat for GTE analysis. #####
 # restart R
 writeLines("Loading differentially expressed genes csv")
 deg <- read.csv("D:\\backup files\\getegbm\\GBM-TE-scRNAseq\\results\\GBM-GSC neuroblastoma TE\\2023-07-12_DEG\\2023-08-08\\gte_markers_0.3.csv", row.names = 1)
@@ -202,6 +210,8 @@ deg.go <- readRDS("gte_GO-KEGG.rds")
 genes.df <- allGOgenes(deg.go)
 write.csv(genes.df, "gte_geneIDbyGO-KEGG.csv", row.names = FALSE)
 gc()
+
+
 
 ### Session Info
 sessionInfo()
