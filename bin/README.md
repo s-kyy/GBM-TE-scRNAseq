@@ -4,7 +4,7 @@ Run the following R scripts in order:
 
 -   `1-createSeuratObj-GTE.R`
 -   `2-qc-figs.R`
--   `3-normalize-integrate.R`
+-   `3-normalize2umap.R`
 
 The original code was obtained from the following scripts:
 
@@ -17,3 +17,5 @@ The original code was obtained from the following scripts:
     -   ~~*Create Unique Identities for each Sample (Metadata)*~~ (todo)
     -   *Normalization, Find Variable Features (2021-06-15)* -\> 3
     -   *UMAP* -\> 3
+
+**Date Updated**: 2024-07-23 12:52pm
