@@ -108,7 +108,18 @@ p <- DotPlot(object = gbm, features=present$gene.symbol) +
 
 ggsave("figs_ge_DotPlot_metabolic-genes_byCellTypes.tiff", plot = p, units="in", width=size*1.2, height=size*0.8, dpi=300, compression = 'lzw')
 
+# create violin plots by patient
+Idents(gbm) <- "int03_celltypes"
+p <- VlnPlot(gbm, features=present$gene.symbol, stack=TRUE, flip=TRUE) +
+    facet_grid(rows=vars(gbm@meta.data$sampleCombined), scales="free_y")+
+    labs(x="")
+ggsave("figs_ge_VlnPlot_metabolic-genes_byCellTypes-bySampleCombined.tiff", plot = p, units="in", width=size*1.2, height=size*1.5, dpi=300, compression = 'lzw')
 
+Idents(gbm) <- "integrated_snn_res.0.3"
+p <- VlnPlot(gbm, features=present$gene.symbol, stack=TRUE, flip=TRUE) +
+    facet_grid(rows=vars(gbm@meta.data$sampleCombined), scales="free_y")+
+    labs(x="")
+ggsave("figs_ge_VlnPlot_metabolic-genes_byCluster-bySampleCombined.tiff", plot = p, units="in", width=size*1.2, height=size*1.5, dpi=300, compression = 'lzw')
 
 ## Sessioninfo
 
