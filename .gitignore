@@ -12,6 +12,9 @@ data/
 *.csv
 *.rar
 *.zip
+*.gct
+*.cls
+*.lnk
 
 **/*_cache/
 **/*GSEA*/
