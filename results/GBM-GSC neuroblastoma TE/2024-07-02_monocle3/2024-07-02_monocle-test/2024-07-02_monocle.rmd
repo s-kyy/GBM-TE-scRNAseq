@@ -1,0 +1,78 @@
+---
+title: "Monocle Object Figures for ISMB COnference 2024"
+date: 2024-07-02
+author: Samantha Yuen
+output:
+  html_document:
+    toc: yes
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "./results/"
+    )
+  })
+editor_options:
+  chunk_output_type: inline
+--- 
+
+[Monocle-Seurat Tutorial](https://ucdavis-bioinformatics-training.github.io/2021-August-Advanced-Topics-in-Single-Cell-RNA-Seq-Trajectory-and-Velocity/data_analysis/monocle_fixed)
+
+
+## Setup the notebook and environment
+
+```{r Rmd-setup, include = FALSE}
+knitr::opts_chunk$set(results.collapse=TRUE)
+knitr::opts_chunk$set(cache.comments=FALSE)
+```
+```{r libraries, eval=FALSE}
+BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
+                       'limma', 'lme4', 'S4Vectors', 'SingleCellExperiment',
+                       'SummarizedExperiment', 'batchelor', 'HDF5Array',
+                       'terra', 'ggrastr'))
+# The downloaded source packages are in
+#         ‘/tmp/RtmpAyFTSP/downloaded_packages’
+# Installation paths not writeable, unable to update packages
+#   path: /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v3/Compiler/gcccore/r/4.4.0/lib64/R/library
+#   packages:
+#     foreign, KernSmooth, MASS, nlme, survival
+BiocManager::install(c('foreign', 'KernSmooth', 'MASS', 'nlme', 'survival'), force = TRUE, lib=.libPaths()[1])
+BiocManager::install(c('terra','ggrastr'), lib=.libPaths()[1])
+#install.packages("devtools")
+# install https://dl.fedoraproject.org/pub/epel/8/Everything/SRPMS/Packages/u/udunits2-2.2.26-5.el8.src.rpm in custom
+install.packages("Matrix", force = TRUE)
+BiocManager::install("SummarizedExperiment", force = TRUE, lib=.libPaths()[1])
+# BiocManager::install(c('units', 'sf', 'spdep'), force = TRUE, lib=.libPaths()[1])
+# remotes::install_github("cole-trapnell-lab/monocle3", remotes::github_release())
+devtools::install_github("cole-trapnell-lab/monocle3")
+```
+
+```{r load-libs}
+library(monocle3)
+library(Seurat)
+library(SeuratWrappers)
+library(patchwork)
+library(dplyr)
+library(conflicted)
+conflict_prefer("select", "dplyr") ## required in %>% dplyr
+conflict_prefer("filter", "dplyr") ## required in %>% dplyr
+
+size <- 3
+```
+
+## Load dataset
+
+```{r }
+gbm.monocle <- readRDS("..\\2022-01-30_monocle3\\gbmsc_pseudo_clus6.rds")
+p1 <- gbm.monocle(
+        par1, 
+        label_groups_by_cluster = FALSE, 
+        label_leaves = FALSE, 
+        label_branch_points = FALSE)
+p1
+ggsave("fig_gte_PC20r03_monocleUMAPs_path.tiff", units="in", width=size, height=size, dpi=300, compression = 'lzw')
+```
+
+
+```{bash render, include=F, eval=F}
+R --no-save --no-restore -e "rmarkdown::render('2024-07-02_monocle.md', 'html_document', output_dir='./results')"
+```

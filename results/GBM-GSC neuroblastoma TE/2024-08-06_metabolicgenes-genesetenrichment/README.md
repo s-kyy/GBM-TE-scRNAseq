@@ -56,6 +56,8 @@ h.all.v2023.2.Hs.symbols.gmt
 - copied previous GE_table.gct and GTE_table.gct files from previous run to current run. 
 - Ran python script `apply_gsea4.py` with python3 and the same parameters as when I first performed GSEA analysis. Ensured the filepaths were written correctly.
 
+
+
 GE : 
 ```
 python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GE_table.gct /home/samkyy/scratch/gsea/phenotypes_ge.cls /home/samkyy/scratch/gsea/genesets/c4.3ca.v2023.2.Hs.symbols.gmt c4-3ca gene_set 500 5 160
@@ -75,4 +77,11 @@ python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GTE_table.gct /h
 ```
 
 - Sbatch resulting scripts to create GSEA results. 
-- Ran bash script `extGSEAReports.sh`
+- Ran bash script `extGSEAReports.sh` to generate .tsv files. 
+
+```bash
+# assign interative node
+salloc --time=4:0:0 --ntasks=1 --cpus-per-task=1 --mem-per-cpu=2G --account=def-ytanaka 
+# run script
+source ./extGSEAReports.sh ~/scratch/gsea/job_outputs/ ~/scratch/gsea/ > stdouterr 2>&1
+```

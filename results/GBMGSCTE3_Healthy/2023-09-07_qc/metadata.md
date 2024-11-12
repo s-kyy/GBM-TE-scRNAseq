@@ -15,3 +15,4 @@ GTE object
 -   #Cells (post-qc) = 18969 (removed 173049)
 
 -   #Genes = 32002
+-   TE = 1,206
