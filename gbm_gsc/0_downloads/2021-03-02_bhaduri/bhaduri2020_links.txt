@@ -1,0 +1,12 @@
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349892/SF11159_1_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349892/SF11159_2_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349844/SF11209_1_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349844/SF11209_2_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349682/SF11215_1_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349682/SF11215_2_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349891/SF11232_1_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349891/SF11232_2_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349671/SF11247_1_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349671/SF11247_2_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349788/SF11285_1_possorted_genome_bam.bam.1
+https://sra-pub-src-2.s3.amazonaws.com/SRR10349788/SF11285_2_possorted_genome_bam.bam.1

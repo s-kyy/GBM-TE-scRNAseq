@@ -1,13 +1,4 @@
-.Rproj.user
-*.Rhistory
-*.RData
-*.RDataTmp
-.Ruserdata
-*.RDS
-*.rds
-data/
-*.tiff
-*.Rout
+# General
 *.out
 *.csv
 *.rar
@@ -15,6 +6,22 @@ data/
 *.gct
 *.cls
 *.lnk
+
+# Images
+*.tiff
+
+# R 
+.Rproj.user
+*.Rhistory
+*.RData
+*.RDataTmp
+.Ruserdata
+*.RDS
+*.rds
+*.Rout
+
+# Others
+data/
 
 **/*_cache/
 **/*GSEA*/
