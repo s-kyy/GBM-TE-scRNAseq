@@ -62,6 +62,9 @@ tar -xzvf refdata-gex-GRCh38-2020-A.tar.gz
 
 or execute script: `refdata_download.sh` (also includes transposable element annotations)
 
+Install the cellranger v3.0.2 software: [https://support.10xgenomics.com/single-cell-gene-expression/software/downloads/3.0/](https://support.10xgenomics.com/single-cell-gene-expression/software/downloads/3.0/). 
+Ensure path to installed software is exported to PATH environment variable.
+
 ## Download and Make Retrotransposon Reference Annotations
 
 Downloaded GTF annotations for transposable elements extracted with RepeatMasker from the human Ensembl genome assembly GRCh38 available from [Dr. Molly Gale Hammell's Lab](https://hammelllab.labsites.cshl.edu/software/#TEtranscripts).
