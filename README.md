@@ -28,6 +28,8 @@ TCGA sets:
 
 ## Requirements
 
+Mapping of single cell or single nuclei RNA-seq datasets was performed on linux-based cluster resources (CentOS7). 
+
 - bamtofastq v1.3.2 - https://cf.10xgenomics.com/misc/bamtofastq-1.3.2
 - sra-toolkit v2.10.8 - https://github.com/ncbi/sra-tools/releases/tag/2.10.8
 - cellranger v6.0.0 - https://support.10xgenomics.com/single-cell-gene-expression/software/downloads/6.0?
@@ -36,6 +38,7 @@ TCGA sets:
     - Seurat v4.0
     - Monocle v3 
     - See `renv.lock` for full list of R packages
+- Python v3.9
 - HMM_CE v0.1 - [https://github.com/ytanaka-bio/HMM_CE](https://github.com/ytanaka-bio/HMM_CE)
 
 See the `README.md` under each numbered directory for notes on installation and usage. 

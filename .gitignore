@@ -6,6 +6,8 @@
 *.gct
 *.cls
 *.lnk
+*.gz
+*.tar 
 
 # Images
 *.tiff
@@ -19,6 +21,10 @@
 *.RDS
 *.rds
 *.Rout
+
+# cellranger
+*.gtf
+*refdata*
 
 # Others
 data/
