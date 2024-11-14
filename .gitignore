@@ -28,6 +28,7 @@
 
 # Others
 data/
+*test*
 
 **/*_cache/
 **/*GSEA*/
