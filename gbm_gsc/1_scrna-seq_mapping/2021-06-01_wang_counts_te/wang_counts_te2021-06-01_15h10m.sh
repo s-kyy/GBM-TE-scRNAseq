@@ -12,14 +12,14 @@ cd "$scriptdir"
 echo "$scriptdir"
 
 if [[ $SLURM_ARRAY_TASK_ID == 0 ]] ; then
-./run_cellranger3.sh ../../0_downloads/2021-05-28_wang/SRR10353962 mapRT_SRR10353962 ./ ../../0_downloads/te-ref/refdata_GRCh38-TE 8 15 
+../run_cellranger3.sh ../../0_downloads/2021-05-28_wang/SRR10353962 mapRT_SRR10353962 ./ ../../0_downloads/te-ref/refdata_GRCh38-TE 8 15 
 fi
 
 if [[ $SLURM_ARRAY_TASK_ID == 1 ]] ; then
-./run_cellranger3.sh ../../0_downloads/2021-05-28_wang/SRR10353961 mapRT_SRR10353961 ./ ../../0_downloads/te-ref/refdata_GRCh38-TE 8 15 
+../run_cellranger3.sh ../../0_downloads/2021-05-28_wang/SRR10353961 mapRT_SRR10353961 ./ ../../0_downloads/te-ref/refdata_GRCh38-TE 8 15 
 fi
 
 if [[ $SLURM_ARRAY_TASK_ID == 2 ]] ; then
-./run_cellranger3.sh ../../0_downloads/2021-05-28_wang/SRR10353960 mapRT_SRR10353960 ./ ../../0_downloads/te-ref/refdata_GRCh38-TE 8 15 
+../run_cellranger3.sh ../../0_downloads/2021-05-28_wang/SRR10353960 mapRT_SRR10353960 ./ ../../0_downloads/te-ref/refdata_GRCh38-TE 8 15 
 fi
 
