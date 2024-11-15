@@ -7,7 +7,7 @@
 # Author: Samantha Yuen
 # Adapted from: apply_cellranger3.pl by Dr. Yoshiaki Tanaka
 # Created: Thursday Mar 04, 2021
-# Modified: Tuesday Jun 01, 2021
+# Modified: Friday Nov 15, 2024
 
 # Purpose: scRNA-seq read mapping and counting with cellranger from fastq files. 
 
@@ -112,7 +112,7 @@ def main():
     os.chdir(tmpdir)
 
     # make tmp file for slurm bash script
-    tmp = tmpdir + "/" + os.path.basename(outName) + "_counts_" +  datetime.now().strftime("%Y-%m-%d_%Hh%Mm") + ".sh"
+    tmp = tmpdir + "/" + os.path.basename(outName) +  datetime.now().strftime("%Y-%m-%d_%Hh%Mm") + ".sh"
     print("Output slurm file:", os.path.basename(tmp))
 
     try: 
