@@ -22,17 +22,22 @@ This python script generates a bash script which requests user-defined remote cl
 
 ```bash
 python ./make_cellranger_job.py 
-# Usage: make_cellranger_job.py [fastqdir] [output_dir] [ref_genome] [localcores] [mempercore] [v3-v6] [output_name] 
+# usage: make_cellranger_job.py [-h] -i INPUT_FOLDER -o OUT_FOLDER -r REF [-c CORES] [-m MEM] [-t TYPE]
+# Produce script for cellranger count function
+
+# options:
+#   -h, --help       show this help message and exit
+#   -i INPUT_FOLDER  fastq filepath (default: None)
+#   -o OUT_FOLDER    output filepath for cellranger count (ie. "./") (default: None)
+#   -r REF           reference annotations filepath (default: None)
+#   -c CORES         local cores value used in SBATCH (e.g. 8, 12, 16). larger the value the higher greater the faster
+#                    the process (default: 8)
+#   -m MEM           mempercore value used in SBATCH (e.g. 10, 12, 15) (default: 10)
+#   -t TYPE          cellranger version to use. (6 or 3) (default: 6)
+#   -p PATTERN       SF... = 0 (default), SRR... = 1 (default: 0)
 ```
 
-Parameters
-- `fastqdir` (path) = directory path containing list of fastq directories 
-- `output_dir` (path) = directory path where cellranger count will output, path should already exist
-- `ref_genome` (path) = directory path of the human reference annotations or transposable element reference annotations
-- `localcores` (int) = total number of cores available (define less than maximum if performing locally)
-- `mempercore` (int) = memory available per cpu (in Gb)
-- `v3-v6` (int) = use cellranger 3 (map to transposon annotation) or 6 (human reference genome)
-- `output_name` (str) = Prefix for job script file name. 
+Note: 
 
 Example command:
 

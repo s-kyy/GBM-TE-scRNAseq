@@ -59,8 +59,10 @@ module load gcc/9.3.0
 module load sra-toolkit/2.10.8
 
 chmod +x bhaduri2020_healthy_download.sh
+chmod +x bhaduri2020_healthy_zip.sh
 cd ./2023-03-06_bhaduri_healthy
 ./bhaduri2020_healthy_download.sh ./bhaduri_healthy_ids.txt > tmp.out
+./bhaduri2020_healthy_zip.sh 
 ```
 
 # Download reference annotations

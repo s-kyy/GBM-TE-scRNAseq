@@ -12,155 +12,134 @@
 # Purpose: scRNA-seq read mapping and counting with cellranger from fastq files. 
 
 # Example
-# python3 ~/script/make_cellranger_job.py [fastqdir] [output_dir] [ref_genome] [localcores] [mempercore] [v3-v6] [output_name]
+# python3 ~/script/make_cellranger_job.py [fastqdir] [output_dir] [ref_genome] [localcores] [mempercore] [v3-v6]
 
-# Imports 
-import sys, os, io, time, glob
-from os import path
+# ==============================================================================
+# Import Librairies
+# ==============================================================================
+import sys, os, glob, argparse
 from datetime import datetime
-
+# ==============================================================================
 # Global variables 
+# ==============================================================================
 cwdir = os.getcwd()  # current working directory
-tmpdir = "." # slurm script output directory
-fastqdir = ""
 
-### function: Verify paramater values
-def verifyArgs():
+# ==============================================================================
+# Verify arguments
+# ==============================================================================
+def parse_path(value):
+    if os.path.exists(value):
+        return value
+    else:
+        sys.exit('Paths do not exist. Terminating program...')
 
-    # Check for number of arguements
-    if (not (len(sys.argv[1:]) == 7)):
-        sys.exit("Usage: " + os.path.basename(sys.argv[0]) + " [fastqdir] [output_dir] [ref_genome] [localcores] [mempercore] [v3-v6] [output_name]\n")
+def returnValue(obj):
+    """
+    return the first item in an argparse variable for optional arguments 
+    """
+    if isinstance(obj, list):
+        return obj[0]
+    else:
+        return obj
 
-    #Verify directories and values. 
-    if (not os.path.exists(sys.argv[1])):
-        sys.exit('Path to fastq files do not exist, terminating program...')
-    if (not os.path.exists(sys.argv[2])):
-        sys.exit('Path to output directory does not exist, terminating program...')
-    if (not os.path.exists(sys.argv[3])):
-        sys.exit('Path to reference genome does not exist, terminating program...')
-    try:
-        int(sys.argv[4])
-    except ValueError:
-        sys.exit('Invalid localcores size, must be an int, terminating program...')
-    try:
-        int(sys.argv[5])
-    except ValueError:
-        sys.exit('Invalid mempercore size, must be an int, terminating program...')
-    try: 
-        int(sys.argv[6])
+parser = argparse.ArgumentParser(description='Produce script for cellranger count function',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-        if (int(sys.argv[6]) != 3 and int(sys.argv[6]) != 6):
-            sys.exit('Invalid v3-v6 option, value must be 3 or 6, terminating program...')
-    except ValueError:
-        sys.exit('Invalid v3-v6 option, must be and int, terminating program...')
+parser.add_argument('-i',nargs=1,help='fastq filepath',type=parse_path,dest="input_folder",required=True)
+parser.add_argument('-o',nargs=1,help='output filepath for cellranger count (ie. "./")',type=parse_path,dest="out_folder",required=True) 
+parser.add_argument('-r',nargs=1,help='reference annotations filepath', type=parse_path, dest="ref", required=True)
+parser.add_argument('-c', nargs=1, default=8, help='local cores value used in SBATCH (e.g. 8, 12, 16). larger the value the higher greater the faster the process ', type=int, dest="cores")
+parser.add_argument('-m', nargs=1, default=10, help="mempercore value used in SBATCH (e.g. 10, 12, 15)", type=int, dest="mem")
+parser.add_argument('-t', nargs=1, default=6, help="cellranger version to use. (6 or 3)", type=int, dest="type")
+parser.add_argument('-p', nargs=1, default=0, help="SF... = 0 (default), SRR... = 1", type=int, dest="pattern")
 
-def findFolders(fastqdir):
+args = parser.parse_args()
 
-    folderPaths = [] # list for fastq directories
+# ==============================================================================
+# Cleanup args values
+# ==============================================================================
+fastqdir = returnValue(args.input_folder)
+outdir = returnValue(args.out_folder) 
+ref_gen = returnValue(args.ref) 
+localcores = returnValue(args.cores)
+mempercore = returnValue(args.mem)
+cellranger_type = returnValue(args.type)
+pattern = returnValue(args.pattern)
+print(fastqdir) 
 
-    # print("in findFolders def for:", fastqdir)
+# ==============================================================================
+# Extract list of unique folders
+# ==============================================================================
+folderPaths = [] # list for fastq directories paths
+foldernames = [] # list for fastq directory names
+sample_name_pattern = ""
 
-    # for filePath in glob.glob(fastqdir + "/data_*/*/*_I1_*.fastq.gz"):
-        #glob a list of all paths that contain *_I1_*.fastq.gz files
-        #ex: fastqdir = RetroTransposonAnalysis/data00/bamtofastqfolder/*_I1_*.fastq.gz 
+#change to directory containing the fastq files
+os.chdir(fastqdir) 
 
-    for filePath in glob.glob(fastqdir + "/SRR*/*_R1_001.fastq.gz"):
-        # ex: fastqdir = gete-gbm/data/SRR10353960/GBM27_*_R1_001.fastq.gz
+print('Extracting file paths by sample')
 
-        print ("a filePath was found:", os.path.dirname(filePath), "\n")
-    
-        folderPaths.append(os.path.dirname(filePath)) #strip the name of the files
+# adjust globbed pattern based on the the fastq file pattern to the sample prefix
+if pattern == 0 :
+    sample_name_pattern = "/SF*_*/*/*_I1_*.fastq.gz"
+    #ex: fastqdir = fastqdir/samplename/bamtofastqfolder/*_I1_*.fastq.gz 
+else:
+    sample_name_pattern = "/SRR*/*_R1_001_.fastq.gz"
+
+for filePath in glob.glob(fastqdir + sample_name_pattern): 
+    #ex: fastqdir = fastqdir/samplename/bamtofastqfolder/*_I1_*.fastq.gz 
+    print (os.path.dirname(filePath), "\n")
+    folderPaths.append(os.path.dirname(filePath)) #strip the name of the files
+    foldernames.append(os.path.basename(os.path.dirname(os.path.dirname(filePath))))
+
+uniqueFolderPaths = sorted([*{*folderPaths}])
+foldernames = sorted([*{*foldernames}])
+print(foldernames)
+print("uniqueFolderPaths size", len(uniqueFolderPaths))
+
+# ==============================================================================
+# Write script
+# ==============================================================================
+
+# move to workdirectory for slurm output script
+os.chdir(cwdir) 
+
+# make tmp file for slurm bash script
+tmp = os.path.join(cwdir, os.path.basename(fastqdir), datetime.now().strftime("%Y-%m-%d_%Hh%Mm"), ".sh")
+    # ./<fastqdir>/YYYY-mm-dd_HhMm.sh
+print("Output slurm file:", tmp)
+
+try: 
+    with open(tmp, 'w') as slurm:
+        slurm.write("#!/bin/bash\n")
+        slurm.write("#SBATCH --time=36:00:00\n")
+        slurm.write("#SBATCH --account=xxx\n")
+        slurm.write("#SBATCH --ntasks=1\n")
+        slurm.write("#SBATCH --cpus-per-task=" + str(localcores) + "\n")
+        slurm.write("#SBATCH --mem-per-cpu=" + str(mempercore) + "G\n")
+        slurm.write("#SBATCH --array=0-")
+        slurm.write(str(len(uniqueFolderPaths)-1) + "\n")
+        # slurm.write("#SBATCH --mail-user=\n")
+        # slurm.write("#SBATCH --mail-type=ALL\n")
+
+        slurm.write("cd " + outdir + "\n") #should be cd-ing into ./script, but since I put absolute path to run_cellranger6.sh, it's fine
         
-        # print("Length of folderPaths list:", len(folderPaths))
+        # Output Example:
+        # array output: if [[ $SLURM_ARRAY_TASK_ID == 0 ]] ; then 
+        # ${CELLRANGER}/cellranger count ${OPTION} --localcores=${CPU} --id=${OUTPUT} --transcriptome=${REF} --fastq=${INPUT} 
+        # fi
+        
+        for i in range(len(uniqueFolderPaths)): # range: 0-5
+            slurm.write("if [[ $SLURM_ARRAY_TASK_ID == " + str(i) + " ]] ; then\n")
+            slurm.write("../run_cellranger" + str(cellranger_type) + ".sh " + 
+                            uniqueFolderPaths[i] + " " +    # --fastq=${INPUT}
+                            "map_" + foldernames[i] + " " +         # --id=${OUTPUT} output directory
+                            outdir + " " +                  # cd into containing all output directories in $DIR
+                            ref_gen + " " +                 # --transcriptome=${REF}
+                            str(localcores) + " " +              # --localcores=${CPU}
+                            str(mempercore) + " " +              # --mempercore=${OPTION}
+                            "\n")
 
-        if not os.path.isdir(os.path.dirname(filePath)):
-            print("directory does not exist\n")
-            sys.exit()
-    
-    result = [*{*folderPaths}]
-    return  result #return unique list of folders
-
-### Launcher 
-def main(): 
-    # Arguements passed from command line
-    fastqdir = sys.argv[1]  # directory of fastq files
-    outdir = sys.argv[2]    # output of map cell/genes count matrix (named map/)
-    ref_gen = sys.argv[3]   # reference genome
-    localcores = sys.argv[4]  # local cores value used in SBATCH (e.g. 8, 12, 16)
-                            # larger the value the higher greater the faster the process 
-    mempercore = sys.argv[5] # mempercore value used in SBATCH (e.g. 10, 12)
-    version = int(sys.argv[6])   # version of cellranger to run (3 for retrotransposons referencen genes, else 6)
-    outName = sys.argv[7]
-    
-    print(fastqdir) # folder containing fastq folders we are processing. 
-
-
-    print("finding folders:\n")
-
-    os.chdir(fastqdir) #change directories containing the fastq files
-
-    uniqueFolderPaths = findFolders(fastqdir)
-    print("uniqueFolderPaths size", len(uniqueFolderPaths))
-
-    # move to workdirectory for slurm output script
-    if (not os.path.exists(tmpdir)):
-        try: 
-            os.mkdir(tmpdir)
-        except OSError:
-            print("Error making tmpdir for slurm output/")
-            sys.exit()
-    os.chdir(tmpdir)
-
-    # make tmp file for slurm bash script
-    tmp = tmpdir + "/" + os.path.basename(outName) +  datetime.now().strftime("%Y-%m-%d_%Hh%Mm") + ".sh"
-    print("Output slurm file:", os.path.basename(tmp))
-
-    try: 
-        with open(tmp, 'w') as slurm:
-            slurm.write("#!/bin/bash\n")
-            slurm.write("#SBATCH --time=36:00:00\n")
-            slurm.write("#SBATCH --account=xxx\n")
-            slurm.write("#SBATCH --ntasks=1\n")
-            slurm.write("#SBATCH --cpus-per-task=" + localcores + "\n")
-            slurm.write("#SBATCH --mem-per-cpu=" + mempercore + "G\n")
-            # slurm.write("#SBATCH --mail-user=xxx\n")
-            # slurm.write("#SBATCH --mail-type=ALL\n")
-            slurm.write("#SBATCH --array=0-")
-            slurm.write(str(len(uniqueFolderPaths)-1) + "\n")
-
-            slurm.write("cd " + outdir + "\n") #should be cd-ing into ./script, but since I put absolute path to run_cellranger6.sh, it's fine
-            
-            # array output: if [[ $SLURM_ARRAY_TASK_ID == 0 ]] ; then ... fi
-            # ${CELLRANGER}/cellranger count ${OPTION} --localcores=${CPU} --id=${OUTPUT} --transcriptome=${REF} --fastq=${INPUT} 
-            for i in range(len(uniqueFolderPaths)): # range: 0-n
-                slurm.write("if [[ $SLURM_ARRAY_TASK_ID == " + str(i) + " ]] ; then\n")
-                if (version == 3):
-                    slurm.write("../run_cellranger3.sh " + 
-                                uniqueFolderPaths[i] + " " +    # --fastq=${INPUT}
-                                "map_" + os.path.basename(uniqueFolderPaths[i]) + " " +     
-                                                                # --id=${OUTPUT} output directory
-                                outdir + " " +                  # cd into containing all output directories in $DIR
-                                ref_gen + " " +                 # --transcriptome=${REF}
-                                localcores + " " +              # --localcores=${CPU}
-                                mempercore + " " +              # --mempercore=${OPTION}
-                                "\n")
-                else:
-                    slurm.write("../run_cellranger6.sh " + 
-                                    uniqueFolderPaths[i] + " " +    # --fastq=${INPUT}
-                                    "map_" + os.path.basename(uniqueFolderPaths[i]) + " " +     # --id=${OUTPUT} output directory
-                                    outdir + " " +                # cd into containing all output directories in $DIR
-                                    ref_gen + " " +                 # --transcriptome=${REF}
-                                    localcores + " " +              # --localcores=${CPU}
-                                    mempercore + " " +              # --mempercore=${OPTION}
-                                    "\n")
-
-                slurm.write("fi\n\n")
-    except IOError:
-        print('Cannot append in tmp SLURM file')    
-        sys.exit()
-
-### main
-if __name__ == "__main__": 
-
-    verifyArgs()
-    main() 
+            slurm.write("fi\n\n")
+except IOError:
+    print('Cannot append in tmp SLURM file')    
+    sys.exit()
