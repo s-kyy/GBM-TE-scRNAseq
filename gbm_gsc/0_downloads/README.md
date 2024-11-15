@@ -50,7 +50,7 @@ chmod +x wang2020_download.sh
 ## Download Bhaduri et al., 2020 Healthy snRNA-seq
 Date: 2023-03-06
 
-Tools: sra-toolkit/2.10.8
+Tools: sra-toolkit/2.10.8, pigz v2.7
 
 ```bash
 # load tool on Cedar (Digital Research Alliance of Canada)
@@ -61,9 +61,24 @@ module load sra-toolkit/2.10.8
 chmod +x bhaduri2020_healthy_download.sh
 chmod +x bhaduri2020_healthy_zip.sh
 cd ./2023-03-06_bhaduri_healthy
-./bhaduri2020_healthy_download.sh ./bhaduri_healthy_ids.txt > tmp.out
-./bhaduri2020_healthy_zip.sh 
+./bhaduri2020_healthy
+./bhaduri2020_healthy_download_rename.sh ./bhaduri_healthy_ids.txt > tmp.out
+./make_pigz_job.py
+sbatch ./pigz_2023-03-07_14h52m.sh
+
+# usage: make_pigz_job.py [-h] -i INPUT_FOLDER [-c CORES] [-m MEM]
+
+# Produce script for cellranger count function
+
+# options:
+#   -h, --help       show this help message and exit
+#   -i INPUT_FOLDER  fastq filepath (default: None)
+#   -c CORES         local cores value used in SBATCH (e.g. 8, 12, 16). larger the value the higher greater the faster
+#                    the process (default: 8)
+#   -m MEM           mempercore value used in SBATCH (e.g. 10, 12, 15) (default: 10)
 ```
+
+Note: File compression takes around 30min to 4h depending on file size. The generated script used in this project is provided in this repo: `pigz_2023-03-07_14h52m.sh`. Absolute paths were modified to relative paths for privacy purposes. 
 
 # Download reference annotations
 
