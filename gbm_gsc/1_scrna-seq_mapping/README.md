@@ -38,7 +38,7 @@ Example command:
 
 ```bash
 cd ./2021-03-23_bhaduri_counts_ge
-python ../make_cellranger_job.py ../../0_downloads/2021-03-02_bhaduri ./ ../../0_downloads/hg38-refdata/refdata-gex-GRCh38-2020-A 8 15 6 bhaduri_counts_ge
+python ../make_cellranger_job.py ../../0_downloads/2021-03-02_bhaduri ./ ../../0_downloads/hg38-refdata/refdata-gex-GRCh38-2020-A 8 15 6 bhaduri_counts_ge &> tmp.out
 ```
 
 *NOTE*: Generated scripts will contain absolute paths. The generated scripts provided in this repository were modified to use relative paths for privacy. 

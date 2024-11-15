@@ -1,6 +1,6 @@
 # Download Datasets
 
-## Download Bhaduri et al., 2020 scRNA-seq 
+## Download Bhaduri et al., 2020 GBM scRNA-seq 
 Date: 2021-03-02
 
 Install bamtofastq-1.3.2
@@ -32,7 +32,7 @@ sbatch convertBAM2FASTQ_8_10-11.sh
 
 NOTE: The output directories (ie. data_##) should not exist prior to running convertBAM2FASTQ scripts.
 
-## Download Wang et al., 2020 scRNA-seq
+## Download Wang et al., 2020 GBM CD133+/+ scRNA-seq
 Date: 2021-05-28
 
 Tools: sra-toolkit/2.10.8
@@ -45,6 +45,22 @@ module load sra-toolkit/2.10.8
 
 chmod +x wang2020_download.sh
 ./wang2020_download.sh &> wang2020.out
+```
+
+## Download Bhaduri et al., 2020 Healthy snRNA-seq
+Date: 2023-03-06
+
+Tools: sra-toolkit/2.10.8
+
+```bash
+# load tool on Cedar (Digital Research Alliance of Canada)
+module load StdEnv/2020
+module load gcc/9.3.0
+module load sra-toolkit/2.10.8
+
+chmod +x bhaduri2020_healthy_download.sh
+cd ./2023-03-06_bhaduri_healthy
+./bhaduri2020_healthy_download.sh ./bhaduri_healthy_ids.txt > tmp.out
 ```
 
 # Download reference annotations
@@ -83,4 +99,3 @@ Next, in the `/0_downloads` run the following two scripts:
 
 - `te-ref_filter.sh`: Filtered transposable element transcripts uniquely in the GTF file and not in the human reference `fa.fai` file. 
 - `te-ref_mkref_job.sh`: Run mkref from cellranger v3.0.2
-  - Takes a lot of memory: 10G --> 40G
