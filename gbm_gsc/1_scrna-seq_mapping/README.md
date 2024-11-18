@@ -40,14 +40,29 @@ python ./make_cellranger_job.py
 
 Note: 
 
-Example command:
+List of commands
 
 ```bash
-cd ./2021-03-23_bhaduri_counts_ge
-python ../make_cellranger_job.py -i ../../0_downloads/2021-03-02_bhaduri -o ./ -r ../../0_downloads/hg38-refdata/refdata-gex-GRCh38-2020-A -c 8 -m 15 -t 6 -p 0 &> tmp.out
+cd ./2021-03-09_bhaduri_counts_ge
+python ../make_cellranger_job.py -i ../../0_downloads/2021-03-02_bhaduri -o ./ -r ../../0_downloads/hg38-refdata/refdata-gex-GRCh38-2020-A -c 8 -m 10 -t 6 -p 0 &> tmp.out
+
+cd ../2021-03-23_bhaduri_counts_te
+python ../make_cellranger_job.py -i ../../0_downloads/2021-03-02_bhaduri -o ./ -r ../../0_downloads/te-ref/refdata_GRCh38-TE -c 8 -m 15 -t 3 -p 0 &> tmp.out
+
+cd ../2021-06-01_wang_counts_ge
+python ../make_cellranger_job.py -i ../../0_downloads/2021-05-28_wang -o ./ -r ../../0_downloads/hg38-refdata/refdata-gex-GRCh38-2020-A -c 8 -m 15 -t 6 -p 1 &> tmp.out
+
+cd ../2021-06-01_wang_counts_te
+python ../make_cellranger_job.py -i ../../0_downloads/2021-05-28_wang -o ./ -r ../../0_downloads/te-ref/refdata_GRCh38-TE -c 8 -m 15 -t 3 -p 1 &> tmp.out
+
+cd ../2021-06-10_healthy_counts_ge
+python ../make_cellranger_job.py -i ../../0_downloads/2023-03-06_bhaduri_healthy -o ./ -r ../../0_downloads/hg38-refdata/refdata-gex-GRCh38-2020-A -c 8 -m 15 -t 6 -p 1 &> tmp.out
+
+cd ../2021-06-10_healthy_counts_te
+python ../make_cellranger_job.py -i ../../0_downloads/2023-03-06_bhaduri_healthy -o ./ -r ../../0_downloads/te-ref/refdata_GRCh38-TE -c 8 -m 15 -t 3 -p 1 &> tmp.out
 ```
 
-*NOTE*: Generated scripts will contain absolute paths. The generated scripts provided in this repository were modified to use relative paths for privacy. 
+*NOTE*: Generated scripts should use absolute paths. The scripts provided in this repository were modified to use relative paths for privacy. 
 
 ### 2. Run `./<date>_<dataset>_counts_<ref>/<dataset>_counts_<ref><data-time>.sh` [^](#scripts)
 
