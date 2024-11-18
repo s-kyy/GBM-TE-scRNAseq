@@ -62,7 +62,7 @@ chmod +x bhaduri2020_healthy_download.sh
 chmod +x bhaduri2020_healthy_zip.sh
 cd ./2023-03-06_bhaduri_healthy
 ./bhaduri2020_healthy
-./bhaduri2020_healthy_download_rename.sh ./bhaduri_healthy_ids.txt > tmp.out
+./bhaduri2020_healthy_download_rename.sh ./samples.csv > tmp.out
 ./make_pigz_job.py
 sbatch ./pigz_2023-03-07_14h52m.sh
 

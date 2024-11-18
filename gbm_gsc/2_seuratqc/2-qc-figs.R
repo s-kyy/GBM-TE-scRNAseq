@@ -14,12 +14,12 @@ library(AnnotationHub)
 set.seed(34)
 
 #### Load Datasets ####
-sampleNames <- read.csv("./samples.csv", header = FALSE)  
+sampleNames <- read.csv("./samples.csv", header = FALSE)  # USER ADJUST
 sampleNames <- sampleNames[,1]
 sampleNames_named <- sampleNames
 names(sampleNames_named) <- seq(1,length(sampleNames))
-gte <- readRDS("temp/gte.rds")
-ge <- readRDS("temp/ge.rds")
+gte <- readRDS("temp/gte.rds") # USER ADJUST
+ge <- readRDS("temp/ge.rds") # USER ADJUST
 DefaultAssay(gte) <- "RNA"
 DefaultAssay(ge) <- "RNA"
 
