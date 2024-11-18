@@ -29,6 +29,7 @@
 # Others
 data/
 *test*
+!**/aggr_*.csv
 
 **/*_cache/
 **/*GSEA*/

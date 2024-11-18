@@ -1,0 +1,13 @@
+sample_id,molecule_h5
+SF11209_GBM1, ../2021-03-23_bhaduri_counts_te/mapRT_0/outs/molecule_info.h5
+SF11159_1, ../2021-03-23_bhaduri_counts_te/mapRT_1/outs/molecule_info.h5
+SF11159_2, ../2021-03-23_bhaduri_counts_te/mapRT_2/outs/molecule_info.h5
+Tumor2_1, ../2021-03-23_bhaduri_counts_te/mapRT_3/outs/molecule_info.h5
+SF22215_GBM1, ../2021-03-23_bhaduri_counts_te/mapRT_4/outs/molecule_info.h5
+SF11232_2, ../2021-03-23_bhaduri_counts_te/mapRT_5/outs/molecule_info.h5
+SF22215_GBM2, ../2021-03-23_bhaduri_counts_te/mapRT_6/outs/molecule_info.h5
+SF11209_GBM2, ../2021-03-23_bhaduri_counts_te/mapRT_7/outs/molecule_info.h5
+Tumor2_2, ../2021-03-23_bhaduri_counts_te/mapRT_8/outs/molecule_info.h5
+SF11232_1, ../2021-03-23_bhaduri_counts_te/mapRT_9/outs/molecule_info.h5
+TQ2, ../2021-03-23_bhaduri_counts_te/mapRT_10/outs/molecule_info.h5
+TQ1, ../2021-03-23_bhaduri_counts_te/mapRT_11/outs/molecule_info.h5

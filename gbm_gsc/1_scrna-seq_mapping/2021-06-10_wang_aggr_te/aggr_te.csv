@@ -1,0 +1,4 @@
+sample_id,molecule_h5
+SRR10353960, ../2021-06-01_wang_counts_te/mapRT_SRR10353960/outs/molecule_info.h5
+SRR10353961, ../2021-06-01_wang_counts_te/mapRT_SRR10353961/outs/molecule_info.h5
+SRR10353962, ../2021-06-01_wang_counts_te/mapRT_SRR10353962/outs/molecule_info.h5

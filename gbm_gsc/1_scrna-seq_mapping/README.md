@@ -15,6 +15,7 @@ Overview of scripts in this directory (see sections below for details):
 1. [`make_cellranger_job.py`](#1-run-make_cellranger_jobpy-)
 2. [`./<date>_<dataset>_counts_<ref>/<dataset>_counts_<ref><data-time>.sh`](#2-run-date_dataset_counts_refdataset_counts_refdata-timesh-)
 3. [`run_cellranger3.sh` + `run_cellranger6.sh`](#3-run_cellranger3sh--run_cellranger3sh)
+4. [Cellranger aggregate](#4-cellranger-aggregate) 
 
 ### 1. Run `make_cellranger_job.py` [^](#scripts)
 
@@ -48,8 +49,6 @@ python ../make_cellranger_job.py -i ../../0_downloads/2021-03-02_bhaduri -o ./ -
 
 *NOTE*: Generated scripts will contain absolute paths. The generated scripts provided in this repository were modified to use relative paths for privacy. 
 
-
-
 ### 2. Run `./<date>_<dataset>_counts_<ref>/<dataset>_counts_<ref><data-time>.sh` [^](#scripts)
 
 Output from python script #1. 
@@ -59,3 +58,9 @@ To run the generated output scripts, do so in within their output folders.
 ### 3. `run_cellranger3.sh` + `run_cellranger3.sh` [^](#scripts)
 
 These bash scripts directly calls the appropriate version of cellranger using defined paramters from #2
+
+### 4. Cellranger aggregate
+
+Normalization was modified to none, and no secondary analysis was performed with cellranger since it will be done with Seurat. 
+
+Run each script while in the `1_scrna-seq_mapping` directory. 
