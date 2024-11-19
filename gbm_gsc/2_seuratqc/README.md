@@ -15,16 +15,38 @@ Single cell analysis will be performed on two feature-cellbarcode matrices. One 
 
 Script that aligns samples between human transcriptome-mapped reads to samples mapped to retrotransposon annotations.
 
-One script was especially made for Bhaduri et al., 2020 GBM samples (`1-createSeuratObj-bhaduri-GTE.R`), because this data was analyzed before the automated script used for Wang et al., 2020 GBM samples and Bhaduri et al., 2020 Healthy samples was finalized.
+One script was especially made for Bhaduri et al., 2020 GBM samples (`1-createSeuratObj-bhaduri.R`), because this data was analyzed before the automated script used for Wang et al., 2020 GBM samples and Bhaduri et al., 2020 Healthy samples was finalized.
+
+In the **Load Datasets** section, replace `samples.csv`, `matrix.path` and `matrix.path.TE` with appropriate filepaths for the sampleIDs, as well as human transcriptome-mapped and human retrotransposon-mapped 10X count matrices. 
 
 Values to evaluate the quality of the datasets is also computed in this script: 
 - **Ratio of Genes (nGene) per UMI (nUMI) detected** - the greater the ratio, the more complex the dataset
 - **Ratio of mitochondrial genes expressed** - the smaller the more likely a live cell at the time of dissociation (higher quality)
 
-In the **Load Datasets** section, replace `samples.csv`, `matrix.path` and `matrix.path.TE` with appropriate filepaths for the sampleIDs, as well as human transcriptome-mapped and human retrotransposon-mapped 10X count matrices. 
+Execution commands for each dataset
+
+```bash
+cd ./gbm_gsc/2_seuratqc
+
+Rscript ./1-createSeuratObj-bhaduri.R &> bhadurigbm_1.out
+
+Rscript ./1-createSeuratObj.R ../0_downloads/2021-05-28_wang/samples.csv \ 
+../1_scrna-seq_mapping/2021-06-10_wang_aggr_ge \
+../1_scrna-seq_mapping/2021-06-10_wang_aggr_te \
+wangGBM &> wanggbm_1.out
+
+Rscript ./1-createSeuratObj.R ../0_downloads/2023-03-06_bhaduri_healthy/samples.csv \ 
+../1_scrna-seq_mapping/2023-03-06_healthy_aggr_ge \
+../1_scrna-seq_mapping/2023-03-06_healthy_aggr_te \
+healthy &> healthy_1.out
+```
 
 ### `2-qcfigs.R`
 
+Execution commands for each dataset
 
+```bash
+
+```
 
 ### `3-normalize2umap.R`

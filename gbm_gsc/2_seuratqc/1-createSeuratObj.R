@@ -6,6 +6,28 @@
 # - feature_bc_matrix = One mapped to reference genes, 
 # Second mapped to transposable element (TE)/retrotransposon (RT) annotations
 
+#### Parse Arguments ####
+args = commandArgs(trailingOnly=TRUE)
+# test if there is at least one argument: if not, return an error
+if (length(args)<=2) {
+  stop("At least 3 filepaths must be supplied for [sample.csv], [GE-feature_bc_matrix], [TE-feature_bc_matrix]. Optional args include: [output-dir-name] [output-prefix]", call.=FALSE)
+} else if (length(args)>=3) {
+  # verify paths
+  if (file.exists(args[1])){ sample_path <- args[1]  } 
+  if (dir.exists(args[2])){ matrix_path_GE_parent <- args[2]  } 
+  if (dir.exists(args[3])){ matrix_path_TE_parent <- args[3]  }
+  output_dir_name <- ""
+  output_file_GTE <- "gte.rds"  
+  output_file_GE <- "ge.rds"  
+  if (length(args)==4) { 
+    output_dir_name <- args[4]
+  } else if (length(args)==5) { 
+    output_dir_name <- args[4]
+    output_file_GTE <- paste0(args[5], "_", "gte.rds") 
+    output_file_GE <- paste0(args[5], "_", "ge.rds") 
+  }
+}
+
 #### Import Packages ####
 set.seed(34)
 
@@ -19,30 +41,30 @@ library(AnnotationHub)
 set.seed(34)
 
 #### Load Datasets ####
-sampleNames <- read.csv("./samples.csv", header = FALSE)  # USER ADJUST
+sampleNames <- read.csv(sample_path, header = FALSE) 
 sampleNames <- sampleNames[,1]
-matrix.path <- "./aggr/outs/count/feature_bc_matrix" # USER ADJUST
-matrix.path.RT <- "./aggr.rt/outs/count/feature_bc_matrix" # USER ADJUST
+matrix_path_GE <- file.path( matrix_path_GE_parent, "aggr","outs","count","feature_bc_matrix") 
+matrix_path_TE <- file.path( matrix_path_TE_parent, "aggr","outs","count","feature_bc_matrix") 
 
-reads <- Read10X(matrix.path)
-reads.RT <- Read10X(matrix.path.RT)
-cat(dim(reads))
-cat(dim(reads.RT))
+reads_GE <- Read10X(matrix_path_GE)
+reads_TE <- Read10X(matrix_path_TE)
+cat(dim(reads_GE))
+cat(dim(reads_TE))
 
-print(paste0("Total number of cells (reads.GE) before qc filtering: ", 
-              length(reads[1,]),"\n"))
-print(paste0("Total number of cells (reads.TE) before qc filtering: ", 
-              length(reads.te[1,]),"\n"))
+print(paste0("Total number of cells (reads_GE) before qc filtering: ", 
+              length(reads_GE[1,]),"\n"))
+print(paste0("Total number of cells (reads_TE) before qc filtering: ", 
+              length(reads_TE[1,]),"\n"))
 
 #### Create Seurat Objects ####
 
 # find intersecting cell names between genes and retrotransposon datasets 
-cellnames <- intersect(colnames(reads),colnames(reads.RT))
+cellnames <- intersect(colnames(reads_GE),colnames(reads_TE))
 length(cellnames) 
 
 # Merge sparse matrices with intersecting cell names
-intersect <- rbind(reads[,cellnames],reads.RT[,cellnames])
-rm("reads.RT")
+intersect <- rbind(reads_GE[,cellnames],reads_TE[,cellnames])
+rm("reads_TE")
 gc()
 
 gte <- CreateSeuratObject(
@@ -58,7 +80,7 @@ rm("intersect")
 gc()
 
 ge <- CreateSeuratObject(
-    counts=reads,
+    counts=reads_GE,
     project="reference-genes",
     names.field = 2,
     names.delim = "-", 
@@ -66,21 +88,17 @@ ge <- CreateSeuratObject(
     min.cells = 1)
 # ge.orig_id <- ge@meta.data$orig.ident
 # names(ge.orig_id) <- rownames(ge@meta.data)
-rm("reads")
+rm("reads_GE")
 gc()
 
 #### Create Results Folder with today's date ####
 cat("Making Today's directory\n")
 cat(paste0("Current working directory: ", getwd(),"\n"))
 
-subdir <- format(Sys.Date(), "%Y%m%d")
-dir.create(file.path(getwd(), subdir))
-setwd(file.path(getwd(), subdir))
-print(paste0("New working directory: ", getwd()))
-
-dir.create(file.path(getwd(), "temp"))
-saveRDS(gte, file = "temp/gte.rds")
-saveRDS(ge,  file = "temp/ge.rds")
+subdir <- paste0(format(Sys.Date(), "%Y%m%d"), "_", output_dir_name)
+dir.create(file.path(getwd(), subdir, "temp"), recursive=T)
+saveRDS(gte, file = file.path(getwd(),subdir,"temp",output_file_GTE))
+saveRDS(ge, file = file.path(getwd(),subdir,"temp",output_file_GE))
 
 barcode <- colnames(gte)
 ge <- subset(ge, cells=barcode)
@@ -132,8 +150,13 @@ head(metadata_gte)
 gte@meta.data <- metadata_gte
 ge@meta.data <- metadata_ge
 
-saveRDS(gte, file = "temp/gte.rds")
-saveRDS(ge,  file = "temp/ge.rds")
+saveRDS(gte, file = file.path(getwd(),subdir,"temp",output_file_GTE))
+saveRDS(ge,  file = file.path(getwd(),subdir,"temp",output_file_GE))
+dir.create(file.path(getwd(),subdir, "seurat_obj"),recursive=T)
+file.rename(from = file.path(getwd(),subdir,"temp",output_file_GTE), 
+            to = file.path(getwd(),subdir,"seurat_obj",output_file_GTE))
+file.rename(from = file.path(getwd(),subdir,"temp",output_file_GE), 
+            to = file.path(getwd(),subdir,"seurat_obj",output_file_GE))
 
 #### End of Script ####
 sessionInfo()
