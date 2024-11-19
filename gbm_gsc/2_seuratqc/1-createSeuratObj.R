@@ -33,10 +33,7 @@ set.seed(34)
 
 library(Seurat)
 library(Matrix)
-library(genefilter)
 library(tidyverse)
-library(scales)
-library(AnnotationHub)
 
 set.seed(34)
 
@@ -96,7 +93,9 @@ cat("Making Today's directory\n")
 cat(paste0("Current working directory: ", getwd(),"\n"))
 
 subdir <- paste0(format(Sys.Date(), "%Y%m%d"), "_", output_dir_name)
-dir.create(file.path(getwd(), subdir, "temp"), recursive=T)
+ifelse(!dir.exists(file.path(getwd(),subdir, "temp")),
+        dir.create(file.path(getwd(),subdir, "temp"),recursive=T),
+        "Directory Exists")
 saveRDS(gte, file = file.path(getwd(),subdir,"temp",output_file_GTE))
 saveRDS(ge, file = file.path(getwd(),subdir,"temp",output_file_GE))
 
@@ -152,7 +151,9 @@ ge@meta.data <- metadata_ge
 
 saveRDS(gte, file = file.path(getwd(),subdir,"temp",output_file_GTE))
 saveRDS(ge,  file = file.path(getwd(),subdir,"temp",output_file_GE))
-dir.create(file.path(getwd(),subdir, "seurat_obj"),recursive=T)
+ifelse(!dir.exists(file.path(getwd(),subdir, "seurat_obj")),
+        dir.create(file.path(getwd(),subdir, "seurat_obj"),recursive=T),
+        "Directory Exists")
 file.rename(from = file.path(getwd(),subdir,"temp",output_file_GTE), 
             to = file.path(getwd(),subdir,"seurat_obj",output_file_GTE))
 file.rename(from = file.path(getwd(),subdir,"temp",output_file_GE), 
