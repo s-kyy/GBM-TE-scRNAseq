@@ -26,12 +26,9 @@
 *.gtf
 *refdata*
 
-# Others
-data/
-*test*
+# Others/Results
 **/*_cache/
 **/*GSEA*/
-results/GBM-GSC neuroblastoma TE/2024-08-06_metabolicgenes-genesetenrichment/test-ComplexHeatmap.R
 
 # Uninignored Files
 !**/aggr_*.csv
