@@ -53,4 +53,4 @@ subdir <- paste0(format(Sys.Date(), "%Y%m%d"), "_merged_", dataset_a_name, "_", 
 ifelse(!dir.exists(file.path(getwd(),subdir)),
         dir.create(file.path(getwd(),subdir),recursive=T),
         "Directory Exists")
-saveRDS(merged, file = file.path(getwd(),subdir,paste0("merged_", dataset_a_name, "_", dataset_b_name, basename(path_a))))
+saveRDS(merged, file = file.path(getwd(),subdir,paste0("merged_", dataset_a_name, "_", basename(path_b))))

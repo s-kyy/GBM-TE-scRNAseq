@@ -166,6 +166,7 @@ for(i in 1:length(metadata_gte$sample_orig)) {
         metadata_ge$sample[i] <- str_replace(metadata_gte$sample__orig[i], "_1$", "")
     } else {
         metadata_ge$sample[i] <- str_replace(metadata_gte$sample__orig[i], "_2$", "")
+    }
 }
 
 head(metadata_ge)
@@ -176,13 +177,10 @@ ge@meta.data <- metadata_ge
 
 saveRDS(gte, file = file.path(getwd(),subdir,"temp","gte.rds"))
 saveRDS(ge,  file = file.path(getwd(),subdir,"temp","ge.rds"))
-ifelse(!dir.exists(file.path(getwd(),subdir, "seurat_obj")),
-        dir.create(file.path(getwd(),subdir, "seurat_obj"),recursive=T),
-        "Directory Exists")
 file.rename(from = file.path(getwd(),subdir,"temp","gte.rds"), 
-            to = file.path(getwd(),subdir,"seurat_obj","gte.rds"))
+            to = file.path(getwd(),subdir,"gte.rds"))
 file.rename(from = file.path(getwd(),subdir,"temp","ge.rds"), 
-            to = file.path(getwd(),subdir,"seurat_obj","ge.rds"))
+            to = file.path(getwd(),subdir,"ge.rds"))
 
 #### End of Script ####
 sessionInfo()

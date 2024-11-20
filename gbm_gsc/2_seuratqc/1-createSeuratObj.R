@@ -151,13 +151,10 @@ ge@meta.data <- metadata_ge
 
 saveRDS(gte, file = file.path(getwd(),subdir,"temp",output_file_GTE))
 saveRDS(ge,  file = file.path(getwd(),subdir,"temp",output_file_GE))
-ifelse(!dir.exists(file.path(getwd(),subdir, "seurat_obj")),
-        dir.create(file.path(getwd(),subdir, "seurat_obj"),recursive=T),
-        "Directory Exists")
 file.rename(from = file.path(getwd(),subdir,"temp",output_file_GTE), 
-            to = file.path(getwd(),subdir,"seurat_obj",output_file_GTE))
+            to = file.path(getwd(),subdir,output_file_GTE))
 file.rename(from = file.path(getwd(),subdir,"temp",output_file_GE), 
-            to = file.path(getwd(),subdir,"seurat_obj",output_file_GE))
+            to = file.path(getwd(),subdir,output_file_GE))
 
 #### End of Script ####
 sessionInfo()

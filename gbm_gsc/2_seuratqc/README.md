@@ -30,20 +30,23 @@ Commands and scripts used to create seurat objects for each dataset.
 ```bash
 cd ./gbm_gsc/2_seuratqc
 
-# 20210329_bhaduriGBM
 Rscript --no-save --no-restore --verbose ./1-createSeuratObj-bhaduri.R >bhadurigbm_1.out 2>&1 
+  # ./gbm_gsc/2_seuratqc/20210329_bhaduriGBM/gte.rds
+  # ./gbm_gsc/2_seuratqc/20210329_bhaduriGBM/ge.rds
 
-# 20210611_wangGBM
 Rscript --no-save --no-restore --verbose ./1-createSeuratObj.R ../0_downloads/2021-05-28_wang/samples.csv \ 
 ../1_scrna-seq_mapping/2021-06-10_wang_aggr_ge \
 ../1_scrna-seq_mapping/2021-06-10_wang_aggr_te \
 wangGBM >wanggbm_1.out 2>&1 
+  # ./gbm_gsc/2_seuratqc/20210611_wangGBM/wangGBM_gte.rds
+  # ./gbm_gsc/2_seuratqc/20210611_wangGBM/wangGBM_ge.rds
 
-#20230320_healthy
 Rscript --no-save --no-restore --verbose ./1-createSeuratObj.R ../0_downloads/2023-03-06_bhaduri_healthy/samples.csv \ 
 ../1_scrna-seq_mapping/2023-03-06_healthy_aggr_ge \
 ../1_scrna-seq_mapping/2023-03-06_healthy_aggr_te \
 healthy >healthy_1.out 2>&1 
+  # ./gbm_gsc/2_seuratqc/20230320_healthy/healthy_gte.rds
+  # ./gbm_gsc/2_seuratqc/20230320_healthy/healthy_ge.rds
 ```
 ### `2-mergeSeuratObj.R`
 
@@ -52,11 +55,15 @@ Commands and scripts used to merge GBM datasets from Bhaduri et al., 2020 and Wa
 ```bash
 cd ./gbm_gsc/2_seuratqc
 
-# BhaduriGBM_GTE + WangGBM_GTE ./20230611_merged_bhaduri_GBM_SC/merged_GBM_GSC_gte.rds
-Rscript --no-save --no-restore --verbose ./20210329_bhaduriGBM/seurat_obj/gte.rds ./20210611_wangGBM/seurat_obj/gte.rds GBM SC >merge_bhaduri_wang_gte.out 2>&1 
+Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
+./20210329_bhaduriGBM/gte.rds \ 
+./20210611_wangGBM/wangGBM_gte.rds bhaduriGBM wangGBM >merge_bhaduri_wang_gte.out 2>&1 
+  # ./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds
 
-# BhaduriGBM_GE + WangGBM_GE => ./20230611_merge_bhaduri_GBM_SC/merged_GBM_GSC._ge.rds
-Rscript --no-save --no-restore --verbose ./20210329_bhaduriGBM/seurat_obj/ge.rds ./20210611_wangGBM/seurat_obj/ge.rds GBM SC >merge_bhaduri_wang_ge.out 2>&1 
+Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
+./20210329_bhaduriGBM/ge.rds \
+./20210611_wangGBM/wangGBM_ge.rds bhaduriGBM wangGBM >merge_bhaduri_wang_ge.out 2>&1 
+  # ./20230611_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds
 ```
 
 ### `2-qcfigs.R`
@@ -66,11 +73,15 @@ Commands to generate quality control figures before quality control steps
 
 ```
 
-Commands to generate quality control figures after filtering out low quality cells and doubets. 
+<!-- Commands to generate quality control figures after filtering out low quality cells and doubets. 
 ```bash
-```
+
+``` -->
 
 ### `3-normalize2umap.R`
 
 ```bash
+Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
+./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds \ 
+./20230611d_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds bhaduriGBM wangGBM >merge_bhaduri_wang_gte.out 2>&1 
 ```
