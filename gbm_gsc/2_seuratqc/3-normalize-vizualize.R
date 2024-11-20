@@ -3,6 +3,8 @@
 #### =========================================== ####
 #### Verify Args ####
 #### =========================================== ####
+library(fs) #path manipulation
+
 args = commandArgs(trailingOnly=TRUE)
 # test if there is at least one argument: if not, return an error
 if (length(args)<=1) {
@@ -12,6 +14,8 @@ if (length(args)<=1) {
   if (file.exists(args[1]) & file.exists(args[2])){ 
     path_ge <- args[1]  
     path_gte <- args[2] 
+    ge_filename <- basename(path_ext_remove(path_ge))
+    gte_filename <- basename(path_ext_remove(path_gte))
     path_to_object <- dirname(path_ge)
     parent_dir_name <- basename(path_to_object)
   } else {
@@ -37,7 +41,6 @@ library(Matrix)
 library(ggplot2)
 library(tidyverse) 
 library(scales) #plot axis manipulation
-library(fs) #path manipulation
 
 set.seed(34)
 
@@ -68,8 +71,8 @@ cat(paste0("\n gte contains",
 cat(paste0("Filtered out ", 
            dim(gte)[2] - dim(filt.gte)[2], " cells in ge\n" ))
 
-saveRDS(filt.gte, file = file.path(path_to_object, paste0(basename(path_ext_remove(path_gte)), "qc.rds")) )
-saveRDS(filt.ge,  file = file.path(path_to_object, paste0(basename(path_ext_remove(path_ge)), "qc.rds")) )
+saveRDS(filt.gte, file = file.path(path_to_object, paste0(gte_filename, "_qc.rds")) )
+saveRDS(filt.ge,  file = file.path(path_to_object, paste0(ge_filename, "_qc.rds")) )
 cat("Filtered & saved seurat objects to",path_to_object,"\n")
 
 rm("ge")
@@ -151,8 +154,8 @@ ge.anchors <- FindIntegrationAnchors(ge.list,dims=1:20)
 ge.integrated <- IntegrateData(anchorset = ge.anchor,dims=1:20)
 cat("Most Integration Complete")
 
-saveRDS(gte.integrated, file = file.path(path_to_object, paste0(basename(path_ext_remove(path_gte)), "integrated.rds")) )
-saveRDS(ge.integrated,  file = file.path(path_to_object, paste0(basename(path_ext_remove(path_ge)), "integrated.rds")) )
+saveRDS(gte.integrated, file = file.path(path_to_object, paste0(gte_filename, "_integrated.rds")) )
+saveRDS(ge.integrated,  file = file.path(path_to_object, paste0(ge_filename, "_integrated.rds")) )
 cat("Saved integrated seurat objects to",path_to_object,"\n")
 
 rm("gte.list")
@@ -169,16 +172,21 @@ DefaultAssay(object = ge.integrated) <- "integrated"
 
 # Identify the 10 most highly variable genes
 size    <- 7
+
+ifelse(!dir.exists(file.path(getwd(),parent_dir_name, "figs")),
+        dir.create(file.path(getwd(),parent_dir_name, "figs"),recursive=T),
+        "Directory Exists")
+
 top10   <- head(VariableFeatures(gte.integrated), 10)
 p       <- VariableFeaturePlot(gte.integrated)
 p2      <- LabelPoints(plot = p, points = top10, repel = TRUE)
-ggsave(file.path(path_to_object, paste0(basename(path_ext_remove(path_gte)),"_variablegenes.tiff")), 
+ggsave(file.path(path_to_object, "figs", paste0(gte_filename,"_variablegenes.tiff")), 
        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
 
 top10   <- head(VariableFeatures(ge.integrated), 10)
 p       <- VariableFeaturePlot(ge.integrated)
 p2      <- LabelPoints(plot = p, points = top10, repel = TRUE)
-ggsave(file.path(path_to_object, paste0(basename(path_ext_remove(path_ge)),"_variablegenes.tiff")), 
+ggsave(file.path(path_to_object, "figs", paste0(ge_filename,"_variablegenes.tiff")), 
        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
 
 #### =========================================== ####
@@ -214,21 +222,21 @@ ge.integrated.pca <- RunUMAP(object = ge.integrated.pca,
                               umap.method = "uwot", 
                               metric = "cosine")
 
-saveRDS(gte.integrated.pca, file = file.path(path_to_object, paste0(basename(path_ext_remove(path_gte)), "integrated.umap.rds")) )
-saveRDS(ge.integrated.pca,  file = file.path(path_to_object, paste0(basename(path_ext_remove(path_ge)), "integrated.umap.rds")) )
+saveRDS(gte.integrated.pca, file = file.path(path_to_object, paste0(gte_filename, "_integrated.umap.rds")) )
+saveRDS(ge.integrated.pca,  file = file.path(path_to_object, paste0(ge_filename, "_integrated.umap.rds")) )
 cat(paste("ScaleData, RunPCA, and RunUMAP complete.\n Saved Seurat objects to",path_to_object, "\n"))
 
 # Determine the K-nearest neighbor graph (with first 20 PCAs)
 gte.integrated.pca <- FindNeighbors(gte.integrated.pca,dims=1:20,reduction="pca")
 gte.integrated.pca <- FindClusters(gte.integrated.pca, resolution = 0.3)
 gte.integrated.pca <- FindClusters(gte.integrated.pca, resolution = 0.4)
-saveRDS(gte.integrated.pca, file = file.path(path_to_object, paste0(basename(path_ext_remove(path_gte)), "integrated.umap.clustered.rds")))
+saveRDS(gte.integrated.pca, file = file.path(path_to_object, paste0(gte_filename, "_integrated.umap.clustered.rds")))
 cat("KNN clustering complete. Saved seurat objects to", path_to_object,"\n")
 
 ge.integrated.pca <- FindNeighbors(ge.integrated.pca,dims=1:20,reduction="pca")
 ge.integrated.pca <- FindClusters(ge.integrated.pca, resolution = 0.3)
 ge.integrated.pca <- FindClusters(ge.integrated.pca, resolution = 0.4)
-saveRDS(ge.integrated.pca, file = file.path(path_to_object, paste0(basename(path_ext_remove(path_ge)), "integrated.umap.clustered.rds")))
+saveRDS(ge.integrated.pca, file = file.path(path_to_object, paste0(ge_filename, "_integrated.umap.clustered.rds")))
 cat("KNN clustering complete. Saved seurat objects to", path_to_object,"\n")
 
 #### =========================================== ####
@@ -237,12 +245,12 @@ cat("KNN clustering complete. Saved seurat objects to", path_to_object,"\n")
 size <- 5
 p <- DimPlot(gte.integrated.pca, reduction = "umap", group.by = "sample") + 
     ggtitle("GRCh38+TE by Sample Origin")
-ggsave(file.path(path_to_object, paste0(basename(path_ext_remove(path_gte)),"_UMAP-sample.tiff")),
+ggsave(file.path(path_to_object, "figs", paste0(gte_filename,"_UMAP-sample.tiff")),
        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
 
 p <- DimPlot(ge.integrated.pca, reduction = "umap", group.by = "sample") + 
     ggtitle("GRCh38 by Sample Origin")
-ggsave(file.path(path_to_object, paste0(basename(path_ext_remove(path_ge)),"_UMAP-sample.tiff")), 
+ggsave(file.path(path_to_object, "figs", paste0(ge_filename,"_UMAP-sample.tiff")), 
        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
 
 #### =========================================== ####
@@ -250,15 +258,15 @@ ggsave(file.path(path_to_object, paste0(basename(path_ext_remove(path_ge)),"_UMA
 #### =========================================== ####
 p <- DimPlot(gte.integrated.pca, reduction = "umap", group.by = "cluster") + 
     ggtitle("GRCh38+TE by Sample Origin")
-ggsave(file.path(path_to_object, paste0(basename(path_ext_remove(path_gte)),"_UMAP-cluster.tiff")),
+ggsave(file.path(path_to_object, "figs", paste0(gte_filename,"_UMAP-cluster.tiff")),
        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
 
 p <- DimPlot(ge.integrated.pca, reduction = "umap", group.by = "cluster") + 
     ggtitle("GRCh38 by Sample Origin")
-ggsave(file.path(path_to_object, paste0(basename(path_ext_remove(path_ge)),"_UMAP-cluster.tiff")),
+ggsave(file.path(path_to_object, "figs", paste0(ge_filename,"_UMAP-cluster.tiff")),
        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
 
-cat("Seurat object processing complete. Saved to ", path_to_object,"\n")
+cat("Seurat object processing complete. Saved to ",path_to_object,"\n")
 
 #### End of Script ####
 sessionInfo()

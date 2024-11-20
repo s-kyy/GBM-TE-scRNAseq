@@ -80,8 +80,25 @@ Commands to generate quality control figures before quality control steps
 
 ### `3-normalize2umap.R`
 
+Accepting two filepaths to a human transcriptome-mapped seurat object and combined transcriptome and retrotransposon-mapped seurat object as inputs, this script outputs four RDS files in the same folder after filtering low quality cells based on quality control measures from previous script (`xxx_qc.rds`), after integrating samples via FindIntegrationAnchors and IntegrateData Seurat functions(`xxx_integrated.rds`), after dimensionality reduction with PCA (`xxx_integrated.umap.rds`) and after finding clusters through FindNeighbors and FindClusters Seurat functions at resolution 0.3 and 0.4 (`xxx_integrated.umap.clsutered.rds`). 
+
+The following figures are also generated:
+- `xxx_variablegenes.tiff` - Scatter plot individual genes described by average expression and standardized variance. 
+- `xxx_UMAP-sample.tiff` - UMAP vizualization with cells annotated by sample
+- `xxx_UMAP-cluster.tiff` - UMAP vizualization with cells annotated by cluster
+
 ```bash
+cd ./gbm_gsc/2_seuratqc
+
 Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
 ./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds \ 
-./20230611d_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds bhaduriGBM wangGBM >merge_bhaduri_wang_gte.out 2>&1 
+./20230611d_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds >normalize_bhaduri_wang.out 2>&1 
+# 20230611_merged_bhaduriGBM_wangGBM/ -> location of saved RDS files
+# 20230611_merged_bhaduriGBM_wangGBM/figs/ -> location of figures 
+
+Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
+./20230320_healthy/healthy_gte.rds \ 
+./20230320_healthy/healthy_ge.rds >normalize_healthy.out 2>&1 
+# 20230320_healthy/ -> location of saved RDS files
+# 20230320_healthy/figs/ -> location of figures
 ```
