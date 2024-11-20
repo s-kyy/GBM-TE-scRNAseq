@@ -59,7 +59,7 @@ Rscript --no-save --no-restore --verbose ./20210329_bhaduriGBM/seurat_obj/gte.rd
 Rscript --no-save --no-restore --verbose ./20210329_bhaduriGBM/seurat_obj/ge.rds ./20210611_wangGBM/seurat_obj/ge.rds GBM SC >merge_bhaduri_wang_ge.out 2>&1 
 ```
 
-### `3-qcfigs.R`
+### `2-qcfigs.R`
 
 Commands to generate quality control figures before quality control steps
 ```bash
@@ -70,7 +70,7 @@ Commands to generate quality control figures after filtering out low quality cel
 ```bash
 ```
 
-### `4-normalize2umap.R`
+### `3-normalize2umap.R`
 
 ```bash
 ```
