@@ -9,6 +9,8 @@ Single cell analysis will be performed on two feature-cellbarcode matrices. One 
 - renv 0.13.2
 - BiocManager 1.30.12
 - Seurat 4.0.1
+- ggplot2_3.3.5
+- scales_1.1.1
 - See comprehensive list of requirements in: `renv.lock`
 
 Note: your setup should have enough memory to load the datasets into R and perform downstream proprocessing and analysis steps (16-32Gb )
@@ -100,6 +102,8 @@ Rscript --vanilla qc-figs.R \
 Rscript --vanilla qc-figs.R \
 ./20230320_healthy/healthy_ge.rds >qcfigs_healthyge.out 2>&1 
 ```
+
+Minor adjustments to output figure sizes were done between runs. 
 
 ### `3-normalize2umap.R`
 

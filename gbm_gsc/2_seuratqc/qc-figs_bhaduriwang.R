@@ -26,7 +26,11 @@ library(Seurat)
 library(Matrix)
 library(ggplot2)
 library(tidyverse)
+library(ggbreak)
 library(scales) #plot axis manipulation
+
+library(conflicted)
+conflict_prefer("select", "dplyr") ## required in %>% dplyr
 
 set.seed(100)
 
@@ -43,7 +47,11 @@ sample_names_indexed <- sample_names
 names(sample_names_indexed) <- seq(1,length(sample_names))
 
 #### Quality Control Figures ####
-size <- 7
+size <- 5
+# Custom colours for up to 13 samples). 
+samplePalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#CC79A7", 
+                   "#ff716e", "#999999", "#0072B2", "#194c76", "#D55E00", 
+                   "#3a4f41", "#6699cc", "#713e5a")
 
 ifelse(!dir.exists(file.path(getwd(),parent_dir_name, "figs")),
         dir.create(file.path(getwd(),parent_dir_name, "figs"),recursive=T),
@@ -53,12 +61,11 @@ ifelse(!dir.exists(file.path(getwd(),parent_dir_name, "figs")),
 p <- seurat.obj@meta.data %>%
     ggplot(aes(x=sample, fill=sample)) + 
     labs(fill="Sample ID") + labs(x = "Sample ID", y = "Cell Count") +
-    scale_x_discrete(labels = sample_names) +
-    scale_fill_discrete(labels = sample_names) +
+    scale_fill_manual(values = samplePalette) + 
+    scale_y_break(c(30000, 70000), scales = 0.1) +
     geom_bar() +
     theme_classic() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    theme(plot.title = element_text(hjust=0.5, face="bold"))
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), axis.text = element_text(size=10), legend.position = "none")
 ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_cellcounts.tiff")), 
        plot = p, units="in", width=size*1.5, height=size, dpi=300, compression = 'lzw')
 
@@ -70,6 +77,7 @@ p <- seurat.obj@meta.data %>%
     ggplot(aes(color=orig.ident, x=nUMI, fill=orig.ident)) + 
     labs(x = "UMI per Transcript (log10)", y = "Log10 Cell Density") +
     labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
+    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
     guides(fill="none") + 
     geom_density(alpha = 0.2) + 
     scale_x_log10(labels = comma, limit=c(100, 100000)) + 
@@ -84,6 +92,7 @@ p <- seurat.obj@meta.data %>%
     ggplot(aes(color=orig.ident, x=nGene, fill=orig.ident)) + 
     labs(x = "Log10 Number of Genes Detected per Cell", y = "Log10 Cell Density") +
     labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
+    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
     guides(fill="none") + 
     geom_density(alpha = 0.2) + 
     theme_classic() +
@@ -128,6 +137,7 @@ p <- seurat.obj@meta.data %>%
     ggplot(aes(color=orig.ident, x=mitoRatio, fill=orig.ident)) + 
     labs(x = "Mitochondrial Ratio", y = "Log10 Cell Density") +
     labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
+    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
     guides(fill="none") + 
     geom_density(alpha = 0.2) + 
     scale_x_log10() + 
@@ -142,6 +152,7 @@ p <- seurat.obj@meta.data %>%
     ggplot(aes(x=log10GenesPerUMI, color = orig.ident, fill=orig.ident)) +
     labs(x = "Log10 Genes Detected Per UMI per Transcript", y = "Cell Count") +
     labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
+    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
     guides(fill="none") + 
     geom_density(alpha = 0.2) +
     theme_classic() +
