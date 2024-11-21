@@ -7,16 +7,16 @@
 # Second mapped to transposable element (TE)/retrotransposon (RT) annotations
 
 #### Import Packages ####
-set.seed(34)
+set.seed(108)
 
 library(Seurat)
 library(Matrix)
 library(tidyverse)
 
-set.seed(34)
+set.seed(108)
 
 #### Load Datasets ####
-sample_names <- read.csv(file.path("..","0_downloads","2021-03-02_bhaduri","samples.csv"), header = false) # USER ADJUST
+sample_names <- read.csv(file.path("..","0_downloads","2021-03-02_bhaduri","samples.csv"), header = FALSE) # USER ADJUST
 sample_names <- sample_names[,1]
 matrix_path_GE <- file.path("..","1_scrna-seq_mapping","2021-03-10_bhaduri_aggr_ge","aggr","outs","count","feature_bc_matrix") # USER ADJUST
 matrix_path_TE <- file.path("..","1_scrna-seq_mapping","2021-03-25_bhaduri_aggr_te","aggr","outs","count","feature_bc_matrix") # USER ADJUST
@@ -152,7 +152,7 @@ metadata_ge$sample_orig <- NA
 metadata_gte$sample <- NA
 metadata_ge$sample <- NA
  
-index <- (2, 3, 4, 12, 6, 8, 11, 5, 1, 10, 7, 9)
+index <- c(2, 3, 4, 12, 6, 8, 11, 5, 1, 10, 7, 9)
 sample_names <- sample_names[index]
 
 for(i in 1:length(sample_names)) {
@@ -163,9 +163,14 @@ for(i in 1:length(sample_names)) {
 ### Fill "sampleCombined" column - based on patient 
 for(i in 1:length(metadata_gte$sample_orig)) {
     if ( str_detect(metadata_gte$sample_orig[i], "_1$") ) {
-        metadata_ge$sample[i] <- str_replace(metadata_gte$sample_orig[i], "_1$", "")
+        metadata_gte$sample[i] <- str_replace(metadata_gte$sample_orig[i], "_1$", "")
     } else {
-        metadata_ge$sample[i] <- str_replace(metadata_gte$sample_orig[i], "_2$", "")
+        metadata_gte$sample[i] <- str_replace(metadata_gte$sample_orig[i], "_2$", "")
+    }
+    if ( str_detect(metadata_ge$sample_orig[i], "_1$") ) {
+        metadata_ge$sample[i] <- str_replace(metadata_ge$sample_orig[i], "_1$", "")
+    } else {
+        metadata_ge$sample[i] <- str_replace(metadata_ge$sample_orig[i], "_2$", "")
     }
 }
 

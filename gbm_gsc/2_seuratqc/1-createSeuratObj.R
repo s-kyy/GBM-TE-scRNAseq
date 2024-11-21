@@ -29,13 +29,13 @@ if (length(args)<=2) {
 }
 
 #### Import Packages ####
-set.seed(34)
+set.seed(108)
 
 library(Seurat)
 library(Matrix)
 library(tidyverse)
 
-set.seed(34)
+set.seed(108)
 
 #### Load Datasets ####
 sample_names <- read.csv(sample_path, header = FALSE) 

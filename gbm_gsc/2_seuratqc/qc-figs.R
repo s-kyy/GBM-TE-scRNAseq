@@ -12,7 +12,7 @@ if (length(args)<1) {
   if (file.exists(args[1])){ 
     obj_path <- args[1] 
     filename <- basename(path_ext_remove(obj_path))
-    path_to_object <- dirname(filename)
+    path_to_object <- dirname(obj_path)
     parent_dir_name <- basename(path_to_object)
   } else {
     stop("Filepath provided does not exist. Exiting...", call.=FALSE)
@@ -20,20 +20,25 @@ if (length(args)<1) {
 }
 
 #### Import Packages ####
-set.seed(34)
+set.seed(100)
 
 library(Seurat)
 library(Matrix)
 library(ggplot2)
 library(tidyverse)
+library(scales) #plot axis manipulation
 
-set.seed(34)
+set.seed(100)
 
 #### Load Datasets ####
 seurat.obj <- readRDS(obj_path) 
 DefaultAssay(seurat.obj) <- "RNA"
 
-sample_names <- sort(unique(droplevels(seurat.obj@meta.data$sample)))
+if (is.factor(seurat.obj@meta.data$sample)) {
+  sample_names <- sort(unique(droplevels(seurat.obj@meta.data$sample)))
+} else {
+  sample_names <- sort(unique(seurat.obj@meta.data$sample))
+}
 sample_names_indexed <- sample_names
 names(sample_names_indexed) <- seq(1,length(sample_names))
 
@@ -46,7 +51,7 @@ ifelse(!dir.exists(file.path(getwd(),parent_dir_name, "figs")),
 
 # Bar plot Cell Count per Sample
 p <- seurat.obj@meta.data %>%
-    ggplot(aes(x=orig.ident, fill=orig.ident)) + 
+    ggplot(aes(x=sample, fill=sample)) + 
     labs(fill="Sample ID") + labs(x = "Sample ID", y = "Cell Count") +
     scale_x_discrete(labels = sample_names) +
     scale_fill_discrete(labels = sample_names) +
@@ -54,21 +59,24 @@ p <- seurat.obj@meta.data %>%
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     theme(plot.title = element_text(hjust=0.5, face="bold"))
-ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(gte_filename,"_cellcounts.tiff")), 
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_cellcounts.tiff")), 
        plot = p, units="in", width=size*1.5, height=size, dpi=300, compression = 'lzw')
+
+# Table of Cell Counts per Sample
+# Table of Cell Counts per Cluster
 
 # Density Plot: Visualize the number UMIs/transcripts per cell
 p <- seurat.obj@meta.data %>% 
     ggplot(aes(color=orig.ident, x=nUMI, fill=orig.ident)) + 
     labs(x = "UMI per Transcript (log10)", y = "Log10 Cell Density") +
     labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
-    guides(fill=FALSE) + 
+    guides(fill="none") + 
     geom_density(alpha = 0.2) + 
     scale_x_log10(labels = comma, limit=c(100, 100000)) + 
     theme_classic() +
     theme(plot.title = element_text(hjust = 0.5)) +
     geom_vline(xintercept = c(500,1000)) + geom_text(aes(x= 500, label="500\n", y = 1), angle=90, colour="black")
-ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(gte_filename,"_nUMI.tiff")), 
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nUMI.tiff")), 
        plot = p, units="in", width=size*1.5, height=size, dpi=300, compression = 'lzw')
 
 # Density Plot Visualize the distribution of genes detected per cell
@@ -76,13 +84,13 @@ p <- seurat.obj@meta.data %>%
     ggplot(aes(color=orig.ident, x=nGene, fill=orig.ident)) + 
     labs(x = "Log10 Number of Genes Detected per Cell", y = "Log10 Cell Density") +
     labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
-    guides(fill=FALSE) + 
+    guides(fill="none") + 
     geom_density(alpha = 0.2) + 
     theme_classic() +
     scale_x_log10(labels = comma) + 
     geom_vline(xintercept = 300) +
     ggtitle("GrCh38+RT")
-ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(gte_filename,"_nGenes.tiff")), 
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes.tiff")), 
        plot = p, units="in", width=size*1.5, height=size, dpi=300, compression = 'lzw')
 
 # Violin Plot: Visualize the distribution of genes detected per cell
@@ -94,7 +102,7 @@ p <- seurat.obj@meta.data %>%
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
     ggtitle("GRCh38+RT")
-ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(gte_filename,"_nGenes_violin.tiff")), 
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes_violin.tiff")), 
        plot = p, units="in", width=size*2, height=size, dpi=300, compression = 'lzw')
 
 # Scatter Plot:  Visualize the correlation between genes detected and number of UMIs per cell
@@ -112,34 +120,34 @@ p <- seurat.obj@meta.data %>%
     facet_wrap(~orig.ident, labeller = as_labeller(sample_names_indexed)) + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     theme(plot.title = element_text(hjust=0.5, face="bold"))
-ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(gte_filename,"_nGenes_nUMI.tiff")), 
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes_nUMI.tiff")), 
        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
 
-# Visualize the distribution of mitochondrial gene expression detected per cell
+# Density plot: Visualize the distribution of mitochondrial gene expression detected per cell
 p <- seurat.obj@meta.data %>% 
     ggplot(aes(color=orig.ident, x=mitoRatio, fill=orig.ident)) + 
     labs(x = "Mitochondrial Ratio", y = "Log10 Cell Density") +
     labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
-    guides(fill=FALSE) + 
+    guides(fill="none") + 
     geom_density(alpha = 0.2) + 
     scale_x_log10() + 
     theme_classic() +
     geom_vline(xintercept = 0.2) + 
     theme(plot.title = element_text(hjust = 0.5))
-ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(gte_filename,"_mitoRatio.tiff")), 
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_mitoRatio.tiff")), 
        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
 
-# Visualize the overall complexity of the gene expression by visualizing the genes detected per UMI
+# Density plot Visualize the overall complexity of the gene expression by visualizing the genes detected per UMI
 p <- seurat.obj@meta.data %>%
     ggplot(aes(x=log10GenesPerUMI, color = orig.ident, fill=orig.ident)) +
     labs(x = "Log10 Genes Detected Per UMI per Transcript", y = "Cell Count") +
     labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
-    guides(fill=FALSE) + 
+    guides(fill="none") + 
     geom_density(alpha = 0.2) +
     theme_classic() +
     geom_vline(xintercept = 0.8) + 
     theme(plot.title = element_text(hjust = 0.5))
-ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(gte_filename,"_novelGenes.tiff")), 
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_novelGenes.tiff")), 
        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
 
 #### End of Script ####

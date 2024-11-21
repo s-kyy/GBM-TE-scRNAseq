@@ -18,13 +18,13 @@ if (length(args)<=3) {
 }
 
 #### Import Packages ####
-set.seed(34)
+set.seed(108)
 
 library(Seurat)
 library(Matrix)
 library(tidyverse)
 
-set.seed(34)
+set.seed(108)
 
 #### Load Datasets ####
 dataset_a <- readRDS(path_a) # USER INPUT

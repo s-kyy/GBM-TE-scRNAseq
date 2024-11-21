@@ -34,7 +34,7 @@ if (length(args)<=1) {
 #### =========================================== ####
 #### Import Packages ####
 #### =========================================== ####
-set.seed(34)
+set.seed(108)
 
 library(Seurat)
 library(Matrix)
@@ -42,7 +42,7 @@ library(ggplot2)
 library(tidyverse) 
 library(scales) #plot axis manipulation
 
-set.seed(34)
+set.seed(108)
 
 #### =========================================== ####
 #### Load Datasets ####

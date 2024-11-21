@@ -30,24 +30,31 @@ Commands and scripts used to create seurat objects for each dataset.
 ```bash
 cd ./gbm_gsc/2_seuratqc
 
-Rscript --no-save --no-restore --verbose ./1-createSeuratObj-bhaduri.R >bhadurigbm_1.out 2>&1 
+Rscript --vanilla ./1-createSeuratObj-bhaduri.R >bhadurigbm_1.out 2>&1 
   # ./gbm_gsc/2_seuratqc/20210329_bhaduriGBM/gte.rds
   # ./gbm_gsc/2_seuratqc/20210329_bhaduriGBM/ge.rds
 
-Rscript --no-save --no-restore --verbose ./1-createSeuratObj.R ../0_downloads/2021-05-28_wang/samples.csv \ 
+Rscript --vanilla ./1-createSeuratObj.R ../0_downloads/2021-05-28_wang/samples.csv \ 
 ../1_scrna-seq_mapping/2021-06-10_wang_aggr_ge \
 ../1_scrna-seq_mapping/2021-06-10_wang_aggr_te \
 wangGBM >wanggbm_1.out 2>&1 
   # ./gbm_gsc/2_seuratqc/20210611_wangGBM/wangGBM_gte.rds
   # ./gbm_gsc/2_seuratqc/20210611_wangGBM/wangGBM_ge.rds
 
-Rscript --no-save --no-restore --verbose ./1-createSeuratObj.R ../0_downloads/2023-03-06_bhaduri_healthy/samples.csv \ 
+Rscript --vanilla ./1-createSeuratObj.R ../0_downloads/2023-03-06_bhaduri_healthy/samples.csv \ 
 ../1_scrna-seq_mapping/2023-03-06_healthy_aggr_ge \
 ../1_scrna-seq_mapping/2023-03-06_healthy_aggr_te \
 healthy >healthy_1.out 2>&1 
   # ./gbm_gsc/2_seuratqc/20230320_healthy/healthy_gte.rds
   # ./gbm_gsc/2_seuratqc/20230320_healthy/healthy_ge.rds
 ```
+
+Example of Running script on Windows (Powershell 7)
+
+```bash
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla 1-createSeuratObj.R "..\0_downloads\2021-05-28_wang\samples.csv" "..\1_scrna-seq_mapping\2021-06-10_wang_aggr_ge" "..\1_scrna-seq_mapping\2021-06-10_wang_aggr_te" "wangGBM" >"wanggbm_1.out" 2>&1
+```
+
 ### `2-mergeSeuratObj.R`
 
 Commands and scripts used to merge GBM datasets from Bhaduri et al., 2020 and Wang et al., 2020
@@ -55,12 +62,12 @@ Commands and scripts used to merge GBM datasets from Bhaduri et al., 2020 and Wa
 ```bash
 cd ./gbm_gsc/2_seuratqc
 
-Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
+Rscript --vanilla 2-mergeSeuratObj.R \
 ./20210329_bhaduriGBM/gte.rds \ 
 ./20210611_wangGBM/wangGBM_gte.rds bhaduriGBM wangGBM >merge_bhaduri_wang_gte.out 2>&1 
   # ./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds
 
-Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
+Rscript --vanilla 2-mergeSeuratObj.R \
 ./20210329_bhaduriGBM/ge.rds \
 ./20210611_wangGBM/wangGBM_ge.rds bhaduriGBM wangGBM >merge_bhaduri_wang_ge.out 2>&1 
   # ./20230611_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds
@@ -81,16 +88,16 @@ Commands to generate quality control figures before quality control steps.
 ```bash
 cd ./gbm_gsc/2_seuratqc
 
-Rscript --no-save --no-restore --verbose --file=./qc-figs.R \
+Rscript --vanilla qc-figs.R \
 ./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds >qcfigs_merged.out 2>&1 
 
-Rscript --no-save --no-restore --verbose --file=./qc-figs.R \
+Rscript --vanilla qc-figs.R \
 ./20230611_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds >qcfigs_merged.out 2>&1 
 
-Rscript --no-save --no-restore --verbose --file=./qc-figs.R \
+Rscript --vanilla qc-figs.R \
 ./20230320_healthy/healthy_gte.rds >qcfigs_healthygte.out 2>&1 
 
-Rscript --no-save --no-restore --verbose --file=./qc-figs.R \
+Rscript --vanilla qc-figs.R \
 ./20230320_healthy/healthy_ge.rds >qcfigs_healthyge.out 2>&1 
 ```
 
@@ -106,13 +113,13 @@ The following figures are also generated:
 ```bash
 cd ./gbm_gsc/2_seuratqc
 
-Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
+Rscript --vanilla 2-mergeSeuratObj.R \
 ./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds \ 
 ./20230611d_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds >normalize_bhaduri_wang.out 2>&1 
 # 20230611_merged_bhaduriGBM_wangGBM/ -> location of saved RDS files
 # 20230611_merged_bhaduriGBM_wangGBM/figs/ -> location of figures 
 
-Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
+Rscript --vanilla 2-mergeSeuratObj.R \
 ./20230320_healthy/healthy_gte.rds \ 
 ./20230320_healthy/healthy_ge.rds >normalize_healthy.out 2>&1 
 # 20230320_healthy/ -> location of saved RDS files
