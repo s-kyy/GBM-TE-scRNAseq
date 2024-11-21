@@ -38,8 +38,8 @@ library(tidyverse)
 set.seed(34)
 
 #### Load Datasets ####
-sampleNames <- read.csv(sample_path, header = FALSE) 
-sampleNames <- sampleNames[,1]
+sample_names <- read.csv(sample_path, header = FALSE) 
+sample_names <- sample_names[,1]
 matrix_path_GE <- file.path( matrix_path_GE_parent, "aggr","outs","count","feature_bc_matrix") 
 matrix_path_TE <- file.path( matrix_path_TE_parent, "aggr","outs","count","feature_bc_matrix") 
 
@@ -137,9 +137,9 @@ metadata_ge$mitoRatio <- metadata_ge@meta.data$mitoRatio / 100
 metadata_gte$sample <- NA
 metadata_ge$sample <- NA
 
-for(i in 1:length(sampleNames)) {
-    metadata_gte$sample[which(metadata_gte$orig.ident == i)] <- sampleNames[i]
-    metadata_ge$sample[which(metadata_ge$orig.ident == i)] <- sampleNames[i]
+for(i in 1:length(sample_names)) {
+    metadata_gte$sample[which(metadata_gte$orig.ident == i)] <- sample_names[i]
+    metadata_ge$sample[which(metadata_ge$orig.ident == i)] <- sample_names[i]
 }
 
 

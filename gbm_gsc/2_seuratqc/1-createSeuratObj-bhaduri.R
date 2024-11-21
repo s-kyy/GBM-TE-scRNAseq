@@ -156,16 +156,16 @@ index <- (2, 3, 4, 12, 6, 8, 11, 5, 1, 10, 7, 9)
 sample_names <- sample_names[index]
 
 for(i in 1:length(sample_names)) {
-    metadata_gte$sample__orig[which(metadata_gte$orig.ident == i)] <- sample_names[i]
-    metadata_ge$sample__orig[which(metadata_ge$orig.ident == i)] <- sample_names[i]
+    metadata_gte$sample_orig[which(metadata_gte$orig.ident == i)] <- sample_names[i]
+    metadata_ge$sample_orig[which(metadata_ge$orig.ident == i)] <- sample_names[i]
 }
 
 ### Fill "sampleCombined" column - based on patient 
 for(i in 1:length(metadata_gte$sample_orig)) {
-    if ( str_detect(metadata_gte$sample__orig[i], "_1$") ) {
-        metadata_ge$sample[i] <- str_replace(metadata_gte$sample__orig[i], "_1$", "")
+    if ( str_detect(metadata_gte$sample_orig[i], "_1$") ) {
+        metadata_ge$sample[i] <- str_replace(metadata_gte$sample_orig[i], "_1$", "")
     } else {
-        metadata_ge$sample[i] <- str_replace(metadata_gte$sample__orig[i], "_2$", "")
+        metadata_ge$sample[i] <- str_replace(metadata_gte$sample_orig[i], "_2$", "")
     }
 }
 

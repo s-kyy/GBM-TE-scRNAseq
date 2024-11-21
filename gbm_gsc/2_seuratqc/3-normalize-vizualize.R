@@ -25,7 +25,7 @@ if (length(args)<=1) {
   if (length(args) == 3 & dir.exists(args[3])) {
     path_to_object <- args[3]
     parent_dir_name <- basename(path_to_object)
-  } else {
+  } else if (length(args) == 3 & !dir.exists(args[3])) {
     cat("Output directory does not exist, creating new output directory...")
     dir.create(path_to_object, recursive=T)
   }

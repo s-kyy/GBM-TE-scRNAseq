@@ -66,17 +66,33 @@ Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
   # ./20230611_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds
 ```
 
-### `2-qcfigs.R`
+### `qcfigs.R`
 
-Commands to generate quality control figures before quality control steps
+This script generates the following figures: 
+- Bar plot of cell count per sample
+- Density plot of genes detected per cell by sample
+- Violin plot of genes detected per cell by sample 
+- Scatter plot of genes correlated with UMIs per cell by sample
+- Density plot of expressed mitochondrial genes per cell by sample
+- Density plot of genes per UMI ratio per cell by sample
+
+Commands to generate quality control figures before quality control steps. 
+
 ```bash
+cd ./gbm_gsc/2_seuratqc
 
+Rscript --no-save --no-restore --verbose --file=./qc-figs.R \
+./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds >qcfigs_merged.out 2>&1 
+
+Rscript --no-save --no-restore --verbose --file=./qc-figs.R \
+./20230611_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds >qcfigs_merged.out 2>&1 
+
+Rscript --no-save --no-restore --verbose --file=./qc-figs.R \
+./20230320_healthy/healthy_gte.rds >qcfigs_healthygte.out 2>&1 
+
+Rscript --no-save --no-restore --verbose --file=./qc-figs.R \
+./20230320_healthy/healthy_ge.rds >qcfigs_healthyge.out 2>&1 
 ```
-
-<!-- Commands to generate quality control figures after filtering out low quality cells and doubets. 
-```bash
-
-``` -->
 
 ### `3-normalize2umap.R`
 
@@ -102,3 +118,8 @@ Rscript --no-save --no-restore --verbose --file=./2-mergeSeuratObj.R \
 # 20230320_healthy/ -> location of saved RDS files
 # 20230320_healthy/figs/ -> location of figures
 ```
+
+<!-- Commands to generate quality control figures after filtering out low quality cells and doubets. 
+```bash
+
+``` -->
