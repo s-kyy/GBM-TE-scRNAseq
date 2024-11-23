@@ -54,7 +54,7 @@ healthy >healthy_1.out 2>&1
 Example of Running script on Windows (Powershell 7)
 
 ```bash
-& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla 1-createSeuratObj.R "..\0_downloads\2021-05-28_wang\samples.csv" "..\1_scrna-seq_mapping\2021-06-10_wang_aggr_ge" "..\1_scrna-seq_mapping\2021-06-10_wang_aggr_te" "wangGBM" >"wanggbm_1.out" 2>&1
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla 1-createSeuratObj.R "..\0_downloads\2021-05-28_wang\samples.csv" "..\1_scrna-seq_mapping\2021-06-10_wang_aggr_ge" "..\1_scrna-seq_mapping\2021-06-10_wang_aggr_te" "wangGBM" *>"wanggbm_1.out" 
 ```
 
 ### `2-mergeSeuratObj.R`
@@ -66,12 +66,12 @@ cd ./gbm_gsc/2_seuratqc
 
 Rscript --vanilla 2-mergeSeuratObj.R \
 ./20210329_bhaduriGBM/gte.rds \ 
-./20210611_wangGBM/wangGBM_gte.rds bhaduriGBM wangGBM >merge_bhaduri_wang_gte.out 2>&1 
+./20210611_wangGBM/gte.rds bhaduriGBM wangGBM >merge_bhaduri_wang_gte.out 2>&1 
   # ./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds
 
 Rscript --vanilla 2-mergeSeuratObj.R \
 ./20210329_bhaduriGBM/ge.rds \
-./20210611_wangGBM/wangGBM_ge.rds bhaduriGBM wangGBM >merge_bhaduri_wang_ge.out 2>&1 
+./20210611_wangGBM/ge.rds bhaduriGBM wangGBM >merge_bhaduri_wang_ge.out 2>&1 
   # ./20230611_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds
 ```
 
@@ -119,7 +119,7 @@ cd ./gbm_gsc/2_seuratqc
 
 Rscript --vanilla 2-mergeSeuratObj.R \
 ./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds \ 
-./20230611d_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds >normalize_bhaduri_wang.out 2>&1 
+./20230611_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds >normalize_bhaduri_wang.out 2>&1 
 # 20230611_merged_bhaduriGBM_wangGBM/ -> location of saved RDS files
 # 20230611_merged_bhaduriGBM_wangGBM/figs/ -> location of figures 
 

@@ -33,19 +33,19 @@ dataset_b <- readRDS(path_b) # USER INPUT
 #### Merge Datasets into 1 Seurat Object ####
 
 # Split datasets into a list of individual samples
-dataset_a.list <- SplitObject(object=dataset_a, split.by="orig.ident")
+# dataset_a.list <- SplitObject(object=dataset_a, split.by="orig.ident")
 dataset_b.list <- SplitObject(object=dataset_b, split.by="orig.ident")
-rm(c("dataset_a", "dataset_b"))
+rm("dataset_b")
 gc()
 
 # Merge seurat objects
-merged <- merge( x = dataset_a.list, 
-                    y = dataset_b.list
-                    add.cell.ids = c(rep(dataset_a_name,length(dataset_a.list)), 
+merged <- merge( x = dataset_a, 
+                    y = dataset_b.list,
+                    add.cell.ids = c( dataset_a_name,# c(rep(dataset_a_name,length(dataset_a.list)), 
                                      rep(dataset_b_name,length(dataset_b.list))), 
                     project = paste0("merged_", dataset_a_name, "_", dataset_b_name),
                     merge.data = FALSE) ## do not merge normalized datasets together
-rm(c("dataset_a.list", "dataset_b.list"))
+rm("dataset_a", "dataset_b.list")
 gc()
 
 # Export objects
@@ -53,4 +53,4 @@ subdir <- paste0(format(Sys.Date(), "%Y%m%d"), "_merged_", dataset_a_name, "_", 
 ifelse(!dir.exists(file.path(getwd(),subdir)),
         dir.create(file.path(getwd(),subdir),recursive=T),
         "Directory Exists")
-saveRDS(merged, file = file.path(getwd(),subdir,paste0("merged_", dataset_a_name, "_", basename(path_b))))
+saveRDS(merged, file = file.path(getwd(),subdir,paste0("merged_", basename(path_b))))

@@ -30,7 +30,7 @@ rm("matrix_path_TE")
 
 print(paste0("Total number of cells (reads_GE) before qc filtering: ", 
               length(reads_GE[1,]),"\n"))
-              # 60065 cells in the original TE-mapped sparse matrix
+              # 60065 cells in the original GE-mapped sparse matrix
 print(paste0("Total number of cells (reads_TE) before qc filtering: ", 
               length(reads_TE[1,]),"\n"))
               # 37204 cells in the original TE-mapped sparse matrix
@@ -136,7 +136,7 @@ metadata_ge <- metadata_ge %>% dplyr::rename(nUMI = nCount_RNA,
 metadata_gte$cells <- rownames(metadata_gte)
 metadata_ge$cells <- rownames(metadata_ge)
 
-# number of genes per UMI in GE+TE dataset
+# Novelty Score : number of genes per UMI in GE+TE dataset
 metadata_gte$log10GenesPerUMI <- log10(metadata_gte$nFeature_RNA) / log10(metadata_gte$nCount_RNA)
 metadata_ge$log10GenesPerUMI <- log10(metadata_ge$nFeature_RNA) / log10(metadata_ge$nCount_RNA)
 

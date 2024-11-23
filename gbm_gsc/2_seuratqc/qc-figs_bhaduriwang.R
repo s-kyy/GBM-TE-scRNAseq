@@ -26,7 +26,7 @@ library(Seurat)
 library(Matrix)
 library(ggplot2)
 library(tidyverse)
-library(ggbreak)
+# library(ggbreak)
 library(scales) #plot axis manipulation
 
 library(conflicted)
@@ -38,128 +38,156 @@ set.seed(100)
 seurat.obj <- readRDS(obj_path) 
 DefaultAssay(seurat.obj) <- "RNA"
 
+# Factor sample names
+if (is.factor(seurat.obj@meta.data$orig.ident)) {
+  seurat.obj@meta.data$orig.ident <- droplevels(seurat.obj@meta.data$orig.ident)
+}
 if (is.factor(seurat.obj@meta.data$sample)) {
   sample_names <- sort(unique(droplevels(seurat.obj@meta.data$sample)))
 } else {
   sample_names <- sort(unique(seurat.obj@meta.data$sample))
 }
+seurat.obj@meta.data$sample <- factor(
+  seurat.obj@meta.data$sample, 
+  levels = sample_names
+)
 sample_names_indexed <- sample_names
 names(sample_names_indexed) <- seq(1,length(sample_names))
 
 #### Quality Control Figures ####
 size <- 5
 # Custom colours for up to 13 samples). 
-samplePalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#CC79A7", 
-                   "#ff716e", "#999999", "#0072B2", "#194c76", "#D55E00", 
-                   "#3a4f41", "#6699cc", "#713e5a")
+# sample_palette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#CC79A7", 
+#                    "#ff716e", "#999999", "#0072B2", "#194c76", "#D55E00", 
+#                    "#3a4f41", "#6699cc", "#713e5a")
+sample_palette<- c(
+  "#E69F00", "#56B4E9", "#009E73", 
+  "#F0E442", "#CC79A7", "#ff716e",
+  "#999999", "#0072B2", "#194c76")
 
 ifelse(!dir.exists(file.path(getwd(),parent_dir_name, "figs")),
         dir.create(file.path(getwd(),parent_dir_name, "figs"),recursive=T),
         "Directory Exists")
 
-# Bar plot Cell Count per Sample
+print("Bar plot Cell Count per Sample")
 p <- seurat.obj@meta.data %>%
     ggplot(aes(x=sample, fill=sample)) + 
-    labs(fill="Sample ID") + labs(x = "Sample ID", y = "Cell Count") +
-    scale_fill_manual(values = samplePalette) + 
-    scale_y_break(c(30000, 70000), scales = 0.1) +
+    labs(x = "", y = "Cell Count") +
+    scale_fill_manual(values = sample_palette) + 
+    labs(fill="Sample ID") + 
     geom_bar() +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), axis.text = element_text(size=10), legend.position = "none")
 ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_cellcounts.tiff")), 
-       plot = p, units="in", width=size*1.5, height=size, dpi=300, compression = 'lzw')
+       plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
 
-# Table of Cell Counts per Sample
-# Table of Cell Counts per Cluster
-
-# Density Plot: Visualize the number UMIs/transcripts per cell
+print("Density Plot: Visualize the number UMIs/transcripts per cell")
 p <- seurat.obj@meta.data %>% 
-    ggplot(aes(color=orig.ident, x=nUMI, fill=orig.ident)) + 
-    labs(x = "UMI per Transcript (log10)", y = "Log10 Cell Density") +
-    labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
-    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
-    guides(fill="none") + 
+    ggplot(aes(color=sample, x=nUMI, fill=sample)) + 
+    labs(x = "Log10 Number of UMI/Transcripts Detected", y = "Cell Density") +
+    scale_color_manual(values = sample_palette) +
+    scale_fill_manual(values = sample_palette) +
+    labs(fill="Sample ID", color="Sample ID") + 
     geom_density(alpha = 0.2) + 
     scale_x_log10(labels = comma, limit=c(100, 100000)) + 
     theme_classic() +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    geom_vline(xintercept = c(500,1000)) + geom_text(aes(x= 500, label="500\n", y = 1), angle=90, colour="black")
+    geom_vline(xintercept = c(1000), colour = "red") #+
+    # geom_text(aes(x= 1000, label="1000\n", y = 1), angle=90, colour="red")
 ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nUMI.tiff")), 
-       plot = p, units="in", width=size*1.5, height=size, dpi=300, compression = 'lzw')
+       plot = p, units="in", width=size*1.1, height=size*0.8, dpi=300, compression = 'lzw')
 
-# Density Plot Visualize the distribution of genes detected per cell
+print("Density Plot Visualize the distribution of genes detected per cell")
 p <- seurat.obj@meta.data %>% 
-    ggplot(aes(color=orig.ident, x=nGene, fill=orig.ident)) + 
-    labs(x = "Log10 Number of Genes Detected per Cell", y = "Log10 Cell Density") +
-    labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
-    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
-    guides(fill="none") + 
+    ggplot(aes(color=sample, x=nGene, fill=sample)) + 
+    labs(x = "Log10 Number of Genes Detected", y = "Cell Density") +
+    scale_color_manual(values = sample_palette) +
+    scale_fill_manual(values = sample_palette) +
+    labs(fill="Sample ID", color="Sample ID") + 
     geom_density(alpha = 0.2) + 
     theme_classic() +
     scale_x_log10(labels = comma) + 
-    geom_vline(xintercept = 300) +
-    ggtitle("GrCh38+RT")
+    geom_vline(xintercept = 300, colour="red") 
 ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes.tiff")), 
-       plot = p, units="in", width=size*1.5, height=size, dpi=300, compression = 'lzw')
+       plot = p, units="in", width=size*1.1, height=size*0.8, dpi=300, compression = 'lzw')
 
-# Violin Plot: Visualize the distribution of genes detected per cell
-p <- seurat.obj@meta.data %>% 
-    ggplot(aes(x=orig.ident, y=log10(nGene), fill=orig.ident)) + 
-    labs(x = "Sample ID", y = "Log10 Number of Genes Detected per Cell") +
-    labs(fill="Sample ID") + scale_fill_discrete(labels = sample_names) +
-    geom_violin() + 
-    theme_classic() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
-    ggtitle("GRCh38+RT")
-ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes_violin.tiff")), 
-       plot = p, units="in", width=size*2, height=size, dpi=300, compression = 'lzw')
-
-# Scatter Plot:  Visualize the correlation between genes detected and number of UMIs per cell
+print("Scatter Plot:  Visualize the correlation between genes detected and number of UMIs per cell")
 p <- seurat.obj@meta.data %>% 
     ggplot(aes(x=nUMI, y=nGene, color=mitoRatio)) + 
+    labs(x = "Log10 Number of UMI/Transcripts Detected", y = "Log10 Number of Genes Detected") +
     geom_point() + 
     scale_colour_gradient(low = "gray90", high = "black") +
     stat_smooth(method=lm) +
     scale_x_log10(labels = comma) + 
-    scale_y_log10() + 
-    labs(x = "Log10 UMI per Transcript", y = "Log10 Genes Detected per Cell") +
+    scale_y_log10(labels = comma) + 
+    labs(color="Mito. Ratio") +
     theme_classic() +
-    geom_vline(xintercept = 500) + # Threshold for UMI per transcript. 
-    geom_hline(yintercept = 250) + # Threshold for Genes detected per cell
-    facet_wrap(~orig.ident, labeller = as_labeller(sample_names_indexed)) + 
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    theme(plot.title = element_text(hjust=0.5, face="bold"))
-ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes_nUMI.tiff")), 
-       plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
+    # geom_vline(xintercept = 500) + # Threshold for UMI per transcript. 
+    # geom_hline(yintercept = 250) + # Threshold for Genes detected per cell
+    geom_vline(xintercept = 1000, linetype = "dashed", colour = "red") +
+    geom_hline(yintercept = 300, linetype = "dashed", colour = "red") +
+    facet_wrap(~sample) + 
+    # facet_wrap(~sample, labeller = as_labeller(sample_names_indexed)) + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), 
+      axis.title.y = element_text(size=11, hjust=0.5), 
+      strip.background = element_blank(),
+      panel.border = element_rect(fill = NA, colour = "black"))
+    # theme(plot.title = element_text(hjust=0.5, face="bold"))
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes_nUMI_mitoRatio.tiff")), 
+       plot = p, units="in", width=size*1.2, height=size*1.2, dpi=300, compression = 'lzw')
 
-# Density plot: Visualize the distribution of mitochondrial gene expression detected per cell
+print("Density plot: Visualize the distribution of mitochondrial gene expression detected per cell")
 p <- seurat.obj@meta.data %>% 
-    ggplot(aes(color=orig.ident, x=mitoRatio, fill=orig.ident)) + 
-    labs(x = "Mitochondrial Ratio", y = "Log10 Cell Density") +
-    labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
-    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
-    guides(fill="none") + 
+    ggplot(aes(color=sample, x=mitoRatio, fill=sample)) + 
+    labs(x = "Mitochondrial Ratio", y = "Cell Density") +
+    scale_color_manual(values = sample_palette) +
+    scale_fill_manual(values = sample_palette) +
+    labs(fill="Sample ID", color="Sample ID") + 
     geom_density(alpha = 0.2) + 
-    scale_x_log10() + 
+    # scale_x_log10() + 
     theme_classic() +
-    geom_vline(xintercept = 0.2) + 
-    theme(plot.title = element_text(hjust = 0.5))
+    geom_vline(xintercept = 0.2, colour = "red") #+ 
+    # geom_text(aes(x= 0.2, label="0.2\n", y = 10), angle=90, colour="red")
 ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_mitoRatio.tiff")), 
-       plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
+       plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
 
-# Density plot Visualize the overall complexity of the gene expression by visualizing the genes detected per UMI
+print("Density plot Visualize the overall complexity of the gene expression by visualizing the genes detected per UMI")
 p <- seurat.obj@meta.data %>%
-    ggplot(aes(x=log10GenesPerUMI, color = orig.ident, fill=orig.ident)) +
+    ggplot(aes(x=log10GenesPerUMI, color = sample, fill=sample)) +
     labs(x = "Log10 Genes Detected Per UMI per Transcript", y = "Cell Count") +
-    labs(color="Sample ID") + scale_color_discrete(labels = sample_names) +
-    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
-    guides(fill="none") + 
+    scale_color_manual(values = sample_palette) +
+    scale_fill_manual(values = sample_palette) +
+    labs(fill="Sample ID", color="Sample ID") + 
     geom_density(alpha = 0.2) +
     theme_classic() +
-    geom_vline(xintercept = 0.8) + 
-    theme(plot.title = element_text(hjust = 0.5))
+    xlim(0.75, 0.96)+
+    geom_vline(xintercept = 0.8, colour = "red") + 
 ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_novelGenes.tiff")), 
-       plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
+       plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
+rm("p")
+
+# Table of Cell Counts per Sample
+df <- seurat.obj@meta.data %>% 
+  group_by(sample) %>% 
+  summarise( 
+    ncells = n(), 
+    noveltyscore.avg = mean(log10GenesPerUMI)
+  )
+
+# Count number of detected genes in this assay and avg novelty score
+# first determine number of genes (rows) not expressed in any cell (column)
+obj.list <- SplitObject(seurat.obj, split.by="sample")
+df$ngenes <- 0
+
+for (i in 1:length(obj.list)) {
+  num_undetected_genes <- apply(obj.list[[i]]$RNA@counts , 1, function(x) sum(x != 0)) # any zeroes = undetected genes
+  print(paste("There are", sum(num_undetected_genes==0), "genes out of", dim(obj.list[[i]])[1], "genes detected across the dataset."))
+  df$ngenes[i] <- nrow(obj.list[[i]])-sum(num_undetected_genes==0)
+  print(paste("Totalling", df$ngenes[i], "genes in sample", names(obj.list)[i] ))
+  rm("num_undetected_genes")
+}
+rm("obj.list")
+write.csv(df, file= file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_samplecounts.csv")), row.names = F)
+gc()
 
 #### End of Script ####
 sessionInfo()

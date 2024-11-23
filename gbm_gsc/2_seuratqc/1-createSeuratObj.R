@@ -113,17 +113,11 @@ gc()
 metadata_gte <- gte@meta.data
 metadata_ge <- ge@meta.data
 
-# rename nCount_RNA and nFeature_RNA colnames
-metadata_gte <- metadata_gte %>% dplyr::rename(nUMI = nCount_RNA,
-                                               nGene = nFeature_RNA)
-metadata_ge <- metadata_ge %>% dplyr::rename(nUMI = nCount_RNA,
-                                             nGene = nFeature_RNA)
-
 ### Add cell IDs (rownames) to metadata
 metadata_gte$cells <- rownames(metadata_gte)
 metadata_ge$cells <- rownames(metadata_ge)
 
-# number of genes per UMI in GE+TE dataset
+# Novelty Score: number of genes per UMI in GE+TE dataset
 metadata_gte$log10GenesPerUMI <- log10(metadata_gte$nFeature_RNA) / log10(metadata_gte$nCount_RNA)
 metadata_ge$log10GenesPerUMI <- log10(metadata_ge$nFeature_RNA) / log10(metadata_ge$nCount_RNA)
 
@@ -133,6 +127,16 @@ metadata_gte$mitoRatio <- metadata_gte$mitoRatio / 100
 metadata_ge$mitoRatio <- PercentageFeatureSet(object = ge, pattern = "^MT-")
 metadata_ge$mitoRatio <- metadata_ge@meta.data$mitoRatio / 100
 
+# rename nCount_RNA and nFeature_RNA colnames
+metadata_gte <- metadata_gte %>% 
+  dplyr::rename(
+    nUMI = nCount_RNA, 
+    nGene = nFeature_RNA)
+metadata_ge <- metadata_ge %>% 
+  dplyr::rename(
+    nUMI = nCount_RNA,
+    nGene = nFeature_RNA)
+
 ### Fill "sample" column
 metadata_gte$sample <- NA
 metadata_ge$sample <- NA
@@ -141,7 +145,6 @@ for(i in 1:length(sample_names)) {
     metadata_gte$sample[which(metadata_gte$orig.ident == i)] <- sample_names[i]
     metadata_ge$sample[which(metadata_ge$orig.ident == i)] <- sample_names[i]
 }
-
 
 head(metadata_ge)
 head(metadata_gte)
