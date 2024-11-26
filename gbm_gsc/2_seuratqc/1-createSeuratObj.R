@@ -99,8 +99,9 @@ ifelse(!dir.exists(file.path(getwd(),subdir, "temp")),
 saveRDS(gte, file = file.path(getwd(),subdir,"temp",output_file_GTE))
 saveRDS(ge, file = file.path(getwd(),subdir,"temp",output_file_GE))
 
-barcode <- colnames(gte)
-ge <- subset(ge, cells=barcode)
+barcode.intersect <- intersect(colnames(gte), colnames(ge))
+gte <- subset(gte, cells=barcode.intersect)
+ge <- subset(ge, cells=barcode.intersect)
 cat(paste0("gte genes x cellbarcodes: ", dim(gte), "\n"))
 cat(paste0("ge genes x cellbarcodes: ", dim(ge), "\n"))
 

@@ -197,20 +197,22 @@ df <- seurat.obj@meta.data %>%
 # Count number of detected genes in this assay and avg novelty score
 # first determine number of genes (rows) not expressed in any cell (column)
 obj.list <- SplitObject(seurat.obj, split.by="sample")
-df$ngenes <- 0
 rm("seurat.obj")
+obj.list.sorted <- obj.list[order(names(obj.list))]
+rm("obj.list")
+df$ngenes <- 0
 
-for (i in 1:length(obj.list)) {
+for (i in 1:length(obj.list.sorted)) {
   # Count number of detected genes in this assay and avg novelty score
   # first determine number of genes (rows) not expressed in any cell (column)
-  total_num_genes <- nrow(obj.list[[i]])
-  num_undetected_genes <- sum(tabulate(obj.list[[i]]$RNA@counts@i + 1) == 0) # any zeroes = undetected genes
+  total_num_genes <- nrow(obj.list.sorted[[i]])
+  num_undetected_genes <- sum(tabulate(obj.list.sorted[[i]]$RNA@counts@i + 1) == 0) # any zeroes = undetected genes
   df$ngenes[i] <- total_num_genes - num_undetected_genes
   print(paste(
-    "There are", num_undetected_genes, "genes out of", dim(obj.list[[i]])[1], "genes undetected in",  
-    names(obj.list)[i], "resulting in", df$ngenes[i], "detected genes."))
+    "There are", num_undetected_genes, "genes out of", dim(obj.list.sorted[[i]])[1], "genes undetected in",  
+    names(obj.list.sorted)[i], "resulting in", df$ngenes[i], "detected genes."))
 }
-rm("obj.list")
+rm("obj.list.sorted")
 write.csv(df, file= file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_samplecounts.csv")), row.names = F)
 
 #### End of Script ####
