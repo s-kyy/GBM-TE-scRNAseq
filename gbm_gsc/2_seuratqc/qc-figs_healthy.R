@@ -47,12 +47,6 @@ if (is.factor(seurat.obj@meta.data$sample)) {
 } else {
   sample_names <- sort(unique(seurat.obj@meta.data$sample))
 }
-seurat.obj@meta.data$sample <- factor(
-  seurat.obj@meta.data$sample, 
-  levels = sample_names
-)
-sample_names_indexed <- sample_names
-names(sample_names_indexed) <- seq(1,length(sample_names))
 
 #### Quality Control Figures ####
 size <- 5
@@ -75,23 +69,36 @@ p <- seurat.obj@meta.data %>%
     scale_fill_manual(values = sample_palette) + 
     labs(fill="Sample ID") + 
     geom_bar() +
+    # scale_y_break(c(30000, 70000), scales = 0.1, ticklabels=c(70000)) +
     theme_classic() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), axis.text = element_text(size=10), legend.position = "none") #+
-    # scale_y_break(c(30000, 70000), scales = 0.1, ticklabels=c(70000))
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), axis.text = element_text(size=10), legend.position = "none") 
 ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_cellcounts.tiff")), 
        plot = p, units="in", width=size*1.1, height=size*0.8, dpi=300, compression = 'lzw')
 
 print("Density Plot: Visualize the number UMIs/transcripts per cell")
 p <- seurat.obj@meta.data %>% 
-    ggplot(aes(color=sample, x=nUMI, fill=sample)) + 
+    ggplot(aes(x=nUMI, color=sample, fill=sample)) + #y=..count.. / ..scaled are other options fro geom_density()
     labs(x = "Log10 Number of UMI/Transcripts Detected", y = "Cell Density") +
     scale_color_manual(values = sample_palette) +
     scale_fill_manual(values = sample_palette) +
     labs(fill="Sample ID", color="Sample ID") + 
-    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
-    # guides(fill="none") + 
     geom_density(alpha = 0.2) + 
-    scale_x_log10(labels = comma) + 
+    scale_x_log10(labels = comma) + #, limits=c(0,100000)
+    theme_classic() +
+    geom_vline(xintercept = c(500), colour = "red") 
+    # geom_text(aes(x= 500, label="500\n", y = 1), angle=90, colour="black")
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nUMI_log10x.tiff")), 
+       plot = p, units="in", width=size*1.1, height=size*0.8, dpi=300, compression = 'lzw')
+
+print("Density Plot: Visualize the number UMIs/transcripts per cell")
+p <- seurat.obj@meta.data %>% 
+    ggplot(aes(x=nUMI, color=sample, fill=sample)) + #y=..count.. / ..scaled are other options fro geom_density()
+    labs(x = "Number of UMI/Transcripts Detected", y = "Cell Density") +
+    scale_color_manual(values = sample_palette) +
+    scale_fill_manual(values = sample_palette) +
+    labs(fill="Sample ID", color="Sample ID") + 
+    geom_density(alpha = 0.2) + 
+    # scale_x_log10(labels = comma) + #, limits=c(0,100000)
     theme_classic() #+
     # geom_vline(xintercept = c(1000), colour = "red") #+ 
     # geom_text(aes(x= 1000, label="1000\n", y = 1), angle=90, colour="black")
@@ -100,14 +107,25 @@ ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nUMI.tiff")
 
 print("Density Plot Visualize the distribution of genes detected per cell")
 p <- seurat.obj@meta.data %>% 
-    ggplot(aes(color=sample, x=nGene, fill=sample)) + 
+    ggplot(aes(x=nGene, color=sample, fill=sample)) + 
     labs(x = "Log10 Number of Genes Detected", y = "Cell Density") +
     scale_color_manual(values = sample_palette) +
     scale_fill_manual(values = sample_palette) +
     labs(fill="Sample ID", color="Sample ID") + 
-    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
-    # guides(fill="none") + 
     scale_x_log10(labels = comma) +
+    geom_density(alpha = 0.2) + 
+    theme_classic() #+
+    # geom_vline(xintercept = 300, colour="red")
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes_log10x.tiff")), 
+       plot = p, units="in", width=size*1.1, height=size*0.8, dpi=300, compression = 'lzw')
+print("Density Plot Visualize the distribution of genes detected per cell")
+p <- seurat.obj@meta.data %>% 
+    ggplot(aes(x=nGene, color=sample, fill=sample)) + 
+    labs(x = "Number of Genes Detected", y = "Cell Density") +
+    scale_color_manual(values = sample_palette) +
+    scale_fill_manual(values = sample_palette) +
+    labs(fill="Sample ID", color="Sample ID") + 
+    # scale_x_log10(labels = comma) +
     geom_density(alpha = 0.2) + 
     theme_classic() #+
     # geom_vline(xintercept = 300, colour="red")
@@ -125,33 +143,26 @@ p <- seurat.obj@meta.data %>%
     scale_y_log10(labels = comma) + 
     labs(color="Mito. Ratio") +
     theme_classic() +
-    # geom_vline(xintercept = 500) + # Threshold for UMI per transcript. 
-    # geom_hline(yintercept = 250) + # Threshold for Genes detected per cell
-    geom_vline(xintercept = 1000, linetype = "dashed", colour = "red") +
-    geom_hline(yintercept = 300, linetype = "dashed", colour = "red") +
+    geom_vline(xintercept = 500, linetype = "dashed", colour = "red") +
+    # geom_hline(yintercept = log(300), linetype = "dashed", colour = "red") +
     facet_wrap(~sample) + 
-    # facet_wrap(~sample, labeller = as_labeller(sample_names_indexed)) + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), 
       axis.title.y = element_text(size=11, hjust=0.5), 
       strip.background = element_blank(),
       panel.border = element_rect(fill = NA, colour = "black"))
-    # theme(plot.title = element_text(hjust=0.5, face="bold"))
-ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes_nUMI_mitoratio.tiff")), 
+ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes_nUMI_mitoratio_log10x.tiff")), 
        plot = p, units="in", width=size*1.3, height=size*1.2, dpi=300, compression = 'lzw')
 
 print("Density plot: Visualize the distribution of mitochondrial gene expression detected per cell")
 p <- seurat.obj@meta.data %>% 
-    ggplot(aes(color=sample, x=mitoRatio, fill=sample)) + 
+    ggplot(aes(x=mitoRatio, color=sample, fill=sample)) + 
     labs(x = "Mitochondrial Ratio", y = "Cell Density") +
     scale_color_manual(values = sample_palette) +
     scale_fill_manual(values = sample_palette) +
     labs(fill="Sample ID", color="Sample ID") + 
-    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
-    # guides(fill="none") + 
     geom_density(alpha = 0.2) + 
-    # scale_x_log10() + 
     theme_classic() +
-    geom_vline(xintercept = 0.2, colour = "red") #+ 
+    geom_vline(xintercept = 0.05, colour = "red") #+ 
     # geom_text(aes(x= 0.2, label="0.2\n", y = 10), angle=90, colour="red")
 ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_mitoRatio.tiff")), 
        plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
@@ -159,44 +170,48 @@ ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_mitoRatio.t
 print("Density plot Visualize the overall complexity of the gene expression by visualizing the genes detected per UMI")
 p <- seurat.obj@meta.data %>%
     ggplot(aes(x=log10GenesPerUMI, color = sample, fill=sample)) +
-    labs(x = "Log10 Genes Detected Per UMI per Transcript", y = "Cell Count") +
+    labs(x = "Log10 Genes Detected Per UMI per Transcript", y = "Cell Density") +
     scale_color_manual(values = sample_palette) +
     scale_fill_manual(values = sample_palette) +
     labs(fill="Sample ID", color="Sample ID") + 
-    # guides(fill=FALSE) + # Uncomment this line (and comment next line) if running <ggplot3.3.4
-    # guides(fill="none") + 
     geom_density(alpha = 0.2) +
     theme_classic() +
-    xlim(0.80, 1)+
+    xlim(0.75, 1.05)+
     geom_vline(xintercept = 0.8, colour = "red") #+ 
 ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_novelGenes.tiff")), 
        plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
 rm("p")
 
-# # Table of Cell Counts per Sample
-# df <- seurat.obj@meta.data %>% 
-#   group_by(sample) %>% 
-#   summarise( 
-#     ncells = n(), 
-#     noveltyscore.avg = mean(log10GenesPerUMI)
-#   )
+# Table of Cell Counts per Sample
+df <- seurat.obj@meta.data %>% 
+  group_by(sample) %>% 
+  summarise( 
+    ncells = n(), 
+    noveltyscore.avg = mean(log10GenesPerUMI),
+    noveltyscore.sd = sd(log10GenesPerUMI),
+    ngene.mad. = mad(nGene, constant = 1),
+    numi.mad. = mad(nUMI, constant = 1),
+    mitoRatio.mad. = mad(mitoRatio, constant = 1)
+  )
 
-# # Count number of detected genes in this assay and avg novelty score
-# # first determine number of genes (rows) not expressed in any cell (column)
-# obj.list <- SplitObject(seurat.obj, split.by="sample")
-# df$ngenes <- 0
+# Count number of detected genes in this assay and avg novelty score
+# first determine number of genes (rows) not expressed in any cell (column)
+obj.list <- SplitObject(seurat.obj, split.by="sample")
+df$ngenes <- 0
+rm("seurat.obj")
 
-# for (i in 1:length(obj.list)) {
-#   num_undetected_genes <- apply(obj.list[[i]]$RNA@counts , 1, function(x) sum(x != 0)) # any zeroes = undetected genes
-#   print(paste("There are", sum(num_undetected_genes==0), "genes out of", dim(obj.list[[i]])[1], "genes detected across the dataset."))
-#   df$ngenes[i] <- nrow(obj.list[[i]])-sum(num_undetected_genes==0)
-#   print(paste("Totalling", df$ngenes[i], "genes in sample", names(obj.list)[i] ))
-#   rm("num_undetected_genes") 
-# }
-# rm("obj.list")
-# write.csv(df, file= file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_samplecounts.csv")), row.names = F)
-# rm("df")
-# gc()
+for (i in 1:length(obj.list)) {
+  # Count number of detected genes in this assay and avg novelty score
+  # first determine number of genes (rows) not expressed in any cell (column)
+  total_num_genes <- nrow(obj.list[[i]])
+  num_undetected_genes <- sum(tabulate(obj.list[[i]]$RNA@counts@i + 1) == 0) # any zeroes = undetected genes
+  df$ngenes[i] <- total_num_genes - num_undetected_genes
+  print(paste(
+    "There are", num_undetected_genes, "genes out of", dim(obj.list[[i]])[1], "genes undetected in",  
+    names(obj.list)[i], "resulting in", df$ngenes[i], "detected genes."))
+}
+rm("obj.list")
+write.csv(df, file= file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_samplecounts.csv")), row.names = F)
 
 #### End of Script ####
 sessionInfo()

@@ -24,8 +24,9 @@ One script was especially made for Bhaduri et al., 2020 GBM samples (`1-createSe
 In the **Load Datasets** section, replace `samples.csv`, `matrix.path` and `matrix.path.TE` with appropriate filepaths for the sampleIDs, as well as human transcriptome-mapped and human retrotransposon-mapped 10X count matrices. 
 
 Values to evaluate the quality of the datasets is also computed in this script: 
-- **Ratio of Genes (nGene) per UMI (nUMI) detected** - the greater the ratio, the more complex the dataset
+- **Ratio of Genes (nGene) per UMI (nUMI) detected** (gene novelty score) - the greater the ratio, the more complex the dataset
 - **Ratio of mitochondrial genes expressed** - the smaller the more likely a live cell at the time of dissociation (higher quality)
+- **Median Absolute Deviations (MADs)** -- To detect if barcodes contain more than one cell, we calculate the MADs for the number of genes and UMIs detected per cell. Those expressing >3-5 MADs in number of genes or UMIs are likely doublets ([You et al., 2021](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02552-3) and [Ocasio et al., 2019](https://www.nature.com/articles/s41467-019-13657-6)). An elevated MAD threhold is preferred for cancer datasets due to the presence of copy number variations and other biological sources that increase variability in gene expression levels. 
 
 Commands and scripts used to create seurat objects for each dataset.
 
