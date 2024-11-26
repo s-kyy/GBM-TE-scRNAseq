@@ -27,6 +27,7 @@ library(Matrix)
 library(ggplot2)
 library(tidyverse)
 # library(ggbreak)
+library(ggpmisc)
 library(scales) #plot axis manipulation
 
 library(conflicted)
@@ -132,13 +133,22 @@ p <- seurat.obj@meta.data %>%
 ggsave(file.path(getwd(), parent_dir_name, "figs", paste0(filename,"_nGenes.tiff")), 
        plot = p, units="in", width=size*1.1, height=size*0.8, dpi=300, compression = 'lzw')
 
+my.formula <- y ~ x 
 print("Scatter Plot:  Visualize the correlation between genes detected and number of UMIs per cell")
 p <- seurat.obj@meta.data %>% 
-    ggplot(aes(x=nUMI, y=nGene, color=mitoRatio)) + 
+    ggplot(aes(x=nUMI, y=nGene, color=mitoRatio), group=sample) + 
     labs(x = "Log10 Number of UMI/Transcripts Detected", y = "Log10 Number of Genes Detected") +
     geom_point() + 
     scale_colour_gradient(low = "gray90", high = "black") +
-    stat_smooth(method=lm) +
+    # stat_smooth(method=lm) +
+    # stat_poly_line() +
+    # stat_poly_eq() + 
+    geom_smooth(method = "lm", se=FALSE, formula = my.formula, color="blue") +
+    stat_poly_eq(geom = "text_npc",
+               formula = my.formula, parse = TRUE,
+              #  aes(label =  paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~~")),
+               aes(label =  paste(..rr.label..)),
+               color="blue", size=3) +
     scale_x_log10(labels = comma) + 
     scale_y_log10(labels = comma) + 
     labs(color="Mito. Ratio") +
@@ -189,9 +199,9 @@ df <- seurat.obj@meta.data %>%
     ncells = n(), 
     noveltyscore.avg = mean(log10GenesPerUMI),
     noveltyscore.sd = sd(log10GenesPerUMI),
-    ngene.mad. = mad(nGene, constant = 1),
-    numi.mad. = mad(nUMI, constant = 1),
-    mitoRatio.mad. = mad(mitoRatio, constant = 1)
+    ngene.mad = mad(nGene, constant = 1),
+    numi.mad = mad(nUMI, constant = 1),
+    mitoRatio.mad = mad(mitoRatio, constant = 1)
   )
 
 # Count number of detected genes in this assay and avg novelty score

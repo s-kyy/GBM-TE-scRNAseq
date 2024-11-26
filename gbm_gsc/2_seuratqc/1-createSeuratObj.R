@@ -60,12 +60,12 @@ cellnames <- intersect(colnames(reads_GE),colnames(reads_TE))
 length(cellnames) 
 
 # Merge sparse matrices with intersecting cell names
-intersect <- rbind(reads_GE[,cellnames],reads_TE[,cellnames])
+matrix_intersect <- rbind(reads_GE[,cellnames],reads_TE[,cellnames])
 rm("reads_TE")
 gc()
 
 gte <- CreateSeuratObject(
-    counts=intersect,
+    counts=matrix_intersect,
     project="reference-genes_retrotransposons", 
     names.field = 2,
     names.delim = "-", 
@@ -73,7 +73,7 @@ gte <- CreateSeuratObject(
     min.cells = 1)
 # gte.orig_id <- gte@meta.data$orig.ident
 # names(gte.orig_id) <- rownames(gte@meta.data)
-rm("intersect")
+rm("matrix_intersect")
 gc()
 
 ge <- CreateSeuratObject(

@@ -9,7 +9,9 @@ Single cell analysis will be performed on two feature-cellbarcode matrices. One 
 - renv 0.13.2
 - BiocManager 1.30.12
 - Seurat 4.0.1
-- ggplot2_3.3.5
+- ggplot2 3.3.5
+- ggpp 0.5.8-1
+- ggpmisc 0.6.1
 - scales_1.1.1
 - See comprehensive list of requirements in: `renv.lock`
 
@@ -41,15 +43,15 @@ Rscript --vanilla ./1-createSeuratObj.R ../0_downloads/2021-05-28_wang/samples.c
 ../1_scrna-seq_mapping/2021-06-10_wang_aggr_ge \
 ../1_scrna-seq_mapping/2021-06-10_wang_aggr_te \
 wangGBM >wanggbm_1.out 2>&1 
-  # ./gbm_gsc/2_seuratqc/20210611_wangGBM/wangGBM_gte.rds
-  # ./gbm_gsc/2_seuratqc/20210611_wangGBM/wangGBM_ge.rds
+  # ./gbm_gsc/2_seuratqc/20210611_wangGBM/gte.rds
+  # ./gbm_gsc/2_seuratqc/20210611_wangGBM/ge.rds
 
 Rscript --vanilla ./1-createSeuratObj.R ../0_downloads/2023-03-06_bhaduri_healthy/samples.csv \ 
 ../1_scrna-seq_mapping/2023-03-06_healthy_aggr_ge \
 ../1_scrna-seq_mapping/2023-03-06_healthy_aggr_te \
 healthy >healthy_1.out 2>&1 
-  # ./gbm_gsc/2_seuratqc/20230320_healthy/healthy_gte.rds
-  # ./gbm_gsc/2_seuratqc/20230320_healthy/healthy_ge.rds
+  # ./gbm_gsc/2_seuratqc/20230320_healthy/gte.rds
+  # ./gbm_gsc/2_seuratqc/20230320_healthy/ge.rds
 ```
 
 Example of Running script on Windows (Powershell 7)
@@ -68,12 +70,12 @@ cd ./gbm_gsc/2_seuratqc
 Rscript --vanilla 2-mergeSeuratObj.R \
 ./20210329_bhaduriGBM/gte.rds \ 
 ./20210611_wangGBM/gte.rds bhaduriGBM wangGBM >merge_bhaduri_wang_gte.out 2>&1 
-  # ./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds
+  # ./20230611_merged_bhaduriGBM_wangGBM/merged_gte.rds
 
 Rscript --vanilla 2-mergeSeuratObj.R \
 ./20210329_bhaduriGBM/ge.rds \
 ./20210611_wangGBM/ge.rds bhaduriGBM wangGBM >merge_bhaduri_wang_ge.out 2>&1 
-  # ./20230611_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds
+  # ./20230611_merge_bhaduriGBM_wangGBM/merged_ge.rds
 ```
 
 ### `qcfigs.R`
@@ -92,16 +94,16 @@ Commands to generate quality control figures before quality control steps.
 cd ./gbm_gsc/2_seuratqc
 
 Rscript --vanilla qc-figs.R \
-./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds >qcfigs_merged.out 2>&1 
+./20230611_merged_bhaduriGBM_wangGBM/merged_gte.rds >qcfigs_merged.out 2>&1 
 
 Rscript --vanilla qc-figs.R \
-./20230611_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds >qcfigs_merged.out 2>&1 
+./20230611_merge_bhaduriGBM_wangGBM/merged_ge.rds >qcfigs_merged.out 2>&1 
 
 Rscript --vanilla qc-figs.R \
-./20230320_healthy/healthy_gte.rds >qcfigs_healthygte.out 2>&1 
+./20230320_healthy/gte.rds >qcfigs_healthygte.out 2>&1 
 
 Rscript --vanilla qc-figs.R \
-./20230320_healthy/healthy_ge.rds >qcfigs_healthyge.out 2>&1 
+./20230320_healthy/ge.rds >qcfigs_healthyge.out 2>&1 
 ```
 
 Minor adjustments to output figure sizes were done between runs. 
@@ -118,15 +120,16 @@ The following figures are also generated:
 ```bash
 cd ./gbm_gsc/2_seuratqc
 
-Rscript --vanilla 2-mergeSeuratObj.R \
-./20230611_merged_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_gte.rds \ 
-./20230611_merge_bhaduriGBM_wangGBM/merged_bhaduriGBM_wangGBM_ge.rds >normalize_bhaduri_wang.out 2>&1 
+Rscript --vanilla 3-normalize-visualize_gbm.R \
+./20230611_merged_bhaduriGBM_wangGBM/merged_gte.rds \ 
+./20230611_merge_bhaduriGBM_wangGBM/merged_ge.rds >normalize_bhaduri_wang.out 2>&1 
 # 20230611_merged_bhaduriGBM_wangGBM/ -> location of saved RDS files
 # 20230611_merged_bhaduriGBM_wangGBM/figs/ -> location of figures 
 
-Rscript --vanilla 2-mergeSeuratObj.R \
-./20230320_healthy/healthy_gte.rds \ 
-./20230320_healthy/healthy_ge.rds >normalize_healthy.out 2>&1 
+Rscript --vanilla 3-normalize-visualize_healthy.R \
+./20230320_healthy/gte.rds \ 
+./20230320_healthy/ge.rds \ 
+./20210320_healthy/ge_samplecounts.csv >normalize_healthy.out 2>&1 
 # 20230320_healthy/ -> location of saved RDS files
 # 20230320_healthy/figs/ -> location of figures
 ```
