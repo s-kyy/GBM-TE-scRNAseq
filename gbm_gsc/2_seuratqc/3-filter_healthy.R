@@ -6,15 +6,18 @@
 library(fs) #path manipulation
 
 args = commandArgs(trailingOnly=TRUE)
-# test if there is at least one argument: if not, return an error
-if (length(args)<3) {
-  stop("At least 2 filepaths names must be supplied: [dataset/ge.rds] [dataset/gte.rds] [dataset/sample_counts.csv]. Optionally include path to an output folder [output_path]", call.=FALSE)
-} else if (length(args)>=3) {
+# if (length(args)<3) {
+#   stop("At least 2 filepaths names must be supplied: [dataset/ge.rds] [dataset/gte.rds] [dataset/sample_counts.csv]. Optionally include path to an output folder [output_path]", call.=FALSE)
+# } else if (length(args)>=3) {
+if (length(args)<2) {
+  stop("At least 2 filepaths names must be supplied: [dataset/ge.rds] [dataset/gte.rds]. Optionally include path to an output folder [output_path]", call.=FALSE)
+} else if (length(args)>=2) {
   # verify filepaths
-  if (file.exists(args[1]) & file.exists(args[2]) & file.exists(args[3])){ 
+  # if (file.exists(args[1]) & file.exists(args[2]) & file.exists(args[3])){ 
+  if (file.exists(args[1]) & file.exists(args[2])){ 
     path_ge <- args[1]  
     path_gte <- args[2] 
-    path_qc_table <- args[3]
+    # path_qc_table <- args[3]
     ge_filename <- basename(path_ext_remove(path_ge))
     gte_filename <- basename(path_ext_remove(path_gte))
     path_to_object <- dirname(path_ge)
@@ -23,10 +26,12 @@ if (length(args)<3) {
     stop("one or more filepaths do not exist. Closing script...", call=FALSE)
   }
   # Optional arguements
-  if (length(args) == 4 & dir.exists(args[4])) {
-    path_to_object <- args[4]
+  # if (length(args) == 4 & dir.exists(args[4])) {
+    # path_to_object <- args[4]
+  if (length(args) == 3 & dir.exists(args[3])) {
+    path_to_object <- args[3]
     parent_dir_name <- basename(path_to_object)
-  } else if (length(args) == 4 & !dir.exists(args[4])) {
+  } else if (length(args) == 3 & !dir.exists(args[3])) {
     cat("Output directory does not exist, creating new output directory...")
     dir.create(path_to_object, recursive=T)
   }
@@ -49,8 +54,8 @@ set.seed(108)
 #### =========================================== ####
 ge <- readRDS(path_ge) 
 gte <- readRDS(path_gte) 
-qc.table <- read.csv(path_qc_table, header = TRUE)
-rownames(qc.table) <- qc.table[,1]
+# qc.table <- read.csv(path_qc_table, header = TRUE)
+# rownames(qc.table) <- qc.table[,1]
 
 #### =========================================== ####
 #### Filter Low Quality Cells ####
@@ -148,195 +153,6 @@ saveRDS(filt_ge,  file = file.path(path_to_object, paste0(ge_filename, "_qc.rds"
 cat("Filtered & saved seurat objects to",path_to_object,"\n")
 
 print("Completed filtering, exiting script.")
-
-# #### =========================================== ####
-# #### Normalize each dataset individually ####
-# #### =========================================== ####
-# gte_temp <- CreateAssayObject(counts = filt_gte@assays[["RNA"]]@counts)
-
-# gte_temp <- NormalizeData(gte_temp, 
-#                           verbose = T, 
-#                           normalization.method = "LogNormalize") %>% 
-#     FindVariableFeatures(selection.method = "vst", nfeatures = 2500) %>% 
-#     ScaleData()
-
-# filt_gte@assays[["RNA"]]@counts <- gte_temp@counts
-# filt_gte@assays[["RNA"]]@scale.data <- gte_temp@scale.data
-
-# ge_temp  <- CreateAssayObject(counts = filt_ge@assays[["RNA"]]@counts)
-# ge_temp <- NormalizeData(ge_temp, 
-#                           verbose = T, 
-#                           normalization.method = "LogNormalize") %>% 
-#     FindVariableFeatures(selection.method = "vst", nfeatures = 2500) %>% 
-#     ScaleData()
-
-# filt_ge@assays[["RNA"]]@counts <- ge_temp@counts
-# filt_ge@assays[["RNA"]]@scale.data <- ge_temp@scale.data
-
-# rm("ge_temp")
-# rm("gte_temp")
-# gc()
-
-# gte_list <- SplitObject(object=filt_gte, split.by="orig.ident")
-# ge_list <- SplitObject(object=filt_ge, split.by="orig.ident")
-
-# rm("filt_gte")
-# rm("filt_ge")
-# gc()
-
-
-# # Change active.ident as orig.ident for GBM samples
-# for (i in 1:length(gte_list)) {
-#     gte_list[[i]]@active.ident <- factor(gte_list[[i]]@meta.data$orig.ident)
-#     ge_list[[i]]@active.ident <- factor(ge_list[[i]]@meta.data$orig.ident)
-# }
-
-# # Normalize the RNA reads per tumor sample via Log Normalization method
-
-# for(i in 1:length(ge_list)){
-    
-#     print(paste0("Processing Sample Number: ",i))
-    
-#     DefaultAssay(gte_list[[i]]) <- "RNA"
-#     DefaultAssay(ge_list[[i]]) <- "RNA"
-    
-#     gte_list[[i]] <- NormalizeData(gte_list[[i]],verbose=TRUE)
-#     ge_list[[i]]  <- NormalizeData(ge_list[[i]],verbose=TRUE)
-    
-#     gte_list[[i]] <- FindVariableFeatures(gte_list[[i]],
-#                                           selection.method="vst",
-#                                           nfeatures=2500,
-#                                           verbose=TRUE)
-#     ge_list[[i]]  <- FindVariableFeatures(ge_list[[i]],
-#                                           selection.method="vst",
-#                                           nfeatures=2500,
-#                                           verbose=TRUE)
-# }
-# cat("Most Variable Features computed\n")
-
-# #### =========================================== ####
-# #### Integrate Seurat Objects together (memory: 60Gb) ~1h30min ####
-# #### =========================================== ####
-# gte_anchors <- FindIntegrationAnchors(gte_list,dims=1:20)
-# gte_integrated <- IntegrateData(anchorset = gte_anchor,dims=1:20)
-
-# ge_anchors <- FindIntegrationAnchors(ge_list,dims=1:20) 
-# ge_integrated <- IntegrateData(anchorset = ge_anchor,dims=1:20)
-# cat("Most Integration Complete")
-
-# saveRDS(gte_integrated, file = file.path(path_to_object, paste0(gte_filename, "_integrated.rds")) )
-# saveRDS(ge_integrated,  file = file.path(path_to_object, paste0(ge_filename, "_integrated.rds")) )
-# cat("Saved integrated seurat objects to",path_to_object,"\n")
-
-# rm("gte_list")
-# rm("ge_list")
-# rm("gte_anchors")
-# rm("ge_anchors")
-# gc()
-
-# #### =========================================== ####
-# #### Create Variable Feature Plots ####
-# #### =========================================== ####
-# DefaultAssay(object = gte_integrated) <- "integrated"
-# DefaultAssay(object = ge_integrated) <- "integrated"
-
-# # Identify the 10 most highly variable genes
-# size    <- 7
-
-# ifelse(!dir.exists(file.path(getwd(),parent_dir_name, "figs")),
-#         dir.create(file.path(getwd(),parent_dir_name, "figs"),recursive=T),
-#         "Directory Exists")
-
-# top10   <- head(VariableFeatures(gte_integrated), 10)
-# p       <- VariableFeaturePlot(gte_integrated)
-# p2      <- LabelPoints(plot = p, points = top10, repel = TRUE)
-# ggsave(file.path(path_to_object, "figs", paste0(gte_filename,"_variablegenes.tiff")), 
-#        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
-
-# top10   <- head(VariableFeatures(ge_integrated), 10)
-# p       <- VariableFeaturePlot(ge_integrated)
-# p2      <- LabelPoints(plot = p, points = top10, repel = TRUE)
-# ggsave(file.path(path_to_object, "figs", paste0(ge_filename,"_variablegenes.tiff")), 
-#        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
-
-# #### =========================================== ####
-# #### Scale, PCA, UMAP ####
-# #### =========================================== ####
-# # Standard workflow for visualization and clustering 
-# # (ScaleData, RunPCA, RunUMAP, FindNeighbors, FindClusters)
-# gte_integrated <- ScaleData(object = gte_integrated, verbose = FALSE)
-# ge_integrated <- ScaleData(object = ge_integrated, verbose = FALSE)
-
-# gte_integrated@meta.data$sample <- factor(gte_integrated@meta.data$sample, 
-#                                           levels = sort(unique(gte_integrated@meta.data$sample)))
-# ge_integrated@meta.data$sample <- factor(ge_integrated@meta.data$sample, 
-#                                           levels = sort(unique(ge_integrated@meta.data$sample)))
-
-# # Run PCA and UMAP ~20min
-# gte_integrated.pca <- RunPCA(object = gte_integrated, npcs = 20, verbose = FALSE)
-# ge_integrated.pca  <- RunPCA(object = ge_integrated, npcs = 20, verbose = FALSE)
-
-# rm("gte_integrated")
-# rm("ge_integrated")
-# gc()
-
-# gte_integrated.pca <- RunUMAP(object = gte_integrated.pca, 
-#                               reduction = "pca", 
-#                               dims = 1:20, 
-#                               umap.method = "uwot", 
-#                               metric = "cosine")
-
-# ge_integrated.pca <- RunUMAP(object = ge_integrated.pca, 
-#                               reduction = "pca", 
-#                               dims = 1:20, 
-#                               umap.method = "uwot", 
-#                               metric = "cosine")
-
-# saveRDS(gte_integrated.pca, file = file.path(path_to_object, paste0(gte_filename, "_integrated.umap.rds")) )
-# saveRDS(ge_integrated.pca,  file = file.path(path_to_object, paste0(ge_filename, "_integrated.umap.rds")) )
-# cat(paste("ScaleData, RunPCA, and RunUMAP complete.\n Saved Seurat objects to",path_to_object, "\n"))
-
-# # Determine the K-nearest neighbor graph (with first 20 PCAs)
-# gte_integrated.pca <- FindNeighbors(gte_integrated.pca,dims=1:20,reduction="pca")
-# gte_integrated.pca <- FindClusters(gte_integrated.pca, resolution = 0.3)
-# gte_integrated.pca <- FindClusters(gte_integrated.pca, resolution = 0.4)
-# saveRDS(gte_integrated.pca, file = file.path(path_to_object, paste0(gte_filename, "_integrated.umap.clustered.rds")))
-# cat("KNN clustering complete. Saved seurat objects to", path_to_object,"\n")
-
-# ge_integrated.pca <- FindNeighbors(ge_integrated.pca,dims=1:20,reduction="pca")
-# ge_integrated.pca <- FindClusters(ge_integrated.pca, resolution = 0.3)
-# ge_integrated.pca <- FindClusters(ge_integrated.pca, resolution = 0.4)
-# saveRDS(ge_integrated.pca, file = file.path(path_to_object, paste0(ge_filename, "_integrated.umap.clustered.rds")))
-# cat("KNN clustering complete. Saved seurat objects to", path_to_object,"\n")
-
-# #### =========================================== ####
-# #### Output UMAP plots by sample ####
-# #### =========================================== ####
-# size <- 5
-# p <- DimPlot(gte_integrated.pca, reduction = "umap", group.by = "sample") + 
-#     ggtitle("GRCh38+TE by Sample Origin")
-# ggsave(file.path(path_to_object, "figs", paste0(gte_filename,"_UMAP-sample.tiff")),
-#        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
-
-# p <- DimPlot(ge_integrated.pca, reduction = "umap", group.by = "sample") + 
-#     ggtitle("GRCh38 by Sample Origin")
-# ggsave(file.path(path_to_object, "figs", paste0(ge_filename,"_UMAP-sample.tiff")), 
-#        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
-
-# #### =========================================== ####
-# #### Output UMAP plots by cluster ####
-# #### =========================================== ####
-# p <- DimPlot(gte_integrated.pca, reduction = "umap", group.by = "cluster") + 
-#     ggtitle("GRCh38+TE by Sample Origin")
-# ggsave(file.path(path_to_object, "figs", paste0(gte_filename,"_UMAP-cluster.tiff")),
-#        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
-
-# p <- DimPlot(ge_integrated.pca, reduction = "umap", group.by = "cluster") + 
-#     ggtitle("GRCh38 by Sample Origin")
-# ggsave(file.path(path_to_object, "figs", paste0(ge_filename,"_UMAP-cluster.tiff")),
-#        plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
-
-# cat("Seurat object processing complete. Saved to ",path_to_object,"\n")
 
 #### End of Script ####
 sessionInfo()
