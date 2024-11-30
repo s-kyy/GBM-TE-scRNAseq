@@ -20,20 +20,20 @@ if (length(args)<2) {
     # path_qc_table <- args[3]
     ge_filename <- basename(path_ext_remove(path_ge))
     gte_filename <- basename(path_ext_remove(path_gte))
-    path_to_object <- dirname(path_ge)
-    parent_dir_name <- basename(path_to_object)
+    parent_dir_path <- dirname(path_ge)
+    parent_dir_name <- basename(parent_dir_path)
   } else {
     stop("one or more filepaths do not exist. Closing script...", call=FALSE)
   }
   # Optional arguements
   # if (length(args) == 4 & dir.exists(args[4])) {
-    # path_to_object <- args[4]
+    # parent_dir_path <- args[4]
   if (length(args) == 3 & dir.exists(args[3])) {
-    path_to_object <- args[3]
-    parent_dir_name <- basename(path_to_object)
+    parent_dir_path <- args[3]
+    parent_dir_name <- basename(parent_dir_path)
   } else if (length(args) == 3 & !dir.exists(args[3])) {
     cat("Output directory does not exist, creating new output directory...")
-    dir.create(path_to_object, recursive=T)
+    dir.create(parent_dir_path, recursive=T)
   }
 } 
 
@@ -131,9 +131,9 @@ print(paste("Filtered & matched GE object ncells:", dim(filt_ge)[2]))
 #                             (log10GenesPerUMI > 0.80) & 
 #                             (mitoRatio < 0.05))
 
-saveRDS(filt_gte, file = file.path(path_to_object, paste0(gte_filename, "_qc.rds")) )
-saveRDS(filt_ge,  file = file.path(path_to_object, paste0(ge_filename, "_qc.rds")) )
-cat("Filtered & saved seurat objects to",path_to_object,"\n")
+saveRDS(filt_gte, file = file.path(parent_dir_path, paste0(gte_filename, "_qc.rds")) )
+saveRDS(filt_ge,  file = file.path(parent_dir_path, paste0(ge_filename, "_qc.rds")) )
+cat("Filtered & saved seurat objects to",parent_dir_path,"\n")
 
 print("Completed filtering, exiting script.")
 

@@ -6,17 +6,20 @@ library(fs) #path manipulation
 args = commandArgs(trailingOnly=TRUE)
 # test if there is at least one argument: if not, return an error
 if (length(args)<1) {
-  stop("At least 1 filepath must be supplied: [xxx.rds]", call.=FALSE)
-} else {
+  stop("At least 1 filepath must be supplied: [xxx.rds] [sample_name]", call.=FALSE)
+} else if (length(args)<2) {
   # verify filepaths
   if (file.exists(args[1])){ 
     obj_path <- args[1] 
     filename <- basename(path_ext_remove(obj_path))
-    # path_to_object <- dirname(obj_path)
-    # parent_dir_name <- basename(path_to_object)
+    sample_name <- ""
   } else {
     stop("Filepath provided does not exist. Exiting...", call.=FALSE)
   }
+} else if (length(args)<=2) {
+    obj_path <- args[1] 
+    filename <- basename(path_ext_remove(obj_path))
+    sample_name <- args[2]
 }
 
 #### =========================================== ####
@@ -40,7 +43,7 @@ set.seed(108)
 seurat.obj <- readRDS(obj_path) 
 size    <- 5
 
-subdir <- file.path(getwd(), paste0(format(Sys.Date(), "%Y%m%d"), "_", filename))
+subdir <- file.path(getwd(), paste0(format(Sys.Date(), "%Y%m%d"), "_", sample_name,"_", filename))
 
 ifelse(!dir.exists(file.path(subdir)),
         dir.create(file.path(subdir),recursive=T),
@@ -54,7 +57,6 @@ ifelse(!dir.exists(file.path(subdir, "figs")),
 #### =========================================== ####
 #### Test PCA levels ####
 #### =========================================== ####
-
 # Determine percent of variation associated with each PC
 pct_var_per_pc <- seurat.obj[["pca"]]@stdev / sum(seurat.obj[["pca"]]@stdev) * 100
 
@@ -105,12 +107,19 @@ seurat.obj <- FindClusters(seurat.obj, resolution = 0.4)
 saveRDS(seurat.obj, file = file.path(subdir, paste0(filename, "_clustered.rds")))
 cat("KNN clustering complete. Saved seurat objects to", subdir,"\n")
 
-# Add FindAllMarkers function
-DefaultAssay(seurat.obj) <- "integrated"
+#### =========================================== ####
+#### Find unique markers per cluster ####
+#### =========================================== ####
+## Use normalized counts for DGE (Luecken & Theis 2019)
+DefaultAssay(seurat.obj) <- "RNA" 
 Idents(seurat.obj) <- "integrated_snn_res.0.3"
+
+# Use normalized counts to perform differential gene analysis
+seurat.obj <- NormalizeData(seurat.obj, verbose = TRUE) # default: LogNormalize
 
 markers <- FindAllMarkers(
   seurat.obj, 
+  assay = "data",
   only.pos = FALSE, 
   min.pct = 0.25, 
   logfc.threshold = 0.25)
@@ -130,15 +139,6 @@ markers <- FindAllMarkers(
 
 write.csv(markers, file = file.path(subdir, paste0(filename, "_markers_0.4.csv")), row.names=TRUE)
 rm("markers")
-
-#### =========================================== ####
-#### Output UMAP plots by cluster ####
-#### =========================================== ####
-p <- DimPlot(seurat.obj, reduction = "umap", group.by = "cluster") 
-ggsave(file.path(subdir, "figs", paste0(filename,"_UMAP-cluster.tiff")),
-       plot = p, units="in", width=size*3, height=size*3, dpi=300, compression = 'lzw')
-
-cat("Seurat object processing complete. Saved to ",subdir,"\n")
 
 #### End of Script ####
 sessionInfo()

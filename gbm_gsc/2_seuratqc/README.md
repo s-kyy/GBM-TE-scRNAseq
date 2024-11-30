@@ -17,7 +17,7 @@ Single cell analysis will be performed on two feature-cellbarcode matrices. One 
 
 Note: your setup should have enough memory to load the datasets into R and perform downstream proprocessing and analysis steps (16-32Gb )
 
-### `1-createSeuratObj-GTE.R`
+### `1-createSeuratObj.R`
 
 Script that aligns samples between human transcriptome-mapped reads to samples mapped to retrotransposon annotations.
 
