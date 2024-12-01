@@ -33,3 +33,4 @@
 # Uninignored Files
 !**/aggr_*.csv
 !**/samples.csv
+!**/gbm_gsc/2_seuratqc/cellcycle_genes.csv

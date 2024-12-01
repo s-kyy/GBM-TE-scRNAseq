@@ -99,7 +99,7 @@ ggsave(file.path(subdir, "figs", paste0(filename,"_UMAP-sample.tiff")),
 print("Exported UMAP")
 
 #### =========================================== ####
-# Cluster: K-nearest neighbor graph
+#### Cluster: K-nearest neighbor graph
 #### =========================================== ####
 seurat.obj <- FindNeighbors(seurat.obj,dims=1:min_pc,reduction="pca")
 seurat.obj <- FindClusters(seurat.obj, resolution = 0.3)
