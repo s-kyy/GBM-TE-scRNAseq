@@ -58,12 +58,14 @@ ifelse(!dir.exists(file.path(subdir, "figs")),
 #### Test PCA levels ####
 #### =========================================== ####
 # Determine percent of variation associated with each PC
+DefaultAssay(seurat.obj) <- "integrated"
 pct_var_per_pc <- seurat.obj[["pca"]]@stdev / sum(seurat.obj[["pca"]]@stdev) * 100
 
 # Calculate cumulative percents for each PC
 cum_pct_per_pc <- cumsum(pct_var_per_pc)
 
-# Determine which PC exhibits cumulative percent greater than 90% and % variation associated with the PC as less than 5
+# Determine which PC exhibits a cumulative percentage of variation 
+# greater than 90% and variation associated with the PC is less than 5%
 min_pc <- which(cum_pct_per_pc > 90 & pct_var_per_pc < 5)[1]
 print(paste("Minimum PC that retains more than 90% variation and less than 5% variation compared to the next PC:", min_pc))
 

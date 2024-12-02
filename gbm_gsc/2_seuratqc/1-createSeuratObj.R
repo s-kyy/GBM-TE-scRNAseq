@@ -71,8 +71,6 @@ gte <- CreateSeuratObject(
     names.delim = "-", 
     min.features = 100, 
     min.cells = 1)
-# gte.orig_id <- gte@meta.data$orig.ident
-# names(gte.orig_id) <- rownames(gte@meta.data)
 rm("matrix_intersect")
 gc()
 
@@ -83,8 +81,6 @@ ge <- CreateSeuratObject(
     names.delim = "-", 
     min.features = 100, 
     min.cells = 1)
-# ge.orig_id <- ge@meta.data$orig.ident
-# names(ge.orig_id) <- rownames(ge@meta.data)
 rm("reads_GE")
 gc()
 

@@ -129,12 +129,6 @@ rm("obj_list")
 rm("obj_anchors")
 gc()
 
-#### =========================================== ####
-#### Scale, PCA, UMAP ~5min, <200Mb ####
-#### =========================================== ####
-## save to $RNA@scale.data
-DefaultAssay(obj_integrated) <- "RNA"
-
 ## ========================================= ##
 ##  Regress out cell cycle effects completely ##
 ## ========================================= ##
@@ -145,6 +139,7 @@ DefaultAssay(obj_integrated) <- "RNA"
 s.genes <- cc.genes$s.genes
 g2m.genes <- cc.genes$g2m.genes
 
+DefaultAssay(obj_integrated) <- "RNA"
 obj_integrated <- CellCycleScoring(obj_integrated, 
                                     s.features = s.genes, 
                                     g2m.features = g2m.genes, 
@@ -154,7 +149,7 @@ p <- RidgePlot(obj_integrated, features = c("PCNA", "TOP2A", "MCM6", "MKI67"), n
 ggsave(file.path(figs_dir_path, paste0(filename,"_cellcycleRidgePlot.tiff")), 
       plot = p, units="in", width=size*1.5, height=size*1, dpi=300, compression = 'lzw')
 
-# Regress out cell cycle score
+# Regress out cell cycle score ~5min, <200Mb
 DefaultAssay(obj_integrated) <- "integrated"
 obj_integrated_cc <- ScaleData(obj_integrated, 
                             vars.to.regress = c("S.Score", "G2M.Score"), 
@@ -172,7 +167,7 @@ obj_integrated_cc <- RunUMAP(obj_integrated_cc,
                           metric = "cosine")
 
 saveRDS(obj_integrated_cc, file = file.path(parent_dir_path, paste0(filename, "_integrated_regressCC.rds")) )
-print(paste("ScaleData, RunPCA, and RunUMAP complete.\n Saved Seurat objects to",parent_dir_path))
+print(paste("ScaleData, RunPCA, and RunUMAP complete. Saved Seurat objects to",parent_dir_path))
 rm("obj_integrated_cc")
 
 ## ========================================= ##
@@ -180,8 +175,10 @@ rm("obj_integrated_cc")
 ## ========================================= ##
 # Regress out differences within cycling cells and retain features 
 # differentiating proliferating cells from non-proliferating cells
-DefaultAssay(obj_integrated) <- "integrated"
 obj_integrated$CC.Difference <- obj_integrated$S.Score - obj_integrated$G2M.Score
+
+# Scale Data ~5min, <200Mb
+DefaultAssay(obj_integrated) <- "integrated"
 obj_integrated_cc <- ScaleData(obj_integrated, 
                             vars.to.regress = "CC.Difference", 
                             features = rownames(obj_integrated), 
@@ -202,10 +199,10 @@ obj_integrated_cc <- RunUMAP(obj_integrated_cc,
                           metric = "cosine")
 
 saveRDS(obj_integrated_cc, file = file.path(parent_dir_path, paste0(filename, "_integrated_regressCCdiff.rds")) )
-print(paste("ScaleData, RunPCA, and RunUMAP complete.\n Saved Seurat objects to",parent_dir_path))
+print(paste("ScaleData, RunPCA, and RunUMAP complete. Saved Seurat objects to",parent_dir_path))
 
 ## ========================================= ##
-## Scale and Reduce Dimensionality ##
+## Scale and Reduce Dimensionality without regression ##
 ## ========================================= ##
 # obj_integrated <- ScaleData(object = obj_integrated, verbose = FALSE) 
 
