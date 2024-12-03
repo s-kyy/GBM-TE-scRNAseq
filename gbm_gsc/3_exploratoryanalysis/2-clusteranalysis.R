@@ -5,16 +5,17 @@ library(fs) #path manipulation
 
 args = commandArgs(trailingOnly=TRUE)
 # test if there is at least one argument: if not, return an error
-if (length(args)<2) {
-  stop("At least 2 filepaths must be supplied: [xxx.rds] [xxx_markers_0.x.csv]", call.=FALSE)
+if (length(args)<3) {
+  stop("At least 2 filepaths must be supplied: [xxx.rds] [xxx_markers_0.3.csv] [xxx_markers_0.4.csv]", call.=FALSE)
 } else {
   # verify filepaths
-  if (file.exists(args[1]) & file.exists(args[2])) { 
+  if (file.exists(args[1]) & file.exists(args[2]) & file.exists(args[3])) { 
     obj_path <- args[1] 
     filename <- basename(path_ext_remove(obj_path))
     parent_dir_path_obj <- dirname(obj_path)
     parent_dir_name_obj <- basename(parent_dir_path_obj)
-    marker_path <- args[2]
+    marker_path3 <- args[2]
+    marker_path4 <-args[3]
 #     parent_dir_path_marker <- dirname(marker_path)
 #     parent_dir_name_marker <- basename(parent_dir_path_marker)
   } else {
@@ -22,9 +23,9 @@ if (length(args)<2) {
   }
 }
 
-#### =========================================== ####
+#### ===================================================================== ####
 #### Import Packages ####
-#### =========================================== ####
+#### ===================================================================== ####
 
 set.seed(108)
 
@@ -39,10 +40,12 @@ conflict_prefer("select", "dplyr") ## required in %>% dplyr
 
 set.seed(108)
 
-#### =========================================== ####
+#### ===================================================================== ####
 #### Load Datasets ####
-#### =========================================== ####
+#### ===================================================================== ####
 seurat.obj <- readRDS(obj_path) 
+cluster_markers3 <- read.csv(marker_path3)
+cluster_markers4 <- read.csv(marker_path4)
 size    <- 5
 cluster_res03 <- "integrated_snn_res.0.3"
 cluster_res04 <- "integrated_snn_res.0.4"
@@ -65,6 +68,9 @@ if (grepl("healthy", parent_dir_name_obj, fixed = TRUE)) {
   female_samples <- "SF11209"
 }
 
+seurat.obj$`integrated_snn_res.0.3` <- factor(seurat.obj$`integrated_snn_res.0.3`, levels= sort(unique(seurat.obj$`integrated_snn_res.0.3`)))
+seurat.obj$`integrated_snn_res.0.4` <- factor(seurat.obj$`integrated_snn_res.0.4`, levels= sort(unique(seurat.obj$`integrated_snn_res.0.4`)))
+
 figs_dir_path <- file.path(parent_dir_path_obj, "figs")
 
 ifelse(!dir.exists(figs_dir_path),
@@ -72,19 +78,10 @@ ifelse(!dir.exists(figs_dir_path),
         "Directory Exists")
 
 print(seurat.obj)
-#### =========================================== ####
-#### Variable Features Plot ####
-#### =========================================== ####
-# DefaultAssay(seurat.obj) <- "RNA"
-# plot1_ge <- VariableFeaturePlot(
-#               object = ge_gbm.sc.intergrated,
-#               assay = 
-#               )
-# plot2_ge <- LabelPoints(plot = plot1_ge, points = top10, repel = TRUE)
 
-#### =========================================== ####
+#### ===================================================================== ####
 #### UMAP plots by cluster ####
-#### =========================================== ####
+#### ===================================================================== ####
 DefaultAssay(seurat.obj) <-"RNA"
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
@@ -113,9 +110,9 @@ ggsave(file.path(figs_dir_path, paste0(filename, "_", cluster_res04,"_UMAP.tiff"
 
 print("UMAPs by cluster exported")
 
-#### =========================================== ####
+#### ===================================================================== ####
 #### UMAP plots by sample ####
-#### =========================================== ####
+#### ===================================================================== ####
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
               group.by = cluster_res03,
@@ -152,10 +149,9 @@ if (grepl("gbm", parent_dir_name_obj, fixed = TRUE)) {
   print("UMAPs split by sample exported")
 }
 
-#### =========================================== ####
+#### ===================================================================== ####
 #### UMAP plots by female sample ####
-#### =========================================== ####
-# Highlight Female samples
+#### ===================================================================== ####
 p <- DimPlot(seurat.obj, 
               reduction = "umap", 
               cells.highlight = WhichCells(object = seurat.obj, 
@@ -165,7 +161,56 @@ ggsave(file.path(figs_dir_path, paste0(filename, "_female_samples","_UMAP.tiff")
 
 print("UMAPs by female_sample exported")
 
-# Create Heatmap with unbiased clustering of differentially expressed genes 
+#### ===================================================================== ####
+#### Ridge Plots ####
+#### ===================================================================== ####
+DefaultAssay(seurat.obj) <- "integrated"
+
+p <- RidgePlot(obj_integrated, features = c("PCNA", "TOP2A", "MCM6", "MKI67"), ncol = 2)
+ggsave(file.path(figs_dir_path, paste0(filename,"_cellcycleRidgePlot_integrated.tiff")), 
+      plot = p, units="in", width=size*1.2, height=size*1.3, dpi=300, compression = 'lzw')
+
+#### ===================================================================== ####
+#### Create Heatmap ####
+#### ===================================================================== ####
+DefaultAssay(seurat.obj) <- "integrated"
+
+Idents(seurat.obj) <- cluster_res03
+#make heatmap
+p <- DoHeatmap (seurat.obj,
+                slot = "scale.data",
+                )
+ggsave(file.path(figs_dir_path, paste0(filename,cluster_res03,"_heatmap.tiff")),
+      plot = p, units="in", width=size*1.4, height=size*1, dpi=300, compression = 'lzw')
+
+Idents(seurat.obj) <- cluster_res04
+# make heatmap
+ggsave(file.path(figs_dir_path, paste0(filename,cluster_res04,"_heatmap.tiff")),
+      plot = p, units="in", width=size*1.4, height=size*1, dpi=300, compression = 'lzw')
+
+# MA plot (instead of Volcano plot) 
+# help visualize highly expressed genes per cluster that have 
+# a p-value too small for R to export. 
+# https://bioinformatics.stackexchange.com/a/18064
+
+## 1-Calculate mean expression of marker gene per cluster and add to table
+## Save table
+
+DefaultAssay(seurat.obj) <- "RNA"
+Idents(seurat.obj) <- cluster_res03
+cluster_markers3$avg.exp <- 
+
+AverageExpression(
+  seurat.object,
+  features = cluster_markers3$gene
+  )
+
+## 2- generate MA plot with Mean Normalized Expression as x -log2(FC) as y
+## impossible p-values = p < 10e-20
+## below 0.01 / 0.05
+## above 0.05
+
+p <- cluster_markers
 
 # Create UMAP plots with Known Markers 
 
