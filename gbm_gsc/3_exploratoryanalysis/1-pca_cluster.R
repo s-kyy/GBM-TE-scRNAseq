@@ -25,8 +25,8 @@ if (length(args)<1) {
 #### =========================================== ####
 #### Import Packages ####
 #### =========================================== ####
-# .libPaths(c("~/R/x86_64-pc-linux-gnu-library/tcga-gbm-R4/renv/library/R-4.0/x86_64-pc-linux-gnu", .libPaths()))
-# .libPaths()
+.libPaths(c("~/R/x86_64-pc-linux-gnu-library/tcga-gbm-R4/renv/library/R-4.0/x86_64-pc-linux-gnu", .libPaths()))
+.libPaths()
 
 set.seed(108)
 
@@ -98,7 +98,7 @@ size <- 5
 p <- DimPlot(seurat.obj, reduction = "umap", group.by = "sample") 
 ggsave(file.path(subdir, "figs", paste0(filename,"_UMAP-sample.tiff")), 
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
-print("Exported UMAP")
+print("Exported UMAP by sample")
 
 #### =========================================== ####
 #### Cluster: K-nearest neighbor graph
@@ -121,7 +121,6 @@ seurat.obj <- NormalizeData(seurat.obj, verbose = TRUE) # default: LogNormalize
 
 markers <- FindAllMarkers(
   seurat.obj, 
-  assay = "data",
   only.pos = FALSE, 
   min.pct = 0.25, 
   logfc.threshold = 0.25)

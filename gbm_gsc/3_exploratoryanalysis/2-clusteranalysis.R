@@ -6,7 +6,7 @@ library(fs) #path manipulation
 args = commandArgs(trailingOnly=TRUE)
 # test if there is at least one argument: if not, return an error
 if (length(args)<3) {
-  stop("At least 2 filepaths must be supplied: [xxx.rds] [xxx_markers_0.3.csv] [xxx_markers_0.4.csv]", call.=FALSE)
+  stop("At least 3 filepaths must be supplied: [xxx.rds] [xxx_markers_0.3.csv] [xxx_markers_0.4.csv]", call.=FALSE)
 } else {
   # verify filepaths
   if (file.exists(args[1]) & file.exists(args[2]) & file.exists(args[3])) { 
@@ -34,9 +34,13 @@ library(Matrix)
 library(ggplot2)
 library(tidyverse) 
 library(dplyr)
+library(reshape2)
+library(viridis)
+library(ggrepel)
 
 library(conflicted)
 conflict_prefer("select", "dplyr") ## required in %>% dplyr
+conflict_prefer("filter", "dplyr") ## required in %>% dplyr
 
 set.seed(108)
 
@@ -85,26 +89,30 @@ print(seurat.obj)
 DefaultAssay(seurat.obj) <-"RNA"
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
-              group.by = cluster_res03) 
+              group.by = cluster_res03) +
+              scale_colour_viridis_d()
 ggsave(file.path(figs_dir_path, paste0(filename, "_", cluster_res03,"_UMAP_nolabels.tiff")),
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
               group.by = cluster_res03, 
               label = TRUE, 
-              label.size = 2.5) 
+              label.size = 3.5) +
+              scale_colour_viridis_d()
 ggsave(file.path(figs_dir_path, paste0(filename, "_", cluster_res03,"_UMAP.tiff")),
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
-              group.by = cluster_res04) 
+              group.by = cluster_res04) +
+              scale_colour_viridis_d()
 ggsave(file.path(figs_dir_path, paste0(filename, "_", cluster_res04,"_UMAP_nolabel.tiff")),
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
               group.by = cluster_res04, 
               label = TRUE, 
-              label.size = 2.5) 
+              label.size = 3.5) +
+              scale_colour_viridis_d()
 ggsave(file.path(figs_dir_path, paste0(filename, "_", cluster_res04,"_UMAP.tiff")),
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 
@@ -116,13 +124,15 @@ print("UMAPs by cluster exported")
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
               group.by = cluster_res03,
-              split.by = "sample") 
+              split.by = "sample") +
+              scale_colour_viridis_d()
 ggsave(file.path(figs_dir_path, paste0(filename, "_sample_split_", cluster_res03,"_UMAP.tiff")),
        plot = p, units="in", width=size*6, height=size*0.8, dpi=300, compression = 'lzw')
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
               group.by = cluster_res04,
-              split.by = "sample") 
+              split.by = "sample") +
+              scale_colour_viridis_d()
 ggsave(file.path(figs_dir_path, paste0(filename, "_sample_split_", cluster_res04,"_UMAP.tiff")),
        plot = p, units="in", width=size*6, height=size*0.8, dpi=300, compression = 'lzw')
 
@@ -136,13 +146,15 @@ if (grepl("gbm", parent_dir_name_obj, fixed = TRUE)) {
 
   p <- DimPlot(seurat.obj, reduction = "umap", 
                 group.by = cluster_res03,
-                split.by = "sample_orig") 
+                split.by = "sample_orig") +
+              scale_colour_viridis_d()
   ggsave(file.path(figs_dir_path, paste0(filename, "_sample_orig_split_", cluster_res03,"_UMAP.tiff")),
          plot = p, units="in", width=size*7, height=size*0.8, dpi=300, compression = 'lzw')
   
   p <- DimPlot(seurat.obj, reduction = "umap", 
                 group.by = cluster_res04,
-                split.by = "sample_orig") 
+                split.by = "sample_orig") +
+              scale_colour_viridis_d()
   ggsave(file.path(figs_dir_path, paste0(filename, "_sample_orig_split_", cluster_res04,"_UMAP.tiff")),
          plot = p, units="in", width=size*7, height=size*0.8, dpi=300, compression = 'lzw')
   
@@ -166,51 +178,150 @@ print("UMAPs by female_sample exported")
 #### ===================================================================== ####
 DefaultAssay(seurat.obj) <- "integrated"
 
-p <- RidgePlot(obj_integrated, features = c("PCNA", "TOP2A", "MCM6", "MKI67"), ncol = 2)
+p <- RidgePlot(seurat.obj, features = c("PCNA", "TOP2A", "MCM6", "MKI67"), ncol = 2)
 ggsave(file.path(figs_dir_path, paste0(filename,"_cellcycleRidgePlot_integrated.tiff")), 
       plot = p, units="in", width=size*1.2, height=size*1.3, dpi=300, compression = 'lzw')
 
 #### ===================================================================== ####
-#### Create Heatmap ####
+#### Differential Gene Expression Figures ####
 #### ===================================================================== ####
-DefaultAssay(seurat.obj) <- "integrated"
 
-Idents(seurat.obj) <- cluster_res03
-#make heatmap
-p <- DoHeatmap (seurat.obj,
-                slot = "scale.data",
-                )
-ggsave(file.path(figs_dir_path, paste0(filename,cluster_res03,"_heatmap.tiff")),
-      plot = p, units="in", width=size*1.4, height=size*1, dpi=300, compression = 'lzw')
-
-Idents(seurat.obj) <- cluster_res04
-# make heatmap
-ggsave(file.path(figs_dir_path, paste0(filename,cluster_res04,"_heatmap.tiff")),
-      plot = p, units="in", width=size*1.4, height=size*1, dpi=300, compression = 'lzw')
-
-# MA plot (instead of Volcano plot) 
+#### MA plot (instead of Volcano plot) 
 # help visualize highly expressed genes per cluster that have 
 # a p-value too small for R to export. 
-# https://bioinformatics.stackexchange.com/a/18064
 
 ## 1-Calculate mean expression of marker gene per cluster and add to table
 ## Save table
+meanExpressionPerCluster <- function(seurat.object, cluster_df, idents) {
 
-DefaultAssay(seurat.obj) <- "RNA"
-Idents(seurat.obj) <- cluster_res03
-cluster_markers3$avg.exp <- 
+  DefaultAssay(seurat.object) <- "RNA"
+  seurat.object <- NormalizeData(seurat.object) #default: LogNormalization
 
-AverageExpression(
-  seurat.object,
-  features = cluster_markers3$gene
+  # calculate mean expression of genes per cluster
+  avg_exp_df <- AverageExpression(
+    seurat.obj,
+    assays = "RNA",
+    slot = "data",
+    features = unique(cluster_df$gene),
+    group.by = idents
   )
+
+  avg_exp_df <- as.data.frame(avg_exp_df$RNA)
+  avg_exp_df <- rownames_to_column(avg_exp_df, var = "gene")
+  avg_exp_df <- melt(avg_exp_df, value.name="avg.exp", variable.name="cluster")
+  avg_exp_df$cluster <- as.numeric(as.character(avg_exp_df$cluster))
+  cluster_df <- left_join(x = cluster_df, y = avg_exp_df, 
+                          by = c("cluster", "gene"))
+  cluster_df$p_val.bonf <- p.adjust(cluster_df$p_val, 
+                                          method = "bonferroni")
+  cluster_df <- cluster_df %>% 
+    mutate(fill_label = case_when(
+            p_val.bonf < 10e-20 ~ "p.adj < 10e-20",
+            p_val.bonf < 0.01 ~ "p.adj < 0.01",
+            p_val.bonf < 0.05 ~ "p.adj < 0.05",
+            p_val.bonf >= 0.05 ~ "p.adj >= 0.05",
+           ))
+  print(head(cluster_df$fill_label))
+  cluster_df$fill_label <- factor(cluster_df$fill_label, levels=c("p.adj < 10e-20", "p.adj < 0.01", "p.adj < 0.05", "p.adj >= 0.05"))
+  return(cluster_df)  
+}
 
 ## 2- generate MA plot with Mean Normalized Expression as x -log2(FC) as y
 ## impossible p-values = p < 10e-20
 ## below 0.01 / 0.05
 ## above 0.05
+p_val_cols <- c("indianred1", "turquoise", "royalblue2", "grey")
+MAPlot <- function(cluster_df,cols,name) {
+  cluster_id <- unique(unlist(cluster_df$cluster))
+  print(cluster_id)
+  for (i in 1:length(cluster_id)){
+    cluster_df_subset <- subset(cluster_df, cluster == cluster_id[i])
+    p <-  cluster_df_subset %>% 
+          ggplot(aes(x=avg.exp, y = avg_log2FC, color=fill_label)) + #, group=cluster) +
+          labs(x = "Mean Normalized Expression", y = "Log2(Fold-Change)", color="") +
+          geom_point()+
+          scale_color_manual(values=cols) +
+          theme_minimal() + 
+          theme(strip.background = element_blank(),
+            panel.border = element_rect(fill = NA, colour = "black"),
+            legend.position.inside = c(.95, .95),
+            legend.justification = c("right", "bottom"),
+            legend.box.just = "right",
+            legend.margin = margin(6, 6, 6, 6),
+            legend.background = element_rect(fill = "white", colour = "black"))
+    print(paste("Saving figure of cluster",cluster_id[i]))
+    ggsave(file.path(figs_dir_path, paste0(filename,name,"_",cluster_id[i],"_MAPlot.tiff")),
+      plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
+    p + geom_text_repel(
+          data = head(subset(cluster_df_subset, 
+                        (avg_log2FC > 1 | avg_log2FC < -1) & 
+                        p_val.bonf < 0.01 & avg.exp > 25), 20),
+          mapping = aes(x = avg.exp, y = avg_log2FC, label = gene),
+          max.overlaps = Inf, seed = 34, force = 2,
+          nudge_x = 5, min.segment.length = 0.1, size = 3,
+          box.padding = 0.5) 
+    print(paste("Saving figure of cluster",cluster_id[i], "with labels"))
+    ggsave(file.path(figs_dir_path, paste0(filename,name,"_",cluster_id[i],"_MAPlot_labeled.tiff")),
+      plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
+  }
+}
 
-p <- cluster_markers
+DefaultAssay(seurat.obj) <- "RNA"
+
+cluster_markers3 <- meanExpressionPerCluster(
+  seurat.object = seurat.obj,
+  cluster_df = cluster_markers3,
+  idents = cluster_res03
+)
+MAPlot(cluster_markers3, p_val_cols, cluster_res03)
+# ggsave(file.path(figs_dir_path, paste0(filename,cluster_res03,"_MAPlot.tiff")),
+      # plot = p, units="in", width=size*2.5, height=size*2.5, dpi=300, compression = 'lzw')
+
+cluster_markers4 <- meanExpressionPerCluster(
+  seurat.object = seurat.obj,
+  cluster_df = cluster_markers4,
+  idents = cluster_res04
+)
+MAPlot(cluster_markers4, p_val_cols, cluster_res03)
+# ggsave(file.path(figs_dir_path, paste0(filename,cluster_res04,"_MAPlot.tiff")),
+#       plot = p, units="in", width=size*2.5, height=size*2.5, dpi=300, compression = 'lzw')
+
+#### ===================================================================== ####
+#### Create Heatmap ####
+#### ===================================================================== ####
+
+# #make heatmap
+Heatmapplot <- function(seurat.object, cluster_df, idents) {
+  DefaultAssay(seurat.object) <- "RNA"
+  p <- DoHeatmap (seurat.object,
+                slot = "data",
+                group.by = idents,
+                features = factor(unique(cluster_df$gene), 
+                                  levels = unique(cluster_df$gene)) ) 
+  return(p)
+}
+
+# Filter out genes <1 log2FC & p-val.bonf >= 0.01 
+print(dim(cluster_markers3))
+cluster_markers3 <- cluster_markers3 %>% 
+  filter((avg_log2FC > 1 | avg_log2FC < -1) & p_val.bonf < 0.01)
+print(dim(cluster_markers3))
+write.csv(cluster_markers3, file.path(figs_dir_path, paste0(filename,cluster_res03,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
+
+print(dim(cluster_markers4))
+cluster_markers4 <- cluster_markers4 %>% 
+  filter((avg_log2FC > 1 | avg_log2FC < -1) & p_val.bonf < 0.01)
+print(dim(cluster_markers4))
+write.csv(cluster_markers4, file.path(figs_dir_path, paste0(filename,cluster_res04,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
+
+p <- Heatmapplot(seurat.obj, cluster_markers3, cluster_res03)
+ggsave(file.path(figs_dir_path, paste0(filename, cluster_res03,"_heatmap.tiff")),
+      plot = p, units="in", width=size*1.5, height=size*3, dpi=300, compression = 'lzw')
+
+# make heatmap
+p <- Heatmapplot(seurat.obj, cluster_markers4, cluster_res04)
+ggsave(file.path(figs_dir_path, paste0(filename, cluster_res04,"_heatmap.tiff")),
+      plot = p, units="in", width=size*1.5, height=size*3, dpi=300, compression = 'lzw')
 
 # Create UMAP plots with Known Markers 
 
