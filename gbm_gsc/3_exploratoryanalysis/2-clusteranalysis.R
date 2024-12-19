@@ -4,6 +4,7 @@
 library(fs) #path manipulation
 
 args = commandArgs(trailingOnly=TRUE)
+print(args)
 # test if there is at least one argument: if not, return an error
 if (length(args)<3) {
   stop("At least 3 filepaths must be supplied: [xxx.rds] [xxx_markers_0.3.csv] [xxx_markers_0.4.csv]", call.=FALSE)
@@ -63,6 +64,7 @@ if (grepl("healthy", parent_dir_name_obj, fixed = TRUE)) {
   female_samples <- c("SRR9262922", "SRR9262937",
                         "SRR9264382", "SRR9264383",
                         "SRR9264388")
+  avg_exp_threshold <- 10
 
 } else if (grepl("gbm", parent_dir_name_obj, fixed = TRUE)) {
   sample_palette <- c(
@@ -70,12 +72,13 @@ if (grepl("healthy", parent_dir_name_obj, fixed = TRUE)) {
     "#F0E442", "#CC79A7", "#ff716e",
     "#999999", "#0072B2", "#194c76")
   female_samples <- "SF11209"
+  avg_exp_threshold <- 25
 }
 
 seurat.obj$`integrated_snn_res.0.3` <- factor(seurat.obj$`integrated_snn_res.0.3`, levels= sort(unique(seurat.obj$`integrated_snn_res.0.3`)))
 seurat.obj$`integrated_snn_res.0.4` <- factor(seurat.obj$`integrated_snn_res.0.4`, levels= sort(unique(seurat.obj$`integrated_snn_res.0.4`)))
 
-figs_dir_path <- file.path(parent_dir_path_obj, "figs")
+figs_dir_path <- file.path(parent_dir_path_obj, "figs_clusteranalysis")
 
 ifelse(!dir.exists(figs_dir_path),
         dir.create(figs_dir_path,recursive=T),
@@ -216,12 +219,14 @@ meanExpressionPerCluster <- function(seurat.object, cluster_df, idents) {
                                           method = "bonferroni")
   cluster_df <- cluster_df %>% 
     mutate(fill_label = case_when(
-            p_val.bonf < 10e-20 ~ "p.adj < 10e-20",
-            p_val.bonf < 0.01 ~ "p.adj < 0.01",
-            p_val.bonf < 0.05 ~ "p.adj < 0.05",
-            p_val.bonf >= 0.05 ~ "p.adj >= 0.05",
-           ))
+              p_val.bonf < 10e-20 ~ "p.adj < 10e-20",
+              p_val.bonf < 0.01 ~ "p.adj < 0.01",
+              p_val.bonf < 0.05 ~ "p.adj < 0.05",
+              p_val.bonf >= 0.05 ~ "p.adj >= 0.05"))
+  cluster_df$avg.exp.limit <- ifelse(cluster_df$avg.exp > 100, 100, cluster_df$avg.exp)
+  cluster_df$avg.exp.flag <- cluster_df$avg.exp > 100
   print(head(cluster_df$fill_label))
+  print(head(cluster_df$gene))
   cluster_df$fill_label <- factor(cluster_df$fill_label, levels=c("p.adj < 10e-20", "p.adj < 0.01", "p.adj < 0.05", "p.adj >= 0.05"))
   return(cluster_df)  
 }
@@ -230,38 +235,54 @@ meanExpressionPerCluster <- function(seurat.object, cluster_df, idents) {
 ## impossible p-values = p < 10e-20
 ## below 0.01 / 0.05
 ## above 0.05
-p_val_cols <- c("indianred1", "turquoise", "royalblue2", "grey")
-MAPlot <- function(cluster_df,cols,name) {
+MAPlot <- function(cluster_df,cols,resolution, min_exp_threshold) {
   cluster_id <- unique(unlist(cluster_df$cluster))
   print(cluster_id)
   for (i in 1:length(cluster_id)){
     cluster_df_subset <- subset(cluster_df, cluster == cluster_id[i])
-    p <-  cluster_df_subset %>% 
-          ggplot(aes(x=avg.exp, y = avg_log2FC, color=fill_label)) + #, group=cluster) +
-          labs(x = "Mean Normalized Expression", y = "Log2(Fold-Change)", color="") +
-          geom_point()+
-          scale_color_manual(values=cols) +
+    p <-  ggplot() + #, group=cluster) +
+          labs(x = "Mean Normalized Expression", y = "Log2(Fold-Change)") +
+          geom_point(data = subset(cluster_df_subset, !avg.exp.flag),
+                aes(x=avg.exp, y = avg_log2FC, color=fill_label), size=2)+
+          geom_point(data = subset(cluster_df_subset, avg.exp.flag),
+                aes(x=avg.exp.limit, y = avg_log2FC, color = "indianred"))+
+          scale_color_manual(values=c("seagreen2", "turquoise", "royalblue2", "grey", "indianred")) +
+          coord_cartesian(xlim = c(-0.5, 125), clip="off") +
           theme_minimal() + 
           theme(strip.background = element_blank(),
-            panel.border = element_rect(fill = NA, colour = "black"),
+            axis.line.y = element_line(colour="grey50"),
+            legend.title = element_blank(),
             legend.position.inside = c(.95, .95),
             legend.justification = c("right", "bottom"),
             legend.box.just = "right",
             legend.margin = margin(6, 6, 6, 6),
-            legend.background = element_rect(fill = "white", colour = "black"))
+            legend.background = element_rect(fill = "white", colour = "white"))
     print(paste("Saving figure of cluster",cluster_id[i]))
-    ggsave(file.path(figs_dir_path, paste0(filename,name,"_",cluster_id[i],"_MAPlot.tiff")),
+    ggsave(file.path(figs_dir_path, paste0(filename,resolution,"_",cluster_id[i],"_MAPlot.tiff")),
       plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
-    p + geom_text_repel(
+
+    p <- p + # theme(plot.margin=unit(c(1, 3, 1, 1), "cm")) +
+        geom_text_repel(
           data = head(subset(cluster_df_subset, 
                         (avg_log2FC > 1 | avg_log2FC < -1) & 
-                        p_val.bonf < 0.01 & avg.exp > 25), 20),
+                        p_val.bonf < 0.01 & 
+                        avg.exp > min_exp_threshold & avg.exp < 100), 20),
           mapping = aes(x = avg.exp, y = avg_log2FC, label = gene),
           max.overlaps = Inf, seed = 34, force = 2,
-          nudge_x = 5, min.segment.length = 0.1, size = 3,
-          box.padding = 0.5) 
+          nudge_x = 5, min.segment.length = 0.1, size = 2,
+          box.padding = 0.5, xlim = c(-0.5, 125)) + 
+        geom_text_repel(
+          data = subset(cluster_df_subset, 
+                        (avg_log2FC > 1 | avg_log2FC < -1) & 
+                        p_val.bonf < 0.01 & avg.exp >= 100),
+          mapping = aes(x = avg.exp.limit, y = avg_log2FC, label = gene),
+          max.overlaps = Inf, seed = 34, force = 2, direction = "y",
+          nudge_x = 10, min.segment.length = 0.1, size = 2,
+          box.padding = 0.5, xlim = c(-0.5, 125))  
+
     print(paste("Saving figure of cluster",cluster_id[i], "with labels"))
-    ggsave(file.path(figs_dir_path, paste0(filename,name,"_",cluster_id[i],"_MAPlot_labeled.tiff")),
+    
+    ggsave(file.path(figs_dir_path, paste0(filename,resolution,"_",cluster_id[i],"_MAPlot_labeled.tiff")),
       plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
   }
 }
@@ -273,7 +294,7 @@ cluster_markers3 <- meanExpressionPerCluster(
   cluster_df = cluster_markers3,
   idents = cluster_res03
 )
-MAPlot(cluster_markers3, p_val_cols, cluster_res03)
+MAPlot(cluster_markers3, p_val_cols, cluster_res03, avg_exp_threshold)
 # ggsave(file.path(figs_dir_path, paste0(filename,cluster_res03,"_MAPlot.tiff")),
       # plot = p, units="in", width=size*2.5, height=size*2.5, dpi=300, compression = 'lzw')
 
@@ -282,7 +303,7 @@ cluster_markers4 <- meanExpressionPerCluster(
   cluster_df = cluster_markers4,
   idents = cluster_res04
 )
-MAPlot(cluster_markers4, p_val_cols, cluster_res03)
+MAPlot(cluster_markers4, p_val_cols, cluster_res04,avg_exp_threshold)
 # ggsave(file.path(figs_dir_path, paste0(filename,cluster_res04,"_MAPlot.tiff")),
 #       plot = p, units="in", width=size*2.5, height=size*2.5, dpi=300, compression = 'lzw')
 
@@ -291,20 +312,21 @@ MAPlot(cluster_markers4, p_val_cols, cluster_res03)
 #### ===================================================================== ####
 
 # #make heatmap
-Heatmapplot <- function(seurat.object, cluster_df, idents) {
-  DefaultAssay(seurat.object) <- "RNA"
-  p <- DoHeatmap (seurat.object,
-                slot = "data",
-                group.by = idents,
-                features = factor(unique(cluster_df$gene), 
-                                  levels = unique(cluster_df$gene)) ) 
-  return(p)
-}
+# Heatmapplot <- function(seurat.object, feature_list, idents) {
+#   DefaultAssay(seurat.object) <- "RNA"
+#   p <- DoHeatmap (seurat.object,
+#                 slot = "data",
+#                 group.by = idents,
+#                 features = feature_list)
+#                 # features = factor(unique(cluster_df$gene), 
+#                 #                   levels = unique(cluster_df$gene)) ) 
+#   return(p)
+# }
 
 # Filter out genes <1 log2FC & p-val.bonf >= 0.01 
 print(dim(cluster_markers3))
 cluster_markers3 <- cluster_markers3 %>% 
-  filter((avg_log2FC > 1 | avg_log2FC < -1) & p_val.bonf < 0.01)
+  filter((avg_log2FC > 1 | avg_log2FC < -1) & p_val.bonf < 0.01 )
 print(dim(cluster_markers3))
 write.csv(cluster_markers3, file.path(figs_dir_path, paste0(filename,cluster_res03,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
 
@@ -314,21 +336,13 @@ cluster_markers4 <- cluster_markers4 %>%
 print(dim(cluster_markers4))
 write.csv(cluster_markers4, file.path(figs_dir_path, paste0(filename,cluster_res04,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
 
-p <- Heatmapplot(seurat.obj, cluster_markers3, cluster_res03)
-ggsave(file.path(figs_dir_path, paste0(filename, cluster_res03,"_heatmap.tiff")),
-      plot = p, units="in", width=size*1.5, height=size*3, dpi=300, compression = 'lzw')
+# p <- Heatmapplot(seurat.obj, cluster_markers3, cluster_res03)
+# ggsave(file.path(figs_dir_path, paste0(filename, cluster_res03,"_heatmap.tiff")),
+#       plot = p, units="in", width=size*1.5, height=size*3, dpi=300, compression = 'lzw')
 
-# make heatmap
-p <- Heatmapplot(seurat.obj, cluster_markers4, cluster_res04)
-ggsave(file.path(figs_dir_path, paste0(filename, cluster_res04,"_heatmap.tiff")),
-      plot = p, units="in", width=size*1.5, height=size*3, dpi=300, compression = 'lzw')
-
-# Create UMAP plots with Known Markers 
-
-# List of known Markers for each brain cell type
-
-# Filter out genes not expressed in assay
-
-# Create UMAP plots
+# # make heatmap
+# p <- Heatmapplot(seurat.obj, cluster_markers4, cluster_res04)
+# ggsave(file.path(figs_dir_path, paste0(filename, cluster_res04,"_heatmap.tiff")),
+#       plot = p, units="in", width=size*1.5, height=size*3, dpi=300, compression = 'lzw')
 
 sessionInfo()
