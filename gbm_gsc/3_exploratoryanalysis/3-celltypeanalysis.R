@@ -13,8 +13,8 @@ if (length(args)<3) {
   if (file.exists(args[1]) & file.exists(args[2]) & file.exists(args[3])) { 
     obj_path <- args[1] 
     filename <- basename(path_ext_remove(obj_path))
-    parent_dir_path_obj <- dirname(obj_path)
-    parent_dir_name_obj <- basename(parent_dir_path_obj)
+    # parent_dir_path_obj <- dirname(obj_path)
+    # parent_dir_name_obj <- basename(parent_dir_path_obj)
     marker_path3 <- args[2]
     marker_path4 <-args[3]
 #     parent_dir_path_marker <- dirname(marker_path)

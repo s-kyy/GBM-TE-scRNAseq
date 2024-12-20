@@ -21,8 +21,8 @@ Commands used:
 ```bash
 cd gbm_gsc/3_exploratoryanalysis
 
-Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20230320_healthy/2024203_healthy_int_umap/ge_qc_integrated.rds >healthy_ge_qc_rcc_pca.out 2>&1
-Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20230320_healthy/2024203_healthy_int_umap/gte_qc_integrated.rds >healthy_gte_qc_rcc_pca.out 2>&1
+Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20230320_healthy/20241203_healthy_int_umap/ge_qc_integrated.rds >healthy_ge_qc_rcc_pca.out 2>&1
+Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20230320_healthy/20241203_healthy_int_umap/gte_qc_integrated.rds >healthy_gte_qc_rcc_pca.out 2>&1
 # ./202421128_healthy/ <-- Output folder
 
 Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20210902_merged_qc_bhaduriGBM_wangGBM/20241203_gbm_int_umap/merged_ge_qc_integrated.rds >gbm_ge_qc_rcc_pca.out 2>&1
@@ -47,4 +47,33 @@ Rscript --vanilla ./2-clusteranalysis.R ./20241203_gbm_merged_gte_qc_integrated_
 Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_ge_qc_integrated_umap/ge_qc_integrated_umap_clustered.rds ./20241203_healthy_ge_qc_integrated_umap/ge_qc_integrated_umap_markers_0.3.csv ./20241203_healthy_ge_qc_integrated_umap/ge_qc_integrated_umap_markers_0.4.csv >healthy_ge_umap_figs.out 2>&1
 
 Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_clustered.rds ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_markers_0.3.csv ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_markers_0.4.csv >healthy_gte_umap_figs.out 2>&1
+```
+
+### `3-celltypeanalysis.R`
+### `3.1-filterRBC_cluster.R`
+### `3.2-filterdoublets.R`
+
+```R
+library(remotes) 
+remotes::install_github('chris-mcginnis-ucsf/DoubletFinder')
+```
+
+Once doublets are annotated and completed, rerun `1-pca_cluster.R` script. 
+
+### `4-cnvanalysis.R`
+
+Install inferCNV v with JAGS as a requirement. 
+
+```bash
+module load StdEnv/2020
+module load gcc/9.3.0
+module load jags/4.3.2
+module load r/4.1.0
+```
+
+Install inferCNV
+
+```R
+library(BiocManager) # v3.14
+BiocManager::install("infercnv") #v1.10.1
 ```

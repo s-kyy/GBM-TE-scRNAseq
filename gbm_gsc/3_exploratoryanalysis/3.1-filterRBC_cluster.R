@@ -25,7 +25,7 @@ if (length(args)<1) {
 #### =========================================== ####
 #### Import Packages ####
 #### =========================================== ####
-.libPaths(c("~/R/x86_64-pc-linux-gnu-library/tcga-gbm-R4/renv/library/R-4.0/x86_64-pc-linux-gnu", .libPaths()))
+.libPaths(c("~/scratch/tcga-gbm-R4.1-lib/x86_64-pc-linux-gnu", .libPaths()))
 .libPaths()
 
 set.seed(108)
@@ -80,6 +80,62 @@ print(paste(dim(seurat.obj)[2] - dim(filtered_obj)[2], "cells were removed from 
 # Run FindNeighbors and FindClusters using the new PC dimensions
 # source: https://github.com/satijalab/seurat/issues/5532
 
+#### =========================================== ####
+#### Normalize & Find Variable Features each dataset individually ####
+#### =========================================== ####
+
+# Correct for inter-sample variability 
+# (i.e. mainly from different tumour donors) 
+print(paste("unique samples to split by:", unique(seurat.obj$sample)))
+obj_list <- SplitObject(object=seurat.obj, split.by="sample")
+print(paste("Length of list", length(obj_list)))
+rm("obj")
+gc()
+
+# Normalize the RNA reads per tumor sample via Log Normalization method
+p_list <- vector(mode="list",length(obj_list))
+names(p_list) <- sort(names(obj_list))
+
+for(i in 1:length(obj_list)){
+    print(paste0("Processing Sample: ", obj_list[[i]]$sample[1]))
+    DefaultAssay(obj_list[[i]]) <- "RNA"
+    # default: LogNormalize, save to : $RNA@data
+    obj_list[[i]] <- NormalizeData(obj_list[[i]], verbose = TRUE) 
+    obj_list[[i]] <- FindVariableFeatures(obj_list[[i]], 
+                              selection.method="vst",
+                              nfeatures=2500, #default=2000
+                              verbose = TRUE)
+    #Create Variable Feature Plots
+    top10 <- head(VariableFeatures(obj_list[[i]]), 10)
+    p <- VariableFeaturePlot(obj_list[[i]])
+    p <- LabelPoints(plot = p, points = top10, repel = TRUE)
+    ggsave(file.path(figs_dir_path, paste0(filename,obj_list[[i]]$sample[1],"_varfeatgenes.tiff")), 
+          plot = p, units="in", width=size*1.1, height=size*0.8, dpi=300, compression = 'lzw')
+    p_list[[obj_list[[i]]$sample[1]]] <- p
+}
+
+saveRDS(p_list, file=file.path(figs_dir_path,paste0(filename,"_allvarfeatplots.rds")))
+
+print("Variable Features computed")
+
+#### =========================================== ####
+#### Integrate Seurat Objects together: 30min-1h30min ####
+#### =========================================== ####
+## Anchors across all samples will be used to integrated each sample
+## This step helps reduce variation introduced across donor samples 
+## (i.e. variation in tumour extraction, experimental processing of samples, 
+## gender-based differences and so on)
+## Stuck with CCA method to find anchors, because the datasets are a manageable size (<50K cells)
+obj_anchors <- FindIntegrationAnchors(
+                  object.list = obj_list, 
+                  dims=1:ndims,
+                  normalization.method = "LogNormalize", 
+                  anchor.features = 2500, #match number in FindVariableFeatures
+                  )
+obj_integrated <- IntegrateData(anchorset = obj_anchors, dims=1:ndims)
+saveRDS(obj_integrated, file = file.path(parent_dir_path,output_dir_name, paste0(filename, "_integrated.rds")) )
+print("Integration Complete")
+
 ## ========================================= ##
 ## Scale and Reduce Dimensionality ##
 ## ========================================= ##
@@ -103,95 +159,8 @@ filtered_obj <- RunUMAP(filtered_obj,
                           dims = 1:ndims, 
                           umap.method = "uwot", 
                           metric = "cosine")
-saveRDS(filtered_obj, file = file.path(subdir, paste0(filename, "_integrated_umap.rds")) )
+saveRDS(filtered_obj, file = file.path(subdir, paste0(filename, "_filt_umap.rds")) )
 print(paste("ScaleData, RunPCA, and RunUMAP completed in:", subdir))
-
-#### =========================================== ####
-#### Test PCA levels ####
-#### =========================================== ####
-# Determine percent of variation associated with each PC
-DefaultAssay(filtered_obj) <- "integrated"
-pct_var_per_pc <- filtered_obj[["pca"]]@stdev / sum(filtered_obj[["pca"]]@stdev) * 100
-
-# Calculate cumulative percents for each PC
-cum_pct_per_pc <- cumsum(pct_var_per_pc)
-
-# Determine which PC exhibits a cumulative percentage of variation 
-# greater than 90% and variation associated with the PC is less than 5%
-min_pc <- which(cum_pct_per_pc > 90 & pct_var_per_pc < 5)[1]
-print(paste("Minimum PC that retains more than 90% variation and less than 5% variation compared to the next PC:", min_pc))
-
-plot_df <- data.frame(dimensions = 1:length(pct_var_per_pc),
-           stdev = seurat.obj[["pca"]]@stdev,
-           pct_var_per_pc = pct_var_per_pc,
-           cum_pct_per_pc = cum_pct_per_pc)
-print(plot_df)
-write.csv(plot_df, file.path(figs_dir_path, paste0(filename, "_pca.csv") ))
-
-# Plot % variation to Elbowplot (modified from Seurat Elbow Plot Function)
-p <- plot_df %>% ggplot(aes(x = dimensions, y = stdev)) +
-    geom_point() +
-    labs(x = "", y = "Standard Deviation") +
-    geom_text(
-      label=format(round(cum_pct_per_pc, 1), nsmall = 1), 
-      nudge_x = 0.5, nudge_y = 0.5, 
-      check_overlap = T,
-      size=2) +
-    theme_classic() 
-ggsave(file.path(figs_dir_path, paste0(filename,"_elbow.tiff")), 
-  plot = p, units="in", width=size*0.7, height=size*0.7, dpi=300, compression = 'lzw')
-print("Exported ElbowPlot")
-
-#### =========================================== ####
-#### Output UMAP plots by sample ####
-#### =========================================== ####
-size <- 5
-
-p <- DimPlot(filtered_obj, reduction = "umap", group.by = "sample") 
-ggsave(file.path(figs_dir_path, paste0(filename,"_UMAP-sample.tiff")), 
-       plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
-print("Exported UMAP by sample") 
-
-#### =========================================== ####
-#### Cluster: K-nearest neighbor graph
-#### =========================================== ####
-filtered_obj <- FindNeighbors(filtered_obj,dims=1:min_pc,reduction="pca")
-filtered_obj <- FindClusters(filtered_obj, resolution = 0.3)
-filtered_obj <- FindClusters(filtered_obj, resolution = 0.4)
-saveRDS(filtered_obj, file = file.path(subdir, paste0(filename, "_clustered.rds")))
-cat("KNN clustering complete. Saved seurat objects to", subdir,"\n")
-
-#### =========================================== ####
-#### Find unique markers per cluster ####
-#### =========================================== ####
-## Use normalized counts for DGE (Luecken & Theis 2019)
-DefaultAssay(filtered_obj) <- "RNA" 
-Idents(filtered_obj) <- "integrated_snn_res.0.3"
-
-# Use normalized counts to perform differential gene analysis
-filtered_obj <- NormalizeData(filtered_obj, verbose = TRUE) # default: LogNormalize
-
-markers <- FindAllMarkers(
-  filtered_obj, 
-  only.pos = FALSE, 
-  min.pct = 0.25, 
-  logfc.threshold = 0.25)
-
-write.csv(markers, file = file.path(subdir, paste0(filename, "_markers_0.3.csv")), row.names=TRUE)
-rm("markers")
-
-## DEG of resolution 0.4 clusters
-Idents(filtered_obj) <- "integrated_snn_res.0.4"
-
-## run function
-markers <- FindAllMarkers(
-  filtered_obj, 
-  only.pos = FALSE, 
-  min.pct = 0.25, 
-  logfc.threshold = 0.25)
-
-write.csv(markers, file = file.path(subdir, paste0(filename, "_markers_0.4.csv")), row.names=TRUE)
-rm("markers")
 
 #### End of Script ####
 sessionInfo()
