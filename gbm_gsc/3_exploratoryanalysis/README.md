@@ -50,15 +50,33 @@ Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_gte_qc_integrated_uma
 ```
 
 ### `3-celltypeanalysis.R`
+
+Generates figures for known celltype marker expression per cluster to identify cell type annotations. 
+
 ### `3.1-filterRBC_cluster.R`
+
+Red Blood cell gene expression was identified in step 3. 
+
+Since RBCs are considered a contaminant in brain samples and healthy brain samples, we filtered these cells out by subsetting cells that expressed any classical RBC related genes [(Zhong et al., 2020)](https://www.nature.com/articles/s41586-019-1917-5).
+
 ### `3.2-filterdoublets.R`
+
+After removing uninformative cells and genes, we then removed possible doublets in each seurat object. 
+
+We used DoubletFinder by McGinnis et al., (2019) due to its improved accuracy -at the cost of performance- compared to other available doublet annotation protocols in a recent comparitive review (Xi & Li, 2021).
 
 ```R
 library(remotes) 
-remotes::install_github('chris-mcginnis-ucsf/DoubletFinder')
+remotes::install_github(repo='chris-mcginnis-ucsf/DoubletFinder', ref = remotes::github_pull(176))
 ```
 
 Once doublets are annotated and completed, rerun `1-pca_cluster.R` script. 
+
+Multiplet rates were estimated from [10X Genomics support page explaining target cell recovery numbers](https://kb.10xgenomics.com/hc/en-us/articles/4405411467661-Why-is-the-number-of-barcodes-called-in-Cell-Ranger-equal-to-the-Targeted-Cell-Recovery-for-HT). We expect the following multiplet rates for each sample. 
+
+- **GBM_Bhaduri2020** dataset loading rate was not mentioned, but their target capture rate was 2000 cells/sample, resulting in **0.8% multiplet rate.** 
+- **GBM_Wang2020** dataset was loaded to 500 cells/uL at 21uL per sample, resulting in 10,500 cells/sample and **~2.6% multiplet rate**. 
+- **Healthy_Bhaduri2020** dataset was loaded at 2000 nuclei/uL with a target capture rate of 3000 cells/sample, resulting in **~1.0% multiplet rate**.
 
 ### `4-cnvanalysis.R`
 
