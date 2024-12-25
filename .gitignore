@@ -21,6 +21,7 @@
 *.RDS
 *.rds
 *.Rout
+*Rplots.pdf
 
 # cellranger
 *.gtf

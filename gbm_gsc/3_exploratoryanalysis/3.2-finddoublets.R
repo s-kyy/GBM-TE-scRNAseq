@@ -358,34 +358,165 @@ print(paste("Seurat Object exported to",subdir))
 
 if (sample_name == "healthy") {
 
-  p <- VlnPlot(filtered_obj, group.by = 'sample', split.by = 'doublet_finder',
-              features= c('nGene', 'nUMI', 'mito.Ratio'),
-              ncol = 3, pt.size = 0.2) + theme(legend.position = 'right')
-  ggsave(file.path(figs_dir_path, paste0(filename,"_Vlnplt_doubletfinder_sample.tiff")), 
-        plot = p, units="in", width=size*2.5, height=size*1, dpi=300, compression = 'lzw')
-  print("Doublets annotated in UMAP")
+  print(colnames(filtered_obj@meta.data))
+
+  p <- ggplot(filtered_obj@meta.data, 
+              aes (x = sample, y = nGene, fill = doublet_finder, 
+                group = interaction(sample, doublet_finder))) + 
+              geom_violin(width = 0.8, position = position_dodge(width = 0.8), alpha = 0.2, scale = "width") +
+              labs(x = "", y = "Number of Genes Detected") +
+              theme(
+                axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
+                axis.title.y.left = element_text(size=12, face="bold"),
+                axis.title.x=element_blank(),
+                axis.line = element_line(linewidth=0.5, colour="black"),
+                panel.background=element_blank(),
+                panel.grid.major=element_blank(),
+                panel.grid.minor=element_blank(),
+                plot.background=element_blank(),
+                legend.position = 'right',
+                legend.title = element_blank()) 
+  p <- p + geom_point(
+            mapping = aes(color = doublet_finder, group = interaction(sample, doublet_finder)), alpha=0.9, size=0.2, position = position_jitterdodge(jitter.height=0.25, jitter.width=0.25,dodge.width=0.8)) + 
+          geom_boxplot(fill="white", outlier.colour=NA, width = 0.2, position=position_dodge(width=0.8))
+  ggsave(file.path(figs_dir_path, paste0("Vlnplt_nGene_doubletfinder_sample.tiff")), 
+        plot = p, units="in", width=size*1.3, height=size*1.2, dpi=300, compression = 'lzw')
+
+  p <- ggplot(filtered_obj@meta.data, 
+              aes (x = sample, y = nUMI, fill = doublet_finder, 
+                group = interaction(sample, doublet_finder))) + 
+              geom_violin(width = 0.8, position = position_dodge(width = 0.8), alpha = 0.2, scale = "width") +
+              labs(x = "", y = "Number of Genes Detected") +
+              theme(
+                axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
+                axis.title.y.left = element_text(size=12, face="bold"),
+                axis.title.x=element_blank(),
+                axis.line = element_line(linewidth=0.5, colour="black"),
+                panel.background=element_blank(),
+                panel.grid.major=element_blank(),
+                panel.grid.minor=element_blank(),
+                plot.background=element_blank(),
+                legend.position = 'right',
+                legend.title = element_blank()) 
+  p <- p + geom_point(
+            mapping = aes(color = doublet_finder, group = interaction(sample, doublet_finder)), alpha=0.9, size=0.2, position = position_jitterdodge(jitter.height=0.25, jitter.width=0.25,dodge.width=0.8)) + 
+          geom_boxplot(fill="white", outlier.colour=NA, width = 0.2, position=position_dodge(width=0.8))
+  ggsave(file.path(figs_dir_path, paste0("Vlnplt_nUMI_doubletfinder_sample.tiff")), 
+        plot = p, units="in", width=size*1.3, height=size*1.2, dpi=300, compression = 'lzw')
+
+  p <- ggplot(filtered_obj@meta.data, 
+              aes (x = sample, y = mitoRatio, fill = doublet_finder, 
+                group = interaction(sample, doublet_finder))) + 
+              geom_violin(width = 0.8, position = position_dodge(width = 0.8), alpha = 0.2, scale = "width") +
+              labs(x = "", y = "Number of Genes Detected") +
+              theme(
+                axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
+                axis.title.y.left = element_text(size=12, face="bold"),
+                axis.title.x=element_blank(),
+                axis.line = element_line(linewidth=0.5, colour="black"),
+                panel.background=element_blank(),
+                panel.grid.major=element_blank(),
+                panel.grid.minor=element_blank(),
+                plot.background=element_blank(),
+                legend.position = 'right',
+                legend.title = element_blank()) 
+p <- p + geom_point(
+          mapping = aes(y = mitoRatio, color = doublet_finder, group = interaction(sample, doublet_finder)), 
+          alpha=0.9, size=0.2, position = position_jitterdodge(jitter.height=0, jitter.width=0.05,dodge.width=0.8)) + 
+         geom_boxplot(fill="white", outlier.colour=NA, width = 0.2, position=position_dodge(width=0.8))
+  ggsave(file.path(figs_dir_path, paste0("Vlnplt_mitoRatio_doubletfinder_sample.tiff")), 
+        plot = p, units="in", width=size*1.3, height=size*1.2, dpi=300, compression = 'lzw')
+  print("Doublets annotated in ViolinPlot")
 
   #### Summary table
   doublets_summary <- filtered_obj@meta.data %>%
-                        group_by(sample, doublet_finder) %>%
-                        summarize(total_count = n(), .groups = 'drop') %>%
-                        as.data.frame() %>% ungroup() %>%
-                        group_by(sample) %>%
-                        mutate(countT = sum(total_count)) %>%
-                        group_by(doublet_finder, .add = TRUE) %>%
-                        mutate(percent = paste0(round(100*total+count/countT, 2), '%')) %>%
-                        dplyr::select(-countT)
+    group_by(sample, doublet_finder) %>%
+    summarize(total_count = n(), .groups = 'drop') %>%
+    as.data.frame() %>% ungroup() %>%
+    group_by(sample) %>%
+    mutate(countT = sum(total_count)) %>%
+    group_by(doublet_finder, .add = TRUE) %>%
+    mutate('percent (%)' = round(100*total_count/countT, 2)) %>%
+    dplyr::select(-countT)
   head(doublets_summary)
-  write.table(doublets_summary, file = file.path(figs_dir_path, paste0(filename, "_doubletfinder_summary.csv")))
+  write.csv(doublets_summary, file = file.path(figs_dir_path, "doubletfinder_summary.csv"))
   print("csv exported")
 
 } else if (sample_name == "gbm") {
 
-  p <- VlnPlot(filtered_obj, group.by = 'sample_orig', split.by = 'doublet_finder',
-              features= c('nGene', 'nUMI', 'mitoRatio'),
-              ncol = 3, pt.size = 0.2) + theme(legend.position = 'right')
-  ggsave(file.path(figs_dir_path, paste0(filename,"_Vlnplt_doubletfinder_sample.tiff")), 
-        plot = p, units="in", width=size*2.5, height=size*1, dpi=300, compression = 'lzw')
+  print(colnames(filtered_obj@meta.data))
+
+  p <- ggplot(filtered_obj@meta.data, 
+                  aes (x = sample_orig, y = nGene, fill = doublet_finder, 
+                    group = interaction(sample_orig, doublet_finder))) + 
+                  geom_violin(width = 0.8, alpha = 0.2, scale = "width",
+                    position = position_dodge(width = 0.8)) +
+                  labs(x = "", y = "Number of Genes Detected") +
+                  theme(
+                    axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
+                    axis.title.y.left = element_text(size=12, face="bold"),
+                    axis.title.x=element_blank(),
+                    axis.line = element_line(linewidth=0.5, colour="black"),
+                    panel.background=element_blank(),
+                    panel.grid.major=element_blank(),
+                    panel.grid.minor=element_blank(),
+                    plot.background=element_blank(),
+                    legend.position = 'right',
+                    legend.title = element_blank()) 
+  p <- p + geom_point(
+            mapping = aes(color = doublet_finder, group = interaction(sample_orig, doublet_finder)), 
+            alpha=0.9, size=0.2, position = position_jitterdodge(jitter.height=0.25, jitter.width=0.25,dodge.width=0.8)) + 
+          geom_boxplot(fill="white", outlier.colour=NA, width = 0.2, position=position_dodge(width=0.8))
+  ggsave(file.path(figs_dir_path, paste0("Vlnplt_nGene_doubletfinder_sample_orig.tiff")), 
+        plot = p, units="in", width=size*1.3, height=size*1.2, dpi=300, compression = 'lzw')
+
+  p <- ggplot(filtered_obj@meta.data, 
+                  aes (x = sample_orig, y = nUMI, fill = doublet_finder, 
+                    group = interaction(sample_orig, doublet_finder))) + 
+                  geom_violin(width = 0.8, alpha = 0.2, scale = "width",
+                    position = position_dodge(width = 0.8)) +
+                  labs(x = "", y = "Number of Genes Detected") +
+                  theme(
+                    axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
+                    axis.title.y.left = element_text(size=12, face="bold"),
+                    axis.title.x=element_blank(),
+                    axis.line = element_line(linewidth=0.5, colour="black"),
+                    panel.background=element_blank(),
+                    panel.grid.major=element_blank(),
+                    panel.grid.minor=element_blank(),
+                    plot.background=element_blank(),
+                    legend.position = 'right',
+                    legend.title = element_blank()) 
+  p <- p + geom_point(
+            mapping = aes(color = doublet_finder, group = interaction(sample_orig, doublet_finder)), 
+            alpha=0.9, size=0.2, position = position_jitterdodge(jitter.height=0.25, jitter.width=0.25,dodge.width=0.8)) + 
+          geom_boxplot(fill="white", outlier.colour=NA, width = 0.2, position=position_dodge(width=0.8))
+  ggsave(file.path(figs_dir_path, paste0("Vlnplt_nUMI_doubletfinder_sample_orig.tiff")), 
+        plot = p, units="in", width=size*1.3, height=size*1.2, dpi=300, compression = 'lzw')
+
+  p <- ggplot(filtered_obj@meta.data, 
+                  aes (x = sample_orig, y = mitoRatio, fill = doublet_finder, 
+                    group = interaction(sample_orig, doublet_finder))) + 
+                  geom_violin(width = 0.8, alpha = 0.2, scale = "width",
+                    position = position_dodge(width = 0.8)) +
+                  labs(x = "", y = "Number of Genes Detected") +
+                  theme(
+                    axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
+                    axis.title.y.left = element_text(size=12, face="bold"),
+                    axis.title.x=element_blank(),
+                    axis.line = element_line(linewidth=0.5, colour="black"),
+                    panel.background=element_blank(),
+                    panel.grid.major=element_blank(),
+                    panel.grid.minor=element_blank(),
+                    plot.background=element_blank(),
+                    legend.position = 'right',
+                    legend.title = element_blank()) 
+  p <- p + geom_point(
+            mapping = aes(y = mitoRatio, color = doublet_finder, group = interaction(sample_orig, doublet_finder)), 
+            alpha=0.9, size=0.2, position = position_jitterdodge(jitter.height=0, jitter.width=0.05,dodge.width=0.8)) + 
+          geom_boxplot(fill="white", outlier.colour=NA, width = 0.2, position=position_dodge(width=0.8))
+  ggsave(file.path(figs_dir_path, paste0("Vlnplt_mitoRatio_doubletfinder_sample_orig.tiff")), 
+        plot = p, units="in", width=size*1.3, height=size*1.2, dpi=300, compression = 'lzw')  
   print("Doublets annotated in UMAP")
 
   #### Summary table
@@ -396,13 +527,28 @@ if (sample_name == "healthy") {
     group_by(sample_orig) %>%
     mutate(countT = sum(total_count)) %>%
     group_by(doublet_finder, .add = TRUE) %>%
-    mutate(percent = paste0(round(100*total+count/countT, 2), '%')) %>%
+    mutate(percent = paste0(round(100*total_count/countT, 2), '%')) %>%
     dplyr::select(-countT)
   head(doublets_summary)
   write.table(doublets_summary, file = file.path(figs_dir_path, paste0(filename, "_doubletfinder_summary.csv")))
   print("DoubletFinder summary csv exported")
 
 }
+
+p <- DimPlot(filtered_obj, reduction = "umap", label =F, 
+              cells.highlight = WhichCells(object = filtered_obj, 
+                expression = (doublet_finder == "Doublet") )) + NoLegend()
+p <- p + theme(axis.line=element_blank(),
+        axis.text.x=element_blank(),axis.text.y=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.x=element_blank(),axis.title.y=element_blank(),
+        panel.background=element_blank(),
+        panel.border=element_blank(),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        plot.background=element_blank())
+ggsave(file.path(figs_dir_path, paste0("UMAP_doublets.tiff")),
+    plot = p, units="in", width=size*0.8, height=size*0.8, dpi=300, compression = 'lzw')
 
 #### End of Script ####
 sessionInfo()
