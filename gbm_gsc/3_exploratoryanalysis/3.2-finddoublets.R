@@ -61,17 +61,17 @@ seurat.obj <- readRDS(obj_path)
 size    <- 5
 ndims <- 25
 
-multiplet_rate_10x <- data.frame(
-  'multiplet_rates' = c(0.008,0.016,0.024,0.032,0.04,0.048,0.056,
-                        0.064,0.072,0.08,0.096,0.112,0.128,
-                        0.144,0.16,0.176,0.192,0.208,0.224,0.24),
-  'loaded_cells' =    c(3130,6320,9550,12800,16100,19500,
-                        22900,26300,29800,33300,40500,47800,55400,
-                        63200,71200,79500,88100,96900,10600,11500),
-  'recovered_cells' = c(2000,4000,6000,8000,10000,12000,14000,
-                        16000,18000,20000,24000,28000,32000,36000,
-                        40000,44000,48000,52000,56000,60000)
-)
+# multiplet_rate_10x <- data.frame(
+#   multiplet_rates = c(0.008,0.016,0.024,0.032,0.04,0.048,0.056,
+#                         0.064,0.072,0.08,0.096,0.112,0.128,
+#                         0.144,0.16,0.176,0.192,0.208,0.224,0.24),
+#   loaded_cells =    c(3130,6320,9550,12800,16100,19500,
+#                         22900,26300,29800,33300,40500,47800,55400,
+#                         63200,71200,79500,88100,96900,10600,11500),
+#   recovered_cells = c(2000,4000,6000,8000,10000,12000,14000,
+#                         16000,18000,20000,24000,28000,32000,36000,
+#                         40000,44000,48000,52000,56000,60000)
+# )
 
 print("Objects loaded")
 
@@ -117,8 +117,6 @@ preprocess_seurat_subset <- function(obj, ndims) {
   # DefaultAssay(obj) <- "integrated"
   obj <- ScaleData(object = obj, verbose = FALSE, features = VariableFeatures(obj[["RNA"]])) 
 
-  obj@meta.data$sample <- factor(obj@meta.data$sample, 
-                                  levels = sort(unique(obj@meta.data$sample)))
   # Run PCA
   obj <- RunPCA(obj, 
                 npcs = ndims, 
@@ -172,10 +170,10 @@ preprocess_seurat_subset <- function(obj, ndims) {
   print("Exported ElbowPlot")
 
   obj <- RunUMAP(obj, 
-                            reduction = "pca", 
-                            dims = 1:min_pc, 
-                            umap.method = "uwot", 
-                            metric = "cosine")
+                  reduction = "pca", 
+                  dims = 1:min_pc, 
+                  umap.method = "uwot", 
+                  metric = "cosine")
   saveRDS(obj, file = file.path(subdir, paste0(filename, "_filt_umap_temp.rds")) )
   print(paste("RunUMAP completed in:", subdir))
 
@@ -192,9 +190,15 @@ preprocess_seurat_subset <- function(obj, ndims) {
   # saveRDS(obj, file = file.path(subdir, paste0(filename, "_clustered.rds")))
   print("KNN clustering complete.")
 
-  obj$`integrated_snn_res.0.3` <- as.numeric(obj$`integrated_snn_res.0.3`)
-  obj$`integrated_snn_res.0.4` <- as.numeric(obj$`integrated_snn_res.0.4`)
-  obj$seurat_clusters <- NULL
+  meta <- obj@meta.data
+
+  meta$`integrated_snn_res.0.3` <- as.character(meta$`integrated_snn_res.0.3`)
+  meta$`integrated_snn_res.0.4` <- as.character(meta$`integrated_snn_res.0.4`)
+  meta$`RNA_snn_res.0.3` <- as.character(meta$`RNA_snn_res.0.3`)
+  meta$`RNA_snn_res.0.4` <- as.character(meta$`RNA_snn_res.0.4`)
+  meta$seurat_clusters <- as.character(meta$seurat_clusters)
+
+  obj@meta.data <- meta
 
   results <- list("obj" = obj, "min_pc" = min_pc)
   return(results)
@@ -205,44 +209,57 @@ preprocess_seurat_subset <- function(obj, ndims) {
 #### =========================================== ####
 #### https://github.com/chris-mcginnis-ucsf/DoubletFinder
 
-findDoublets <- function(obj_sample, dims, rate) {
+findDoublets <- function(seu, dims, rate) {
 
   print(paste("Preprocess Seurat Object"))
 
-  results <- preprocess_seurat_subset(obj_sample, dims)
-  obj_sample <- results[[1]]
-  dims <- results[[2]]
+  results <- preprocess_seurat_subset(seu, dims)
+  obj_sample <- results[["obj"]]
+  dims <- results[["min_pc"]]
   rm("results")
 
-  
+  dplyr::glimpse(obj_sample@meta.data)
 
-  #### pK Identification - number of expected nearest neighbors that are multiplets (neighborhood size) 
+  #### pK Identification (no ground truth) - number of expected nearest neighbors that are multiplets (neighborhood size) 
   sweep.res.list <- paramSweep(obj_sample, PCs = 1:dims, sct = FALSE)
   sweep.stats <- summarizeSweep(sweep.res.list, GT = FALSE)
-  pK_sample <- find.pK(sweep.stats)
-  print(paste("pK_sample (expected neighborhood size) =", pK_sample))
+  bcmvn_sample <- find.pK(sweep.stats)
+
+  #### Take the max value in bimodality coefficient (BCmvn) distribution. 
+  optimal_pK <- bcmvn_sample %>%
+    dplyr::filter(BCmetric == max(BCmetric)) %>%
+    dplyr::select(pK)
+  optimal_pK <- as.numeric(as.character(optimal_pK[[1]]))
+  print(paste("Optimal pK threshold for sample", unique(obj_sample@meta.data$sample), "is"))
+  print(optimal_pK)
 
   #### nEXP - number of expected real multiplets 
-  cluster_annotations <- obj_sample@meta.data$`integrated_snn_res.0.4`
-  homotypic_prop <- modelHomotypic(cluster_annotations)
-  multiplet_rate_sample <- rate %>% 
-                      filter(recovered_cells < nrow(obj_sample@meta.data)) %>%
-                      dplyr::slice(which.max(recovered_cells)) %>%
-                      dplyr::select(multiplet_rates) %>%
-                      as.numeric(as.character()) 
-  nEXP_poi <- round(multiplet_rate_sample * nrow(obj_sample@meta.data))
-  nEXP_poi_adj <- round(nEXP_poi * (1 - homotypic_prop))
-  print(paste("nEXP_poi_adj (expected real multiplets) =", nEXP_poi_adj))
+  cluster_annotations <- as.character(obj_sample@meta.data$`RNA_snn_res.0.4`)
+  if (!is.null(cluster_annotations) && length(cluster_annotations) > 0) {
+    homotypic_prop <- modelHomotypic(cluster_annotations)
+    print(table(cluster_annotations))
+    print(paste("Homotypic Proportion for sample", unique(obj_sample@meta.data$sample)))
+    print(homotypic_prop)
+    nEXP_poi <- round(rate * nrow(obj_sample@meta.data))
+    nEXP_poi_adj <- round(nEXP_poi * (1 - homotypic_prop))
+    print(paste("nEXP_poi_adj (expected real multiplets) =", nEXP_poi_adj))
 
-  #### Run DoubletFinder 
-  obj_sample <- doubletFinder(seu = obj_sample, PCs = 1:dims, 
-                          pK = pK_sample, nExp = nEXP_poi_adj) #pN = 0.25 (default)
+    #### Run DoubletFinder 
+    obj_sample <- doubletFinder(seu = obj_sample, PCs = 1:dims, 
+                            pK = optimal_pK, nExp = nEXP_poi_adj) #pN = 0.25 (default)
 
-  #### rename doublet finder annotations column and extract metadata 
-  colnames(obj_sample)[grepl('DF.classifications.*', colnames(obj_sample@meta.data))] <- "doublet_finder"
-  results <- obj_sample@meta.data['doublet_finder']
-  results <- rownames_to_column(results,"row_names")
-  return(results)
+    #### rename doublet finder annotations column and extract metadata 
+    meta <- obj_sample@meta.data
+
+    colnames(meta)[grepl('DF.classifications.*', colnames(meta))] <- "doublet_finder"
+    results <- meta['doublet_finder']
+    results <- rownames_to_column(results,"row_names")
+    print(head(results))
+    return(results)
+
+  } else {
+    stop("No Cluster annotations available. Exiting...")
+  }
 }
 
 #### =========================================== ####
@@ -275,13 +292,13 @@ if (sample_name == "healthy") {
   dplyr::glimpse(filtered_obj@meta.data)
   filtered_obj@meta.data$sample <- as.character(filtered_obj@meta.data$sample)
   obj_list <- SplitObject(object = filtered_obj, split.by="sample")
-  # multiplet_rate_10x <- 0.01
+  multiplet_rate_10x <- 0.01
   
   #### Run DoubletFinder ####
   doubletfinder_results <- vector(mode='list', length=length(obj_list))
   
   for (i in 1:length(obj_list)) { 
-    doubletfinder_results[[i]] <- findDoublets(obj = obj_list[[i]], 
+    doubletfinder_results[[i]] <- findDoublets(seu = obj_list[[i]], 
                                                 dims = ndims, 
                                                 rate = multiplet_rate_10x)
   }
@@ -303,15 +320,15 @@ if (sample_name == "healthy") {
 
   # split gbm_bhaduri sample by lane and gbm_wang by sample
   obj_list <- SplitObject(object = filtered_obj, split.by="sample_orig")
-  # multiplet_rate_10x <- rep(c(0.008, 0.026), c(12,3))
+  multiplet_rate_10x <- rep(c(0.008, 0.026), c(12,3))
   
   #### Run DoubletFinder ####
   doubletfinder_results <- vector(mode='list', length=length(obj_list))
 
   for (i in 1:length(obj_list)) { 
-    doubletfinder_results[[i]] <- findDoublets(obj = obj_list[[i]], 
+    doubletfinder_results[[i]] <- findDoublets(seu = obj_list[[i]], 
                                                 dims = ndims, 
-                                                rate = multiplet_rate_10x)
+                                                rate = multiplet_rate_10x[i])
   }
 }
 print("Doublets annotated")

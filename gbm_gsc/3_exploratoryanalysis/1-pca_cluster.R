@@ -4,6 +4,7 @@
 library(fs) #path manipulation
 
 args = commandArgs(trailingOnly=TRUE)
+print(args)
 # test if there is at least one argument: if not, return an error
 if (length(args)<1) {
   stop("At least 1 filepath must be supplied: [xxx.rds] [sample_name]", call.=FALSE)
@@ -96,7 +97,7 @@ print("Exported ElbowPlot")
 size <- 5
 
 p <- DimPlot(seurat.obj, reduction = "umap", group.by = "sample") 
-ggsave(file.path(subdir, "figs", paste0(filename,"_UMAP-sample.tiff")), 
+ggsave(file.path(subdir, "figs", paste0(filename,"_UMAP_sample.tiff")), 
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 print("Exported UMAP by sample")
 

@@ -8,7 +8,7 @@ library(fs) #path manipulation
 args = commandArgs(trailingOnly=TRUE)
 print(args)
 if (length(args)<1) {
-  stop("At least 1 filepath names must be supplied: [dataset/ge.rds]. Optionally include path to an output folder name [output_dir_name]", call.=FALSE)
+  stop("At least 1 filepath names must be supplied: [dataset/ge.rds]. Optionally include path to an output folder name [output_dir_name]. The current date prefix and '_integrated_dimred' suffix are included in the output directory name.", call.=FALSE)
 } else if (length(args)>=1) {
   # verify filepaths
   if (file.exists(args[1])){ 
@@ -16,12 +16,14 @@ if (length(args)<1) {
     filename <- basename(path_ext_remove(obj_path))
     parent_dir_path <- dirname(obj_path)
     parent_dir_name <- basename(parent_dir_path)
+    output_dir_name <- paste0(format(Sys.Date(), "%Y%m%d"), "_", filename, "_integrated_dimred")
   } else {
     stop("filepath does not exist. Closing script...", call=FALSE)
   }
   # Optional arguements
   if (length(args) == 2) {
-    output_dir_name <- args[2]
+    output_dir_name <- paste0(format(Sys.Date(), "%Y%m%d"), "_", args[2], "_integrated_dimred") 
+  }
 } 
 
 #### =========================================== ####
@@ -50,7 +52,7 @@ ifelse(!dir.exists(file.path(parent_dir_path,output_dir_name)),
         dir.create(file.path(parent_dir_path,output_dir_name),recursive=T),
         "Directory Exists")
 
-figs_dir_path <- file.path(parent_dir_path, output_dir_name, "figs")
+figs_dir_path <- file.path(parent_dir_path, output_dir_name, "figs_int")
 
 ifelse(!dir.exists(figs_dir_path),
         dir.create(figs_dir_path,recursive=T),
@@ -126,9 +128,55 @@ obj_integrated <- RunPCA(obj_integrated,
                           npcs = ndims, 
                           verbose = FALSE)
 
+#### Test PCA levels ####
+# Determine percent of variation associated with each PC
+# DefaultAssay(obj) <- "integrated"
+pct_var_per_pc <- obj_integrated[["pca"]]@stdev / sum(obj_integrated[["pca"]]@stdev) * 100
+
+# Calculate cumulative percents for each PC
+cum_pct_per_pc <- cumsum(pct_var_per_pc)
+
+# Determine which PC exhibits a cumulative percentage of variation 
+# greater than 90% and variation associated with the PC is less than 5%
+pc_most_var <- which(cum_pct_per_pc > 90 & pct_var_per_pc < 5)[1]
+print(paste("Minimum PC that retains more than 90% variation and less than 5% variation compared to the next PC:", pc_most_var))
+
+# Determine the difference between variation of PC and subsequent PC
+pc_10 <- sort(which((pct_var_per_pc[1:length(pct_var_per_pc) - 1] - pct_var_per_pc[2:length(pct_var_per_pc)]) > 0.1), decreasing = T)[1] + 1
+
+# last point where change of % of variation is more than 0.1%.
+print(paste("Minimum PC with a difference in variation of 10% compared to next PC:", pc_10))
+co2
+
+# Minimum of the two calculation
+min_pc <- min(pc_most_var, pc_10)
+print(paste("Minumum PC between the two options:", min_pc))
+
+plot_df <- data.frame(dimensions = 1:length(pct_var_per_pc),
+          stdev = obj_integrated[["pca"]]@stdev,
+          pct_var_per_pc = pct_var_per_pc,
+          cum_pct_per_pc = cum_pct_per_pc)
+print(plot_df)
+write.csv(plot_df, file.path(figs_dir_path, paste0(filename, "_pca.csv") ))
+
+# Plot % variation to Elbowplot (modified from Seurat Elbow Plot Function)
+p <- plot_df %>% ggplot(aes(x = dimensions, y = stdev)) +
+    geom_point() +
+    labs(x = "", y = "Standard Deviation") +
+    geom_text(
+      label=format(round(cum_pct_per_pc, 1), nsmall = 1), 
+      nudge_x = 0.5, nudge_y = 0.5, 
+      check_overlap = T,
+      size=2) +
+    theme_classic() 
+ggsave(file.path(figs_dir_path, paste0(filename,"_elbow.tiff")), 
+  plot = p, units="in", width=size*0.7, height=size*0.7, dpi=300, compression = 'lzw')
+print("Exported ElbowPlot")
+
+### Project Minimum number of PCs to UMAP plot
 obj_integrated <- RunUMAP(obj_integrated, 
                           reduction = "pca", 
-                          dims = 1:ndims, 
+                          dims = 1:min_pc, 
                           umap.method = "uwot", 
                           metric = "cosine")
 saveRDS(obj_integrated, file = file.path(parent_dir_path, output_dir_name, paste0(filename, "_integrated_umap.rds")) )
