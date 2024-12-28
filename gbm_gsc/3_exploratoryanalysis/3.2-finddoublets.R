@@ -224,6 +224,7 @@ findDoublets <- function(seu, dims, rate) {
   sweep.res.list <- paramSweep(obj_sample, PCs = 1:dims, sct = FALSE)
   sweep.stats <- summarizeSweep(sweep.res.list, GT = FALSE)
   bcmvn_sample <- find.pK(sweep.stats)
+  write.csv(bcmvn_sample, file=file.path(figs_dir_path, paste0(sample_name, "_",filename,"_bcmvn.csv")))
 
   #### Take the max value in bimodality coefficient (BCmvn) distribution. 
   optimal_pK <- bcmvn_sample %>%

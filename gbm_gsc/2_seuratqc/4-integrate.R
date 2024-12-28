@@ -145,8 +145,7 @@ print(paste("Minimum PC that retains more than 90% variation and less than 5% va
 pc_10 <- sort(which((pct_var_per_pc[1:length(pct_var_per_pc) - 1] - pct_var_per_pc[2:length(pct_var_per_pc)]) > 0.1), decreasing = T)[1] + 1
 
 # last point where change of % of variation is more than 0.1%.
-print(paste("Minimum PC with a difference in variation of 10% compared to next PC:", pc_10))
-co2
+print(paste("Minimum PC with a difference in variation of 0.1% compared to next PC:", pc_10))
 
 # Minimum of the two calculation
 min_pc <- min(pc_most_var, pc_10)

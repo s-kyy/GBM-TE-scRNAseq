@@ -50,8 +50,8 @@ ifelse(!dir.exists(file.path(subdir)),
         dir.create(file.path(subdir),recursive=T),
         "Directory Exists")
 
-ifelse(!dir.exists(file.path(subdir, "figs")),
-        dir.create(file.path(subdir, "figs"),recursive=T),
+ifelse(!dir.exists(file.path(subdir, "figs_pca")),
+        dir.create(file.path(subdir, "figs_pca"),recursive=T),
         "Directory Exists")
 
 
@@ -67,15 +67,25 @@ cum_pct_per_pc <- cumsum(pct_var_per_pc)
 
 # Determine which PC exhibits a cumulative percentage of variation 
 # greater than 90% and variation associated with the PC is less than 5%
-min_pc <- which(cum_pct_per_pc > 90 & pct_var_per_pc < 5)[1]
-print(paste("Minimum PC that retains more than 90% variation and less than 5% variation compared to the next PC:", min_pc))
+pc_most_var <- which(cum_pct_per_pc > 90 & pct_var_per_pc < 5)[1]
+print(paste("Minimum PC that retains more than 90% variation and less than 5% variation compared to the next PC:", pc_most_var))
+
+# Determine the difference between variation of PC and subsequent PC
+pc_10 <- sort(which((pct_var_per_pc[1:length(pct_var_per_pc) - 1] - pct_var_per_pc[2:length(pct_var_per_pc)]) > 0.1), decreasing = T)[1] + 1
+
+# last point where change of % of variation is more than 0.1%.
+print(paste("Minimum PC with a difference in variation of 0.1% compared to next PC:", pc_10))
+
+# Minimum of the two calculation
+min_pc <- min(pc_most_var, pc_10)
+print(paste("Minumum PC between the two options:", min_pc))
 
 plot_df <- data.frame(dimensions = 1:length(pct_var_per_pc),
            stdev = seurat.obj[["pca"]]@stdev,
            pct_var_per_pc = pct_var_per_pc,
            cum_pct_per_pc = cum_pct_per_pc)
 print(plot_df)
-write.csv(plot_df, file.path(subdir, "figs", paste0(filename, "_pca.csv") ))
+write.csv(plot_df, file.path(subdir, "figs_pca", paste0(filename, "_pca.csv") ))
 
 # Plot % variation to Elbowplot (modified from Seurat Elbow Plot Function)
 p <- plot_df %>% ggplot(aes(x = dimensions, y = stdev)) +
@@ -87,7 +97,7 @@ p <- plot_df %>% ggplot(aes(x = dimensions, y = stdev)) +
       check_overlap = T,
       size=2) +
     theme_classic() 
-ggsave(file.path(subdir, "figs", paste0(filename,"_elbow.tiff")), 
+ggsave(file.path(subdir, "figs_pca", paste0(filename,"_elbow.tiff")), 
   plot = p, units="in", width=size*0.7, height=size*0.7, dpi=300, compression = 'lzw')
 print("Exported ElbowPlot")
 
@@ -97,7 +107,7 @@ print("Exported ElbowPlot")
 size <- 5
 
 p <- DimPlot(seurat.obj, reduction = "umap", group.by = "sample") 
-ggsave(file.path(subdir, "figs", paste0(filename,"_UMAP_sample.tiff")), 
+ggsave(file.path(subdir, "figs_pca", paste0(filename,"_UMAP_sample.tiff")), 
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 print("Exported UMAP by sample")
 
@@ -124,7 +134,7 @@ markers <- FindAllMarkers(
   seurat.obj, 
   only.pos = FALSE, 
   min.pct = 0.25, 
-  logfc.threshold = 0.25)
+  logfc.threshold = 0.1)
 
 write.csv(markers, file = file.path(subdir, paste0(filename, "_markers_0.3.csv")), row.names=TRUE)
 rm("markers")
@@ -137,7 +147,7 @@ markers <- FindAllMarkers(
   seurat.obj, 
   only.pos = FALSE, 
   min.pct = 0.25, 
-  logfc.threshold = 0.25)
+  logfc.threshold = 0.1)
 
 write.csv(markers, file = file.path(subdir, paste0(filename, "_markers_0.4.csv")), row.names=TRUE)
 rm("markers")

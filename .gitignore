@@ -8,6 +8,8 @@
 *.lnk
 *.gz
 *.tar 
+*.xlsx
+*.svg
 
 # Images
 *.tiff
