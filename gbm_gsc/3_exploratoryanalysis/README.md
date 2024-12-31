@@ -80,18 +80,33 @@ Multiplet rates were estimated from [10X Genomics support page explaining target
 
 ### `4-cnvanalysis.R`
 
-Install inferCNV v with JAGS as a requirement. 
+Install CONICSmat (standalone software) and related requirements ([Müller et al., 2018](https://academic.oup.com/bioinformatics/article/34/18/3217/4979546?login=false)). Add paths to required software in `CONICS.cfg`. 
 
-```bash
+https://github.com/Neurosurgery-Brain-Tumor-Center-DiazLab/CONICS/wiki/Tutorial---CONICSmat;---Dataset:-SmartSeq2-scRNA-seq-of-Oligodendroglioma
+
+```
 module load StdEnv/2020
-module load gcc/9.3.0
-module load jags/4.3.2
-module load r/4.1.0
+module load python/3.10.2
+module load perl/5.30.2
+module load samtools/1.17
+module load bedtools/2.30.0
+```
+```
+beanplotv1.3.1 (2022-04-09) - https://www.rdocumentation.org/packages/beanplot/versions/1.3.1
+- Miktex (pdflatex in PATH)
+- qpdf (qpdf present in PATH)
+- Ghostscript in PATH
+- pandoc
 ```
 
-Install inferCNV
-
-```R
-library(BiocManager) # v3.14
-BiocManager::install("infercnv") #v1.10.1
+```
+path_to_python="python"
+path_to_samtools="samtools"
+path_to_bedtools="bedtools"
+path_to_rscript="Rscript"
+path_to_bamreadcount="bam-readcount"
+mappingCutoff=40
+readCutoff=50000
+fdrCutoff=0.05
+genome="/path/to/genome.fa"
 ```

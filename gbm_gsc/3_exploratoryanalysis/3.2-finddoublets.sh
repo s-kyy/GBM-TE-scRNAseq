@@ -13,17 +13,17 @@ cd ~/scratch/runs/3_exploratoryanalysis
 echo "$(pwd)" #gbm_gsc/3_exploratoryanalysis
 
 if [[ $SLURM_ARRAY_TASK_ID == 0 ]] ; then
-Rscript --vanilla ./3.2-finddoublets.R ./20241227_gbm_merged_ge_qc_integrated_integrated_umap/merged_ge_qc_integrated_integrated_umap_clustered.rds gbm >1227_gbm_ge_finddoublets.out 2>&1
+Rscript --vanilla ./3.2-finddoublets.R ./20241228_gbm_merged_ge_qc_integrated_integrated_umap/merged_ge_qc_integrated_integrated_umap_clustered.rds gbm >1231_gbm_ge_finddoublets.out 2>&1
 fi
 
 if [[ $SLURM_ARRAY_TASK_ID == 1 ]] ; then
-Rscript --vanilla ./3.2-finddoublets.R ./20241227_gbm_merged_gte_qc_integrated_integrated_umap/merged_gte_qc_integrated_integrated_umap_clustered.rds gbm >1227_gbm_gte_finddoublets.out 2>&1
+Rscript --vanilla ./3.2-finddoublets.R ./20241227_gbm_merged_gte_qc_integrated_integrated_umap/merged_gte_qc_integrated_integrated_umap_clustered.rds gbm >1231_gbm_gte_finddoublets.out 2>&1
 fi
 
 if [[ $SLURM_ARRAY_TASK_ID == 2 ]] ; then
-Rscript --vanilla ./3.2-finddoublets.R ./20241227_healthy_ge_qc_integrated_integrated_umap/ge_qc_integrated_integrated_umap_clustered.rds healthy >1227_healthy_ge_finddoublets.out 2>&1
+Rscript --vanilla ./3.2-finddoublets.R ./20241227_healthy_ge_qc_integrated_integrated_umap/ge_qc_integrated_integrated_umap_clustered.rds healthy >1231_healthy_ge_finddoublets.out 2>&1
 fi
 
 if [[ $SLURM_ARRAY_TASK_ID == 3 ]] ; then
-Rscript --vanilla ./3.2-finddoublets.R ./20241227_healthy_gte_qc_integrated_integrated_umap/gte_qc_integrated_integrated_umap_clustered.rds healthy >1227_healthy_gte_finddoublets.out 2>&1
+Rscript --vanilla ./3.2-finddoublets.R ./20241227_healthy_gte_qc_integrated_integrated_umap/gte_qc_integrated_integrated_umap_clustered.rds healthy >1231_healthy_gte_finddoublets.out 2>&1
 fi

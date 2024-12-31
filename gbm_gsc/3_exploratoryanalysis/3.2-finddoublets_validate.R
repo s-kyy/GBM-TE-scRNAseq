@@ -35,9 +35,6 @@ library(Matrix)
 library(ggplot2)
 library(tidyverse) 
 library(dplyr)
-# library(reshape2)
-library(viridis)
-library(ggrepel)
 
 library(conflicted)
 conflict_prefer("select", "dplyr") ## required in %>% dplyr
@@ -64,37 +61,48 @@ ifelse(!dir.exists(figs_dir_path),
 
 print(seurat_obj)
 
-# List of known Markers for each brain cell type
-known_markers <- list(
-  mes = c('VIM','SOX2','LUM','AXL1'),
-  ne = c('SOX2','VIM','NES'),
-  rg.pan = c('VIM','NES','SOX2','HES1','EMX1','FGF10','RPS6','NOTCH1','HES5','ATP1A2'),
-  rg.early = c('VIM','NES','SOX2','LEF1','GLI2','GFAP'),
-  oRG = c('VIM','NES','SOX2','HOPX','FAM107A','IL6ST','PTPRZ1','TNC','LIFR','PAX6','SFRP1','ITGB5'),
-  vRG = c('VIM','NES','SOX2','FZD8','DAB1'),
-  tRG = c('VIM','NES','SOX2','FZD8','TFAP2C','ZIC2','MOXD1','C1ORF61','CRYAB','NFATC2','GPX3'),
-  opc = c('OLIG2','OMG','SOX10','SOX2','PDGFRA','DCX'),
-  apc = c('AQP4','COL2A1'),
-  ol = c('SOX10','MBP','PLP','MAG'),
-  ac = c('AQP4','GFAP'),
+# List of known markers for developing brain cells 
+stem_markers <- list(
+  stem = c('VIM', 'SOX2')
+  mes = c('LUM','AXL1'),
+  ne = c('NES'),
+  rg.pan = c('HES1','EMX1','FGF10','RPS6','NOTCH1','HES5','ATP1A2'),
+  oRG = c('HOPX','FAM107A','IL6ST','PTPRZ1','TNC','LIFR','PAX6','SFRP1','ITGB5'),
+  vRG = c('FZD8','DAB1'),
+  tRG = c('FZD8','TFAP2C','ZIC2','MOXD1','C1ORF61','CRYAB','NFATC2','GPX3'),
   npc = c('PAX6','EOMES','SOX2','SFRP1','NEUROG1','NEUROD4','PENK','SSTR2','OXTR','OTX2','FOXG1','LHX2','SIX3','NKX2-1'),
   ipc = c('EOMES','PPP1R17','NKX2-1','ASCL1','DLX1','DLX5','LHX8','LHX6','DLL1','DLL3','HES6','ASCL1','CCND2','NEUROG1','NRN1','STMN2','NEUROD6','DCX','PAX6','SFRP1'),
   ipc.early = c('NHLH1','SLC1A3'),
   ipc.late = c('NHLH2','TP53I11','PPP1R17'),
-  n = c('DCX','NEUROD2','GRIA2','GRIA4','SST','RBFOX3','STMN2'),
-  n.immature = c('DCX','NRN1','NDST4'),
-  n.ex = c('DCX','NEUROD6'),
-  n.in = c('DCX','GAD1'),
-  inter = c('GAD1', 'PDE4DIP'),
-  inter.early = c('CALB2','SST','TAC3','LHX6','DLX6-AS1'),
-  inter.late = c('CALB1','CCK','VIP'),
-  mg = c('C1QC','TMEM119','P2RY12','CX3CR1','HEXB','TGFB1','CD163'),
-  endo = c('PECAM1', 'VWF', 'CLDN5'),
+)
+
+# List of known Markers for each brain cell type cross-checked with Allen Brain Institute, PangeoDB (developing brain)
+known_markers_unique <- list(
+  stem = c('VIM', 'SOX2')
+  mes = c('LUM','AXL1'),
+  ne = c('NES'),
+  opc = c('OMG','SOX10','PDGFRA'),
+  ol = c('MBP','PLP','MAG','MOG','OLIG2'),
+  ac = c('AQP4', 'GFAP', 'SLC1A2'), # GFAP also expressed by endo, and dev. astroycte (accurate in pangaodb)
+  prog = c('PAX6','EOMES','SFRP1','NEUROG1','NKX2-1') #neural / intermediate progenitor cells
+  n.immature = c('NEUROG2'),
+  n.early = c('DCX'),
+  n.ex = c('SLC17A7'),
+  n.in = c('GAD1'),
+  inter = c('PVALB'), # PangaoDB denies GAD1 as a marker, no info on PDE4DIP
+  mg = c('C1QC','CX3CR1','FYB'),
+  pericyte = c('MUSTN1'),
+  endo = c('CLDN5','PECAM1', 'VWF'),
   rbc = c('HBB'),
   macro = c('CX3CR1','PTPRC','SIGLEC1'),
+  tcell = c('CD3D', 'CD3G') # 'CD25', 'CD4', 'CD8', 'ZAP70', 'SRK', 'CTLA4', 'FOXP3', 'GITR', 'IKZF2')
   dend = c('SIGLEC1')
 )
 
+features <- unlist(known_markers_unique)
+cell_types <- names(known_markers_unique)
+features_stem <- unlist(stem_markers)
+stem_types <- names(stem_markers)
 
 #### ======================================================================= ###
 #### Create UMAP plots with Known Markers ####
@@ -122,19 +130,35 @@ makeKnownMarkerPlots <- function(celltype, markers, obj) {
 
 # Filter out genes not expressed in assay
 DefaultAssay(seurat_obj) <- "RNA"
-condition <- lapply(known_markers, function(x)  x %in% rownames(seurat_obj))
+condition <- lapply(known_markers_unique, function(x)  x %in% rownames(seurat_obj))
 # Create UMAPs per gene
-for (i in names(known_markers)) {
-  present_markers <- known_markers[[i]][condition[[i]]]
+for (i in names(known_markers_unique)) {
+  present_markers <- known_markers_unique[[i]][condition[[i]]]
   if (length(present_markers) == 0) {
     print(paste(i, "does not have any matching genes in the assay"))
     next
   } else {
-    print(paste(length(present_markers), "of", length(known_markers[[i]]),"genes from celltype",i,"in current assay."))
+    print(paste(length(present_markers), "of", length(known_markers_unique[[i]]),"genes from celltype",i,"in current assay."))
     print(present_markers)
     makeKnownMarkerPlots(i,present_markers,seurat_obj)
   }
 }
+
+#### ======================================================================= ###
+#### Create Dot plots with Known Markers ####
+#### ======================================================================= ###
+
+# check for higher MALAT1 expression in nuclei (healthy). 
+# should be expressed evenly everywhere (every cluster, sample etc). 
+# maybe compute the median and see which cells go over this median expression?
+
+
+p <- DotPlot(ge, features = features) +   scale_colour_gradient2() + 
+      xlab("Known Brain Cell Markers") + ylab("Cell Types") + coord_flip() + 
+      theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))
+p
+# ggsave("fig_gbmscte_ge_dotplot_summary_int_celltypes.tiff", plot = p, units="in", width=size*1.1, height=size*1.3, dpi=300, compression = 'lzw')
+
 
 #### End of Script #### 
 sessionInfo()

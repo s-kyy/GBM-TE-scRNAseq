@@ -61,17 +61,15 @@ seurat.obj <- readRDS(obj_path)
 size    <- 5
 ndims <- 25
 
-# multiplet_rate_10x <- data.frame(
-#   multiplet_rates = c(0.008,0.016,0.024,0.032,0.04,0.048,0.056,
-#                         0.064,0.072,0.08,0.096,0.112,0.128,
-#                         0.144,0.16,0.176,0.192,0.208,0.224,0.24),
-#   loaded_cells =    c(3130,6320,9550,12800,16100,19500,
-#                         22900,26300,29800,33300,40500,47800,55400,
-#                         63200,71200,79500,88100,96900,10600,11500),
-#   recovered_cells = c(2000,4000,6000,8000,10000,12000,14000,
-#                         16000,18000,20000,24000,28000,32000,36000,
-#                         40000,44000,48000,52000,56000,60000)
-# )
+# (10X Genomics, 2019) 
+multiplet_rate_10x <- data.frame(
+  multiplet_rates = c(0.004,0.008,0.016,0.023,0.031,
+                      0.039,0.046,0.054,0.061,0.069,0.076),
+  loaded_cells =    c(870, 1700, 3500, 5300, 7000, 
+                      8700, 10500, 12200, 14000, 15700, 17400),
+  recovered_cells = c(500, 1000, 2000, 3000, 4000, 
+                      5000, 6000, 7000, 8000, 9000, 10000)
+)
 
 print("Objects loaded")
 
@@ -209,7 +207,7 @@ preprocess_seurat_subset <- function(obj, ndims) {
 #### =========================================== ####
 #### https://github.com/chris-mcginnis-ucsf/DoubletFinder
 
-findDoublets <- function(seu, dims, rate) {
+findDoublets <- function(seu, dims, rates) {
 
   print(paste("Preprocess Seurat Object"))
 
@@ -237,17 +235,40 @@ findDoublets <- function(seu, dims, rate) {
   #### nEXP - number of expected real multiplets 
   cluster_annotations <- as.character(obj_sample@meta.data$`RNA_snn_res.0.4`)
   if (!is.null(cluster_annotations) && length(cluster_annotations) > 0) {
+
     homotypic_prop <- modelHomotypic(cluster_annotations)
     print(table(cluster_annotations))
     print(paste("Homotypic Proportion for sample", unique(obj_sample@meta.data$sample)))
     print(homotypic_prop)
-    nEXP_poi <- round(rate * nrow(obj_sample@meta.data))
+
+    # choose multiplet rate 10x based on recovered cells per sample
+    n_cells <- nrow(obj_sample@meta.data)
+
+    if (n_cells < min(rates$recovered_cells)) {
+      print(paste("Sample", unique(obj_sample@meta.data$sample), "has", n_cells, "which is lower than the number of recovered cells. Setting sample rate to 0 "))
+      # For a smaller multiplet rate (~0.2%) as a minimum, we would expect a 250 cell target recovery 
+      # and 250*(500/870-0.01) = ~466 loaded cells
+      sample_rate <- 0.002
+    } else {
+      sample_rate <- rates %>% 
+        dplyr::filter(recovered_cells <= n_cells) %>% 
+        dplyr::slice(which.max(recovered_cells)) %>%
+        dplyr::select(multiplet_rates) %>%
+        as.numeric(as.character())
+      print(paste("Sample", unique(obj_sample@meta.data$sample), "has", n_cells, "using a multiplet rate of",sample_rate))
+    }
+
+    # calculate nEXP adjusted by the proportion of homotypic cells 
+    nEXP_poi <- round(sample_rate * nrow(obj_sample@meta.data))
     nEXP_poi_adj <- round(nEXP_poi * (1 - homotypic_prop))
     print(paste("nEXP_poi_adj (expected real multiplets) =", nEXP_poi_adj))
 
     #### Run DoubletFinder 
-    obj_sample <- doubletFinder(seu = obj_sample, PCs = 1:dims, 
-                            pK = optimal_pK, nExp = nEXP_poi_adj) #pN = 0.25 (default)
+    obj_sample <- doubletFinder(seu = obj_sample, 
+                                PCs = 1:dims, 
+                                pK = optimal_pK,
+                                nExp = nEXP_poi_adj) 
+                                #pN = 0.25 (default)
 
     #### rename doublet finder annotations column and extract metadata 
     meta <- obj_sample@meta.data
@@ -259,7 +280,7 @@ findDoublets <- function(seu, dims, rate) {
     return(results)
 
   } else {
-    stop("No Cluster annotations available. Exiting...")
+    stop(paste("No Cluster annotations available for sample",unique(obj_sample@meta.data$sample),"Exiting..."))
   }
 }
 
@@ -269,19 +290,20 @@ findDoublets <- function(seu, dims, rate) {
 
 #### Filter RBC cells ####
 DefaultAssay(seurat.obj) <- "RNA"
-filtered_obj <- subset(
+# Seurat subsetting defaults to "data" slot : https://github.com/satijalab/seurat/issues/4658#issuecomment-868716116
+filtered_obj <- subset( 
   x=seurat.obj, 
   subset= 
-  (HBA1 < 1) &
-  (HBA2 < 1) &
-  (HBB < 1) &
-  (HBG2 < 1) &
-  (HBZ < 1) & 
-  (HBM < 1) & 
-  (HBD < 1) & 
-  (HBE1 < 1) &
-  (HBG1 < 1) &
-  (HBQ1 < 1)  
+  (HBA1 <= 0) &
+  (HBA2 <= 0) &
+  (HBB <= 0) &
+  (HBG2 <= 0) &
+  (HBZ <= 0) & 
+  (HBM <= 0) & 
+  (HBD <= 0) & 
+  (HBE1 <= 0) &
+  (HBG1 <= 0) &
+  (HBQ1 <= 0)  
 ) 
 print(paste(dim(seurat.obj)[2] - dim(filtered_obj)[2], "cells were removed from object"))
 rm("seurat.obj")
@@ -293,7 +315,7 @@ if (sample_name == "healthy") {
   dplyr::glimpse(filtered_obj@meta.data)
   filtered_obj@meta.data$sample <- as.character(filtered_obj@meta.data$sample)
   obj_list <- SplitObject(object = filtered_obj, split.by="sample")
-  multiplet_rate_10x <- 0.01
+  # multiplet_rate_10x <- 0.01
   
   #### Run DoubletFinder ####
   doubletfinder_results <- vector(mode='list', length=length(obj_list))
@@ -301,7 +323,7 @@ if (sample_name == "healthy") {
   for (i in 1:length(obj_list)) { 
     doubletfinder_results[[i]] <- findDoublets(seu = obj_list[[i]], 
                                                 dims = ndims, 
-                                                rate = multiplet_rate_10x)
+                                                rates = multiplet_rate_10x)
   }
 
 } else if (sample_name == "gbm") {
@@ -321,7 +343,7 @@ if (sample_name == "healthy") {
 
   # split gbm_bhaduri sample by lane and gbm_wang by sample
   obj_list <- SplitObject(object = filtered_obj, split.by="sample_orig")
-  multiplet_rate_10x <- rep(c(0.008, 0.026), c(12,3))
+  # multiplet_rate_10x <- rep(c(0.008, 0.026), c(12,3))
   
   #### Run DoubletFinder ####
   doubletfinder_results <- vector(mode='list', length=length(obj_list))
@@ -329,7 +351,7 @@ if (sample_name == "healthy") {
   for (i in 1:length(obj_list)) { 
     doubletfinder_results[[i]] <- findDoublets(seu = obj_list[[i]], 
                                                 dims = ndims, 
-                                                rate = multiplet_rate_10x[i])
+                                                rates = multiplet_rate_10x)
   }
 }
 print("Doublets annotated")
@@ -370,7 +392,7 @@ if (sample_name == "healthy") {
                 axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
                 axis.title.y.left = element_text(size=12, face="bold"),
                 axis.title.x=element_blank(),
-                axis.line = element_line(linewidth=0.5, colour="black"),
+                axis.line = element_line(size=0.5, colour="black"),   # use linewidth >= ggplot2 v3.4.0
                 panel.background=element_blank(),
                 panel.grid.major=element_blank(),
                 panel.grid.minor=element_blank(),
@@ -392,7 +414,7 @@ if (sample_name == "healthy") {
                 axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
                 axis.title.y.left = element_text(size=12, face="bold"),
                 axis.title.x=element_blank(),
-                axis.line = element_line(linewidth=0.5, colour="black"),
+                axis.line = element_line(size=0.5, colour="black"),    # use linewidth >= ggplot2 v3.4.0
                 panel.background=element_blank(),
                 panel.grid.major=element_blank(),
                 panel.grid.minor=element_blank(),
@@ -414,7 +436,7 @@ if (sample_name == "healthy") {
                 axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
                 axis.title.y.left = element_text(size=12, face="bold"),
                 axis.title.x=element_blank(),
-                axis.line = element_line(linewidth=0.5, colour="black"),
+                axis.line = element_line(size=0.5, colour="black"),   # use linewidth >= ggplot2 v3.4.0
                 panel.background=element_blank(),
                 panel.grid.major=element_blank(),
                 panel.grid.minor=element_blank(),
@@ -457,7 +479,7 @@ p <- p + geom_point(
                     axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
                     axis.title.y.left = element_text(size=12, face="bold"),
                     axis.title.x=element_blank(),
-                    axis.line = element_line(linewidth=0.5, colour="black"),
+                    axis.line = element_line(size=0.5, colour="black"),
                     panel.background=element_blank(),
                     panel.grid.major=element_blank(),
                     panel.grid.minor=element_blank(),
@@ -481,7 +503,7 @@ p <- p + geom_point(
                     axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
                     axis.title.y.left = element_text(size=12, face="bold"),
                     axis.title.x=element_blank(),
-                    axis.line = element_line(linewidth=0.5, colour="black"),
+                    axis.line = element_line(size=0.5, colour="black"),
                     panel.background=element_blank(),
                     panel.grid.major=element_blank(),
                     panel.grid.minor=element_blank(),
@@ -505,7 +527,7 @@ p <- p + geom_point(
                     axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12, color="black", ),
                     axis.title.y.left = element_text(size=12, face="bold"),
                     axis.title.x=element_blank(),
-                    axis.line = element_line(linewidth=0.5, colour="black"),
+                    axis.line = element_line(size=0.5, colour="black"),
                     panel.background=element_blank(),
                     panel.grid.major=element_blank(),
                     panel.grid.minor=element_blank(),
