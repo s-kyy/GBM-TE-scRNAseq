@@ -13,7 +13,7 @@ if (length(args)<1) {
 } else if (length(args)>=2) {
   
   # verify filepaths
-  if (file.exists(args[1])){ 
+  if (file.exists(args[1]) && file.exists(args[2])) { 
     obj_path <- args[1] 
     obj_path_2 <- args[2] 
     filename <- basename(path_ext_remove(obj_path))
@@ -54,6 +54,7 @@ size    <- 5
 ndims <- 25
 
 subdir <- file.path(getwd(), paste0(format(Sys.Date(), "%Y%m%d"), "_", sample_name,"_", filename))
+# subdir <- parent_dir_path_obj
 
 ifelse(!dir.exists(file.path(subdir)),
         dir.create(file.path(subdir),recursive=T),
@@ -64,6 +65,24 @@ figs_dir_path <- file.path(subdir, "figs_postfilterDf")
 ifelse(!dir.exists(figs_dir_path),
         dir.create(figs_dir_path,recursive=T),
         "Directory Exists")
+
+if (grepl("healthy", subdir, fixed = TRUE)) {
+  sample_palette <- c(
+    "#E69F00", "#56B4E9", "#009E73", 
+    "#F0E442", "#CC79A7", "#ff716e",
+    "#999999", "#0072B2", "#194c76", 
+    "#D55E00", "#3a4f41", "#6699cc", "#713e5a")
+  female_samples <- c("SRR9262922", "SRR9262937",
+                        "SRR9264382", "SRR9264383",
+                        "SRR9264388")
+
+} else if (grepl("gbm", subdir, fixed = TRUE)) {
+  sample_palette <- c(
+    "#E69F00", "#56B4E9", "#009E73", 
+    "#F0E442", "#CC79A7", "#ff716e",
+    "#999999", "#0072B2", "#194c76")
+  female_samples <- "SF11209"
+}
 
 #### =========================================== ####
 #### Make BarPlot (post filter-RBC) ####
