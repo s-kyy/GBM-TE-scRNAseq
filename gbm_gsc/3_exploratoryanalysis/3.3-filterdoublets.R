@@ -17,8 +17,8 @@ if (length(args)<1) {
     obj_path <- args[1] 
     obj_path_2 <- args[2] 
     filename <- basename(path_ext_remove(obj_path))
-    parent_dir_path_obj <- dirname(dirname(obj_path))
-    parent_dir_name_obj <- basename(parent_dir_path_obj)
+    # parent_dir_path_obj <- dirname(dirname(obj_path))
+    # parent_dir_name_obj <- basename(parent_dir_path_obj)
   } else {
     stop("Filepaths provided does not exist. Exiting...", call.=FALSE)
   }
@@ -339,7 +339,7 @@ obj_anchors <- FindIntegrationAnchors(
                   anchor.features = 2500, #match number in FindVariableFeatures
                   )
 seurat_obj <- IntegrateData(anchorset = obj_anchors, dims=1:ndims)
-saveRDS(seurat_obj, file = file.path(parent_dir_path,output_dir_name, paste0(filename, "_filtDf_int.rds")) )
+saveRDS(seurat_obj, file = file.path(subdir, paste0(filename, "_filtDf_int.rds")) )
 print("Integration Complete")
 
 ## ========================================= ##
@@ -405,20 +405,21 @@ print("Exported ElbowPlot")
 #### Output UMAP plots by sample ####
 #### =========================================== ####
 
+### Project Minimum number of PCs to UMAP plot
+seurat_obj <- RunUMAP(seurat_obj, 
+                          reduction = "pca", 
+                          dims = 1:min_pc, 
+                          umap.method = "uwot", 
+                          metric = "cosine")
+# saveRDS(seurat_obj, file = file.path(subdir,paste0(filename, "_filtDf_umap.rds")) )
+# print(paste("ScaleData, RunPCA, and RunUMAP completed in:", subdir))
+print(paste("RunUMAP completed"))
+
 p <- DimPlot(seurat_obj, reduction = "umap", group.by = "sample") 
 ggsave(file.path(figs_dir_path, paste0(filename,"_UMAP_sample_filtDoublets.tiff")), 
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 print("Exported UMAP by sample")
 
-### Project Minimum number of PCs to UMAP plot
-obj_integrated <- RunUMAP(obj_integrated, 
-                          reduction = "pca", 
-                          dims = 1:min_pc, 
-                          umap.method = "uwot", 
-                          metric = "cosine")
-# saveRDS(obj_integrated, file = file.path(parent_dir_path, output_dir_name, paste0(filename, "_filtDf_umap.rds")) )
-# print(paste("ScaleData, RunPCA, and RunUMAP completed in:", parent_dir_path, output_dir_name))
-print(paste("RunUMAP completed"))
 
 #### =========================================== ####
 #### Cluster: K-nearest neighbor graph
