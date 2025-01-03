@@ -462,7 +462,7 @@ p <- p + geom_point(
     mutate('percent (%)' = round(100*total_count/countT, 2)) %>%
     dplyr::select(-countT)
   head(doublets_summary)
-  write.csv(doublets_summary, file = file.path(figs_dir_path, "doubletfinder_summary.csv"))
+  write.csv(doublets_summary, file = file.path(figs_dir_path, paste0(filename, "_doubletfinder_summary.csv")))
   print("csv exported")
 
 } else if (sample_name == "gbm") {
@@ -550,10 +550,10 @@ p <- p + geom_point(
     group_by(sample_orig) %>%
     mutate(countT = sum(total_count)) %>%
     group_by(doublet_finder, .add = TRUE) %>%
-    mutate(percent = paste0(round(100*total_count/countT, 2), '%')) %>%
+    mutate('percent (%)' = round(100*total_count/countT, 2)) %>%
     dplyr::select(-countT)
   head(doublets_summary)
-  write.table(doublets_summary, file = file.path(figs_dir_path, paste0(filename, "_doubletfinder_summary.csv")))
+  write.csv(doublets_summary, file = file.path(figs_dir_path, paste0(filename, "_doubletfinder_summary.csv")))
   print("DoubletFinder summary csv exported")
 
 }

@@ -104,6 +104,24 @@ cell_types <- names(known_markers_unique)
 features_stem <- unlist(stem_markers)
 stem_types <- names(stem_markers)
 
+if (grepl("healthy", subdir, fixed = TRUE)) {
+  sample_palette <- c(
+    "#E69F00", "#56B4E9", "#009E73", 
+    "#F0E442", "#CC79A7", "#ff716e",
+    "#999999", "#0072B2", "#194c76", 
+    "#D55E00", "#3a4f41", "#6699cc", "#713e5a")
+  female_samples <- c("SRR9262922", "SRR9262937",
+                        "SRR9264382", "SRR9264383",
+                        "SRR9264388")
+
+} else if (grepl("gbm", subdir, fixed = TRUE)) {
+  sample_palette <- c(
+    "#E69F00", "#56B4E9", "#009E73", 
+    "#F0E442", "#CC79A7", "#ff716e",
+    "#999999", "#0072B2", "#194c76")
+  female_samples <- "SF11209"
+}
+
 #### ======================================================================= ###
 #### Create UMAP plots with Known Markers ####
 #### ======================================================================= ###
