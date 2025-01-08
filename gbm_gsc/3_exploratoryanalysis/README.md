@@ -72,11 +72,14 @@ remotes::install_github(repo='chris-mcginnis-ucsf/DoubletFinder', ref = remotes:
 
 Once doublets are annotated and completed, rerun `1-pca_cluster.R` script. 
 
-Multiplet rates were estimated from [10X Genomics support page explaining target cell recovery numbers](https://kb.10xgenomics.com/hc/en-us/articles/4405411467661-Why-is-the-number-of-barcodes-called-in-Cell-Ranger-equal-to-the-Targeted-Cell-Recovery-for-HT). We expect the following multiplet rates for each sample. 
+Multiplet rates were estimated from (10X Genomics, 2019). We expect the following multiplet rates for each sample. 
 
 - **GBM_Bhaduri2020** dataset loading rate was not mentioned, but their target capture rate was 2000 cells/sample, resulting in **0.8% multiplet rate.** 
 - **GBM_Wang2020** dataset was loaded to 500 cells/uL at 21uL per sample, resulting in 10,500 cells/sample and **~2.6% multiplet rate**. 
 - **Healthy_Bhaduri2020** dataset was loaded at 2000 nuclei/uL with a target capture rate of 3000 cells/sample, resulting in **~1.0% multiplet rate**.
+
+Reference: 
+- 10X Genomics. (2019). Single Cell 3’ Reagent Kits v2 User Guide RevF (Technical CG00052; p. 6). 10X Genomics. https://assets.ctfassets.net/an68im79xiti/RT8DYoZzhDJRBMrJCmVxl/6a0ed8015d89bf9602128a4c9f8962c8/CG00052_SingleCell3_ReagentKitv2UserGuide_RevF.pdf
 
 ### `4-cnvanalysis.R`
 

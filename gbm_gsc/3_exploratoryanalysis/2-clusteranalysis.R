@@ -94,7 +94,7 @@ DefaultAssay(seurat.obj) <-"RNA"
 p <- DimPlot(seurat.obj, reduction = "umap", 
               group.by = cluster_res03) +
               scale_colour_viridis_d()
-ggsave(file.path(figs_dir_path, paste0(filename, "_", cluster_res03,"_UMAP_nolabels.tiff")),
+ggsave(file.path(figs_dir_path, paste0(cluster_res03,"_UMAP_nolabels.tiff")),
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
@@ -102,13 +102,13 @@ p <- DimPlot(seurat.obj, reduction = "umap",
               label = TRUE, 
               label.size = 3.5) +
               scale_colour_viridis_d()
-ggsave(file.path(figs_dir_path, paste0(filename, "_", cluster_res03,"_UMAP.tiff")),
+ggsave(file.path(figs_dir_path, paste0(cluster_res03,"_UMAP.tiff")),
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
               group.by = cluster_res04) +
               scale_colour_viridis_d()
-ggsave(file.path(figs_dir_path, paste0(filename, "_", cluster_res04,"_UMAP_nolabel.tiff")),
+ggsave(file.path(figs_dir_path, paste0(cluster_res04,"_UMAP_nolabel.tiff")),
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
@@ -116,7 +116,7 @@ p <- DimPlot(seurat.obj, reduction = "umap",
               label = TRUE, 
               label.size = 3.5) +
               scale_colour_viridis_d()
-ggsave(file.path(figs_dir_path, paste0(filename, "_", cluster_res04,"_UMAP.tiff")),
+ggsave(file.path(figs_dir_path, paste0(cluster_res04,"_UMAP.tiff")),
        plot = p, units="in", width=size*1.1, height=size*1, dpi=300, compression = 'lzw')
 
 print("UMAPs by cluster exported")
@@ -129,36 +129,42 @@ p <- DimPlot(seurat.obj, reduction = "umap",
               group.by = cluster_res03,
               split.by = "sample") +
               scale_colour_viridis_d()
-ggsave(file.path(figs_dir_path, paste0(filename, "_sample_split_", cluster_res03,"_UMAP.tiff")),
+ggsave(file.path(figs_dir_path, paste0("sample_split_", cluster_res03,"_UMAP.tiff")),
        plot = p, units="in", width=size*6, height=size*0.8, dpi=300, compression = 'lzw')
 
 p <- DimPlot(seurat.obj, reduction = "umap", 
               group.by = cluster_res04,
               split.by = "sample") +
               scale_colour_viridis_d()
-ggsave(file.path(figs_dir_path, paste0(filename, "_sample_split_", cluster_res04,"_UMAP.tiff")),
+ggsave(file.path(figs_dir_path, paste0("sample_split_", cluster_res04,"_UMAP.tiff")),
        plot = p, units="in", width=size*6, height=size*0.8, dpi=300, compression = 'lzw')
+
+p <- DimPlot(seurat.obj, reduction = "umap", 
+      group.by = "sample", cols = sample_palette) 
+ggsave(file.path(figs_dir_path, paste0("sample_custom_cols","_UMAP.tiff")),
+      plot = p, units="in", width=size*1.3, height=size*1, dpi=300, compression = 'lzw')
+print("UMAPs by sample_orig exported")
 
 if (grepl("gbm", parent_dir_name_obj, fixed = TRUE)) {
        
   p <- DimPlot(seurat.obj, reduction = "umap", 
-       group.by = "sample_orig") 
-  ggsave(file.path(figs_dir_path, paste0(filename, "_sample_orig","_UMAP.tiff")),
-       plot = p, units="in", width=size*1.3, height=size*1, dpi=300, compression = 'lzw')
+        group.by = "sample_orig") 
+  ggsave(file.path(figs_dir_path, paste0("sample_orig","_UMAP.tiff")),
+        plot = p, units="in", width=size*1.3, height=size*1, dpi=300, compression = 'lzw')
   print("UMAPs by sample_orig exported")
 
   p <- DimPlot(seurat.obj, reduction = "umap", 
                 group.by = cluster_res03,
                 split.by = "sample_orig") +
               scale_colour_viridis_d()
-  ggsave(file.path(figs_dir_path, paste0(filename, "_sample_orig_split_", cluster_res03,"_UMAP.tiff")),
+  ggsave(file.path(figs_dir_path, paste0("sample_orig_split_", cluster_res03,"_UMAP.tiff")),
          plot = p, units="in", width=size*7, height=size*0.8, dpi=300, compression = 'lzw')
   
   p <- DimPlot(seurat.obj, reduction = "umap", 
                 group.by = cluster_res04,
                 split.by = "sample_orig") +
               scale_colour_viridis_d()
-  ggsave(file.path(figs_dir_path, paste0(filename, "_sample_orig_split_", cluster_res04,"_UMAP.tiff")),
+  ggsave(file.path(figs_dir_path, paste0("sample_orig_split_", cluster_res04,"_UMAP.tiff")),
          plot = p, units="in", width=size*7, height=size*0.8, dpi=300, compression = 'lzw')
   
   print("UMAPs split by sample exported")
@@ -171,7 +177,7 @@ p <- DimPlot(seurat.obj,
               reduction = "umap", 
               cells.highlight = WhichCells(object = seurat.obj, 
               expression = (sample == female_samples) ))
-ggsave(file.path(figs_dir_path, paste0(filename, "_female_samples","_UMAP.tiff")),
+ggsave(file.path(figs_dir_path, paste0("female_samples","_UMAP.tiff")),
       plot = p, units="in", width=size*1.4, height=size*1, dpi=300, compression = 'lzw')
 
 print("UMAPs by female_sample exported")
@@ -182,7 +188,7 @@ print("UMAPs by female_sample exported")
 DefaultAssay(seurat.obj) <- "integrated"
 
 p <- RidgePlot(seurat.obj, features = c("PCNA", "TOP2A", "MCM6", "MKI67"), ncol = 2)
-ggsave(file.path(figs_dir_path, paste0(filename,"_cellcycleRidgePlot_integrated.tiff")), 
+ggsave(file.path(figs_dir_path, paste0("cellcycleRidgePlot_integrated.tiff")), 
       plot = p, units="in", width=size*1.2, height=size*1.3, dpi=300, compression = 'lzw')
 
 #### ===================================================================== ####
@@ -258,7 +264,7 @@ MAPlot <- function(cluster_df,cols,resolution, min_exp_threshold) {
             legend.margin = margin(6, 6, 6, 6),
             legend.background = element_rect(fill = "white", colour = "white"))
     print(paste("Saving figure of cluster",cluster_id[i]))
-    ggsave(file.path(figs_dir_path, paste0(filename,resolution,"_",cluster_id[i],"_MAPlot.tiff")),
+    ggsave(file.path(figs_dir_path, paste0(resolution,"_",cluster_id[i],"_MAPlot.tiff")),
       plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
 
     p <- p + # theme(plot.margin=unit(c(1, 3, 1, 1), "cm")) +
@@ -282,7 +288,7 @@ MAPlot <- function(cluster_df,cols,resolution, min_exp_threshold) {
 
     print(paste("Saving figure of cluster",cluster_id[i], "with labels"))
     
-    ggsave(file.path(figs_dir_path, paste0(filename,resolution,"_",cluster_id[i],"_MAPlot_labeled.tiff")),
+    ggsave(file.path(figs_dir_path, paste0(resolution,"_",cluster_id[i],"_MAPlot_labeled.tiff")),
       plot = p, units="in", width=size*1, height=size*0.8, dpi=300, compression = 'lzw')
   }
 }
@@ -295,7 +301,7 @@ cluster_markers3 <- meanExpressionPerCluster(
   idents = cluster_res03
 )
 MAPlot(cluster_markers3, p_val_cols, cluster_res03, avg_exp_threshold)
-# ggsave(file.path(figs_dir_path, paste0(filename,cluster_res03,"_MAPlot.tiff")),
+# ggsave(file.path(figs_dir_path, paste0(cluster_res03,"_MAPlot.tiff")),
       # plot = p, units="in", width=size*2.5, height=size*2.5, dpi=300, compression = 'lzw')
 
 cluster_markers4 <- meanExpressionPerCluster(
@@ -304,7 +310,7 @@ cluster_markers4 <- meanExpressionPerCluster(
   idents = cluster_res04
 )
 MAPlot(cluster_markers4, p_val_cols, cluster_res04,avg_exp_threshold)
-# ggsave(file.path(figs_dir_path, paste0(filename,cluster_res04,"_MAPlot.tiff")),
+# ggsave(file.path(figs_dir_path, paste0(cluster_res04,"_MAPlot.tiff")),
 #       plot = p, units="in", width=size*2.5, height=size*2.5, dpi=300, compression = 'lzw')
 
 #### ===================================================================== ####
@@ -328,21 +334,21 @@ print(dim(cluster_markers3))
 cluster_markers3 <- cluster_markers3 %>% 
   filter((avg_log2FC > 1 | avg_log2FC < -1) & p_val.bonf < 0.01 )
 print(dim(cluster_markers3))
-write.csv(cluster_markers3, file.path(figs_dir_path, paste0(filename,cluster_res03,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
+write.csv(cluster_markers3, file.path(figs_dir_path, paste0(cluster_res03,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
 
 print(dim(cluster_markers4))
 cluster_markers4 <- cluster_markers4 %>% 
   filter((avg_log2FC > 1 | avg_log2FC < -1) & p_val.bonf < 0.01)
 print(dim(cluster_markers4))
-write.csv(cluster_markers4, file.path(figs_dir_path, paste0(filename,cluster_res04,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
+write.csv(cluster_markers4, file.path(figs_dir_path, paste0(cluster_res04,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
 
 # p <- Heatmapplot(seurat.obj, cluster_markers3, cluster_res03)
-# ggsave(file.path(figs_dir_path, paste0(filename, cluster_res03,"_heatmap.tiff")),
+# ggsave(file.path(figs_dir_path, paste0( cluster_res03,"_heatmap.tiff")),
 #       plot = p, units="in", width=size*1.5, height=size*3, dpi=300, compression = 'lzw')
 
 # # make heatmap
 # p <- Heatmapplot(seurat.obj, cluster_markers4, cluster_res04)
-# ggsave(file.path(figs_dir_path, paste0(filename, cluster_res04,"_heatmap.tiff")),
+# ggsave(file.path(figs_dir_path, paste0( cluster_res04,"_heatmap.tiff")),
 #       plot = p, units="in", width=size*1.5, height=size*3, dpi=300, compression = 'lzw')
 
 sessionInfo()
