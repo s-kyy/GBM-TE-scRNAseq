@@ -1,5 +1,4 @@
-
-# import 2 files, seurat object + cellular marker CSV (one at a time)
+#!usr/bin/env Rscript
 
 library(fs) #path manipulation
 
