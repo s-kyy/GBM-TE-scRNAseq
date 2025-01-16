@@ -9,11 +9,12 @@
 *.gz
 *.tar 
 *.xlsx
-*.svg
-*.png
 
 # Images
+*.svg
+*.png
 *.tiff
+*.tif
 
 # R 
 .Rproj.user

@@ -4,12 +4,15 @@ Single cell analysis will be performed on two feature-cellbarcode matrices. One 
 
 ### Setup
 
-- Linux: CentOS7 ([StdEnv/2020](https://docs.alliancecan.ca/wiki/Standard_software_environments#StdEnv/2020))
+- Linux: CentOS7 with GCC 9.3.0, Intel 2020.1, and Open MPI 4.0.3 ([StdEnv/2020](https://docs.alliancecan.ca/wiki/Standard_software_environments#StdEnv/2020)).
+  - Niagara: `module load CCEnv arch/avx2 StdEnv/2020`
 - R 4.0.2
-- renv 0.13.2
 - BiocManager 1.30.12
-- Seurat 4.0.1
+- sctransform 0.3.2
+- uwot 0.1.10
+- SeuratObject 4.0.0
 - Matrix 1.3.-2
+- Seurat 4.0.1 (see note below)
 - tidyverse 1.3.1
 - dplyr 1.07
 - ggplot2 3.3.5
@@ -18,7 +21,20 @@ Single cell analysis will be performed on two feature-cellbarcode matrices. One 
 - scales 1.1.1
 - conflicted 1.1.0
 - fs 1.5.0
-- See comprehensive list of requirements in: `renv.lock`
+<!-- - renv 0.13.2 -->
+<!-- - See comprehensive list of requirements in: `renv.lock` -->
+
+```R
+### to fix error when installing Seurat v4.0.1
+# Error: object 'integral' not found whilst loading namespace 'spatstat.core' Execution halted
+# https://github.com/satijalab/seurat/issues/9169 
+remotes::install_version("spatstat.geom", version = "3.2-1", repos='http://cran.us.r-project.org')
+remotes::install_version("spatstat.utils", version = "3.1-0", repos='http://cran.us.r-project.org')
+remotes::install_version("spatstat.data", version = "3.0-1", repos='http://cran.us.r-project.org')
+remotes::install_version("spatstat.random", version = "3.1-5", repos='http://cran.us.r-project.org')
+remotes::install_version("spatstat.sparse", version = "3.0-2", repos='http://cran.us.r-project.org')
+remotes::install_version("spatstat.core", version = "2.4-4", repos='http://cran.us.r-project.org')
+```
 
 Note: your setup should have enough memory to load the datasets into R and perform downstream proprocessing and analysis steps (16-32Gb )
 

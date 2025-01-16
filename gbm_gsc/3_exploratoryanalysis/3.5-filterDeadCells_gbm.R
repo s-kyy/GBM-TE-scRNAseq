@@ -9,7 +9,7 @@ args = commandArgs(trailingOnly=TRUE)
 print(args)
 # test if there is at least one argument: if not, return an error
 if (length(args)<1) {
-  stop("At least 1 filepath must be supplied: [xxx.rds] [yyy.rds]", call.=FALSE)
+  stop("At least 2 filepaths must be supplied: [xxx.rds] [yyy.rds]", call.=FALSE)
 } else if (length(args)>=2) {
   
   # verify filepaths

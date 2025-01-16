@@ -1,15 +1,17 @@
 #!usr/bin/env Rscript
 
+# preliminary analysis of celltypes and marker volcano plots
+
 library(fs) #path manipulation
 
 args = commandArgs(trailingOnly=TRUE)
 print(args)
 # test if there is at least one argument: if not, return an error
 if (length(args)<3) {
-  stop("At least 3 filepaths must be supplied: [xxx.rds] [xxx_markers_0.3.csv] [xxx_markers_0.4.csv]", call.=FALSE)
+  stop("At least 3 filepaths must be supplied: [xxx.rds] [xxx_markers_0.3.csv] [xxx_markers_0.4.csv] [figs_dir_name] [res1] [res2]", call.=FALSE)
 } else {
   # verify filepaths
-  if (file.exists(args[1]) & file.exists(args[2]) & file.exists(args[3])) { 
+  if (file.exists(args[1]) && file.exists(args[2]) && file.exists(args[3])) { 
     obj_path <- args[1] 
     filename <- basename(path_ext_remove(obj_path))
     parent_dir_path_obj <- dirname(obj_path)
@@ -21,6 +23,26 @@ if (length(args)<3) {
   } else {
     stop("Filepaths provided do not exist. Exiting...", call.=FALSE)
   }
+
+  if (length(args)>3) {
+    figs_dir_name <- args[4]
+  } else {
+    figs_dir_name <- "figs_clusteranalysis"
+  }
+
+  if (length(args)>4) {
+    cluster_res03 <- args[5]
+  } else {
+    cluster_res03 <- "integrated_snn_res.0.3"
+  }
+
+  if (length(args)>5) {
+    cluster_res04 <- args[6]
+  } else {
+    cluster_res04 <- "integrated_snn_res.0.4"
+  }
+
+
 }
 
 #### ===================================================================== ####
@@ -51,8 +73,6 @@ seurat.obj <- readRDS(obj_path)
 cluster_markers3 <- read.csv(marker_path3)
 cluster_markers4 <- read.csv(marker_path4)
 size    <- 5
-cluster_res03 <- "integrated_snn_res.0.3"
-cluster_res04 <- "integrated_snn_res.0.4"
 
 if (grepl("healthy", parent_dir_name_obj, fixed = TRUE)) {
   sample_palette <- c(
@@ -74,10 +94,10 @@ if (grepl("healthy", parent_dir_name_obj, fixed = TRUE)) {
   avg_exp_threshold <- 25
 }
 
-seurat.obj$`integrated_snn_res.0.3` <- factor(seurat.obj$`integrated_snn_res.0.3`, levels= sort(unique(seurat.obj$`integrated_snn_res.0.3`)))
-seurat.obj$`integrated_snn_res.0.4` <- factor(seurat.obj$`integrated_snn_res.0.4`, levels= sort(unique(seurat.obj$`integrated_snn_res.0.4`)))
+seurat.obj@meta.data[[cluster_res03]] <- factor(seurat.obj@meta.data[[cluster_res03]], levels= sort(unique(seurat.obj@meta.data[[cluster_res03]])))
+seurat.obj@meta.data[[cluster_res04]] <- factor(seurat.obj@meta.data[[cluster_res04]], levels= sort(unique(seurat.obj@meta.data[[cluster_res04]])))
 
-figs_dir_path <- file.path(parent_dir_path_obj, "figs_clusteranalysis")
+figs_dir_path <- file.path(parent_dir_path_obj, figs_dir_name)
 
 ifelse(!dir.exists(figs_dir_path),
         dir.create(figs_dir_path,recursive=T),
@@ -186,8 +206,13 @@ print("UMAPs by female_sample exported")
 #### ===================================================================== ####
 DefaultAssay(seurat.obj) <- "integrated"
 
+Idents(seurat.obj) <- cluster_res03
 p <- RidgePlot(seurat.obj, features = c("PCNA", "TOP2A", "MCM6", "MKI67"), ncol = 2)
-ggsave(file.path(figs_dir_path, paste0("cellcycleRidgePlot_integrated.tiff")), 
+ggsave(file.path(figs_dir_path, paste0( cluster_res03,"_cellcycleRidgePlot_integrated.tiff")), 
+      plot = p, units="in", width=size*1.2, height=size*1.3, dpi=300, compression = 'lzw')
+Idents(seurat.obj) <- cluster_res04
+p <- RidgePlot(seurat.obj, features = c("PCNA", "TOP2A", "MCM6", "MKI67"), ncol = 2)
+ggsave(file.path(figs_dir_path, paste0( cluster_res04,"_cellcycleRidgePlot_integrated.tiff")), 
       plot = p, units="in", width=size*1.2, height=size*1.3, dpi=300, compression = 'lzw')
 
 #### ===================================================================== ####
@@ -293,6 +318,14 @@ MAPlot <- function(cluster_df,cols,resolution, min_exp_threshold) {
 }
 
 DefaultAssay(seurat.obj) <- "RNA"
+
+if ("X" %in% colnames(cluster_markers3) &&  "X" %in% colnames(cluster_markers4)) {
+  cluster_markers3$gene <- unlist(strsplit(cluster_markers3$X, "...[0-9]+$"))
+  cluster_markers4$gene <- unlist(strsplit(cluster_markers4$X, "...[0-9]+$"))
+  
+  cluster_markers3$X <- NULL
+  cluster_markers4$X <- NULL
+}
 
 cluster_markers3 <- meanExpressionPerCluster(
   seurat.object = seurat.obj,

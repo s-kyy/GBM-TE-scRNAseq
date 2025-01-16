@@ -3,7 +3,69 @@
 ### Requirements
 
 - viridis 0.6.5
-- viridisLite 0.4.1
+- future 1.34.0
+- future.apply 1.11.3
+- inferCNV 
+- monocle3 1.3.1 with devtools. (see section below)
+- SeuratWrappers 0.3.0. requires...
+  - ellipsis_0.3.2
+  - pillar_1.6.2
+  - viridisLite 0.4.0
+  - vctrs_0.3.8
+<!-- - ComplexHeatmap 2.14 -->
+
+#### Installing monocle3 on RHEL/CENTOS7 cluster environment
+
+Load software
+
+```bash
+# on Niagara system
+module load CCEnv arch/avx2 StdEnv/2020 gcc/9.3.0 gdal/3.5.1 geos/3.10.2 r/4.0.2
+# on Cedar system
+module load StdEnv/2020 gcc/9.3.0 gdal/3.5.1 geos/3.10.2 r/4.0.2
+```
+
+Install packages in R
+
+```R
+install.packages("devtools")
+install.packages("remotes")
+remotes::install_version("BiocManager", version="1.30.12")
+library(BiocManager)
+BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats','limma', 'S4Vectors', 'SingleCellExperiment', 'SummarizedExperiment', 'batchelor'))
+install.packages("https://cran.r-project.org/src/contrib/Archive/Matrix.utils/Matrix.utils_0.9.8.tar.gz", type = "source", repos = NULL)
+
+devtools::install_github('cole-trapnell-lab/leidenbase') #v0.1.9
+remotes::install_version("matrixStats", version="0.58.0")
+
+### Install sf
+### ensure gdalv3.5.1+, geos/3.10.2, udunits/2.2.28 are available (and ideally no other version available)
+###  Installation when multiple gdal versions are installed: https://github.com/r-spatial/sf/issues/844#issuecomment-653935662
+remotes::install_version("udunits2", version="0.13.2.1")
+remotes::install_version("units", version="0.8-5")
+remotes::install_version("sf", version = '1.0-19', args="--no-test-load") 
+  # last arguement is a quick fix for a bug in R that fails installation of sf library when multiple gdal versions are installed
+  # Prior version: remotes::install_version("sf", version="0.3.2")
+
+### Install spdep
+remotes::install_version("spdep", version="1.1-8") 
+
+### Install monocle3
+devtools::install_github("cole-trapnell-lab/monocle3", ref="1.0.0")
+  # OR 
+  # devtools::install_github('cole-trapnell-lab/monocle3') 
+  # devtools::install_github("cole-trapnell-lab/monocle3", ref="v1.3.1")
+
+### Close and re-open new R session
+
+### Install SeuratWrappers
+remotes::install_version("R.utils", version="2.11.0")
+devtools::install_github('satijalab/seurat-wrappers', ref="8510069") # v0.3.0 # still need to do (2025-01-15)
+  # https://github.com/satijalab/seurat-wrappers/commit/8510069e76ae8f39c91250d67784e4b8ab4a9386
+  # OR
+  # devtools::install_github('satijalab/seurat-wrappers')
+  # remotes::install_github('satijalab/seurat-wrappers@community-vignette') # v0.2.0
+``` 
 
 ### `1-pca_cluster.R` 
 
@@ -34,12 +96,17 @@ Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20210902_merged_qc_bhaduriGBM_
 
 Figures Generated: 
 
-- UMAPs by Sample & Cluster at both 0.3 and 0.4 resolutions
+- UMAPs grouped or split by sample at two specified resolutions (default 0.3, 0.4)
+- UMAPs grouped by cluster at two specified resolutions (default 0.3, 0.4)
 - UMAP highlighting cells from female samples
+- Ridge plot with cell cycle markers (PCNA, TOP2A, MCM6, MK67)
+- [MA plots](https://www.jmp.com/support/downloads/JMPG101_documentation/Content/JMPGUserGuide/GR_G_0020.htm) of average expression of significantly expressed genes per cluster across log2 fold change and coloured by Bonferroni adjusted p values. 
+- 
 
-Commands to generate quality control figures after filtering out low quality cells and doubets. 
+Commands to generate quality control figures after filtering out low quality cells. Also run again after each time object was integrated, and pre-processed to the clustering step (.e.g. removal of doublets, dead cells in gbm objects, and subsetting specific clusters, etc).
 
 ```bash
+# Produce figures and summary CSVs after filtering low-quality cells. 
 Rscript --vanilla ./2-clusteranalysis.R ./20241203_gbm_merged_ge_qc_integrated_umap/merged_ge_qc_integrated_umap_clustered.rds ./20241203_gbm_merged_ge_qc_integrated_umap/merged_ge_qc_integrated_umap_markers_0.3.csv ./20241203_gbm_merged_ge_qc_integrated_umap/merged_ge_qc_integrated_umap_markers_0.4.csv >gbm_ge_umap_figs.out 2>&1
 
 Rscript --vanilla ./2-clusteranalysis.R ./20241203_gbm_merged_gte_qc_integrated_umap/merged_gte_qc_integrated_umap_clustered.rds ./20241203_gbm_merged_gte_qc_integrated_umap/merged_gte_qc_integrated_umap_markers_0.3.csv ./20241203_gbm_merged_gte_qc_integrated_umap/merged_gte_qc_integrated_umap_markers_0.4.csv >gbm_gte_umap_figs.out 2>&1
@@ -49,28 +116,24 @@ Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_ge_qc_integrated_umap
 Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_clustered.rds ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_markers_0.3.csv ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_markers_0.4.csv >healthy_gte_umap_figs.out 2>&1
 ```
 
-### `3-celltypeanalysis.R`
+### `3-celltypeanalysis.R` (Preliminary)
 
-Generates figures for known celltype marker expression per cluster to identify cell type annotations. 
+Generate UMAPs colouring cells based on expression level of known celltype markers per cluster to identify cell type annotations. 
 
-### `3.1-filterRBC_cluster.R`
+```bash
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_clustered.rds" ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_markers_0.3.csv" ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_markers_0.4.csv" *>gbm_ge_umap_celltypes_figs_dec03.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_clustered.rds" ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_markers_0.3.csv" ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_markers_0.4.csv" *>gbm_gte_umap_celltypes_figs_dec03.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_clustered.rds" ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_markers_0.3.csv" ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_markers_0.4.csv" *>healthy_ge_umap_celltypes_figs_dec03.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_clustered.rds" ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.3.csv" ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.4.csv" *>healthy_gte_umap_celltypes_figs_dec03.out
+```
+
+### Filter RBCs and Doublets `3.2-finddoublets.R` & `3.3-filterdoublets.R`
 
 Red Blood cell gene expression was identified in step 3. 
 
 Since RBCs are considered a contaminant in brain samples and healthy brain samples, we filtered these cells out by subsetting cells that expressed any classical RBC related genes [(Zhong et al., 2020)](https://www.nature.com/articles/s41586-019-1917-5).
 
-### `3.2-filterdoublets.R`
-
-After removing uninformative cells and genes, we then removed possible doublets in each seurat object. 
-
-We used DoubletFinder by McGinnis et al., (2019) due to its improved accuracy -at the cost of performance- compared to other available doublet annotation protocols in a recent comparitive review (Xi & Li, 2021).
-
-```R
-library(remotes) 
-remotes::install_github(repo='chris-mcginnis-ucsf/DoubletFinder', ref = remotes::github_pull(176))
-```
-
-Once doublets are annotated and completed, rerun `1-pca_cluster.R` script. 
+Script removes RBCs, then identifies and removes possible doublets in each seurat object. We used DoubletFinder by McGinnis et al., (2019) due to its improved accuracy -at the cost of performance- compared to other available doublet annotation protocols in a recent comparitive review (Xi & Li, 2021).
 
 Multiplet rates were estimated from (10X Genomics, 2019). We expect the following multiplet rates for each sample. 
 
@@ -80,6 +143,52 @@ Multiplet rates were estimated from (10X Genomics, 2019). We expect the followin
 
 Reference: 
 - 10X Genomics. (2019). Single Cell 3’ Reagent Kits v2 User Guide RevF (Technical CG00052; p. 6). 10X Genomics. https://assets.ctfassets.net/an68im79xiti/RT8DYoZzhDJRBMrJCmVxl/6a0ed8015d89bf9602128a4c9f8962c8/CG00052_SingleCell3_ReagentKitv2UserGuide_RevF.pdf
+
+```R
+library(remotes) 
+remotes::install_github(repo='chris-mcginnis-ucsf/DoubletFinder', ref = remotes::github_pull(176))
+```
+
+Once doublets are annotated and completed, run `3.3-filterdoublets.R` script to remove and reprocess doublets, then run `3.4-finddoublets_validate.R` to generate summary tables and figures. Alternatively, `3.2-finddoublets.sh` and `3.3-filterdoublets.sh` bash scripts run `3.2-finddoublets.R` and `3.3-filterdoublets.R` scripts as slurm jobs, respectively. Also ran `2-clusteranalysis.R` to create figures on newly integrated and clsutered seurat objects. 
+
+
+### Cell Type Annotation 
+
+`3.4-finddoublets_validation.R` - generates UMAPs colouring cells by known cell markers, DotPlots of cells against known marker gene expression and exports CSVs for number of cells per sample and per cluster to generate corresponding barplots. 
+
+`3.5-filterDeadCells_gbm.R` with `3.5-filterDeadCells_gbm.sh`- Cluster 12 of GBM_GE object had elevated MALAT1 and mitochondrial gene expression. They were filtered out then re-integrated and reprocessed (`3.6-reintegrate-recluster.R` with `3.6-filterDeadCells_gbm_re-int.sh`) with the Seurat workflow as in [RBC and doublet filtering steps](#filter-rbcs-and-doublets-32-finddoubletsr--33-filterdoubletsr). Scaled data matrix was exported in a seperate object. Resolutions 0.3 and 0.4 values for the FindClusters method. 
+
+```bash
+## cluster analysis - post filtDC (resolution 0.5, 0.6)
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250110_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_ge_filtDC_int.rds" ".\20250110_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_ge_filtDC_markers_0.5.csv" ".\20250110_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_ge_filtDC_markers_0.6.csv" figs_clusteranalysis_ge integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_ge_filtDC_2figs0506_jan10.out
+
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250110_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_gte_filtDC_int.rds" ".\20250110_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_gte_filtDC_markers_0.5.csv" ".\20250110_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_gte_filtDC_markers_0.6.csv" figs_clusteranalysis_gte integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_gte_filtDC_2figs0506_jan10.out
+
+## cell type validation - post filtDC (resolution 0.5, 0.6)
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250110_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_ge_filtDC_int.rds" figs_validatecelltypes_ge_res05 integrated_snn_res.0.5 *>gbm_ge_filtDC_34figs05_jan10.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250110_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_gte_filtDC_int.rds" figs_validatecelltypes_gte_res05 integrated_snn_res.0.5 *>gbm_gte_filtDC_34figs05_jan10.out
+
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250110_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_ge_filtDC_int.rds" figs_validatecelltypes_ge_res06 integrated_snn_res.0.6 *>gbm_ge_filtDC_34figs06_jan10.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250110_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_gte_filtDC_int.rds" figs_validatecelltypes_gte_res06 integrated_snn_res.0.6 *>gbm_gte_filtDC_34figs06_jan10.out
+```
+
+`3.6-celltype annotations` 
+
+
+### `-cnvanalysis.R`
+
+Install inferCNV with JAGS as a requirement. 
+```R
+library(BiocManager) # v3.14
+BiocManager::install("infercnv") #v1.10.1
+```
+
+Environment:
+```bash
+module load StdEnv/2020
+module load jags/4.3.2
+module load r/4.1.0
+```
 
 ### `4-cnvanalysis.R`
 
