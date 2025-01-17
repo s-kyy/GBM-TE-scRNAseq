@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=0:50:00
-#SBATCH --account=def-ytanaka
+#SBATCH --account=xxx
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=40
 #SBATCH --array=2-3
