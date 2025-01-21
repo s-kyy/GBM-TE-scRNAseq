@@ -294,7 +294,7 @@ MAPlot <- function(cluster_df,cols,resolution, min_exp_threshold) {
     p <- p + # theme(plot.margin=unit(c(1, 3, 1, 1), "cm")) +
         geom_text_repel(
           data = head(subset(cluster_df_subset, 
-                        (avg_log2FC > 1 | avg_log2FC < -1) & 
+                        # (avg_log2FC > 1 | avg_log2FC < -1) & 
                         p_val.bonf < 0.01 & 
                         avg.exp > min_exp_threshold & avg.exp < 100), 20),
           mapping = aes(x = avg.exp, y = avg_log2FC, label = gene),
@@ -303,7 +303,7 @@ MAPlot <- function(cluster_df,cols,resolution, min_exp_threshold) {
           box.padding = 0.5, xlim = c(-0.5, 125)) + 
         geom_text_repel(
           data = subset(cluster_df_subset, 
-                        (avg_log2FC > 1 | avg_log2FC < -1) & 
+                        # (avg_log2FC > 1 | avg_log2FC < -1) & 
                         p_val.bonf < 0.01 & avg.exp >= 100),
           mapping = aes(x = avg.exp.limit, y = avg_log2FC, label = gene),
           max.overlaps = Inf, seed = 34, force = 2, direction = "y",
@@ -320,8 +320,10 @@ MAPlot <- function(cluster_df,cols,resolution, min_exp_threshold) {
 DefaultAssay(seurat.obj) <- "RNA"
 
 if ("X" %in% colnames(cluster_markers3) &&  "X" %in% colnames(cluster_markers4)) {
-  cluster_markers3$gene <- unlist(strsplit(cluster_markers3$X, "...[0-9]+$"))
-  cluster_markers4$gene <- unlist(strsplit(cluster_markers4$X, "...[0-9]+$"))
+  cluster_markers3$gene <- sapply(strsplit(
+                            cluster_markers3$X,split = "...", fixed = TRUE), function(x) x[1] )
+  cluster_markers4$gene <- sapply(strsplit(
+                            cluster_markers4$X,split = "...", fixed = TRUE), function(x) x[1] )
   
   cluster_markers3$X <- NULL
   cluster_markers4$X <- NULL
@@ -333,8 +335,6 @@ cluster_markers3 <- meanExpressionPerCluster(
   idents = cluster_res03
 )
 MAPlot(cluster_markers3, p_val_cols, cluster_res03, avg_exp_threshold)
-# ggsave(file.path(figs_dir_path, paste0(cluster_res03,"_MAPlot.tiff")),
-      # plot = p, units="in", width=size*2.5, height=size*2.5, dpi=300, compression = 'lzw')
 
 cluster_markers4 <- meanExpressionPerCluster(
   seurat.object = seurat.obj,
@@ -342,8 +342,6 @@ cluster_markers4 <- meanExpressionPerCluster(
   idents = cluster_res04
 )
 MAPlot(cluster_markers4, p_val_cols, cluster_res04,avg_exp_threshold)
-# ggsave(file.path(figs_dir_path, paste0(cluster_res04,"_MAPlot.tiff")),
-#       plot = p, units="in", width=size*2.5, height=size*2.5, dpi=300, compression = 'lzw')
 
 #### ===================================================================== ####
 #### Create Heatmap ####
@@ -361,18 +359,22 @@ MAPlot(cluster_markers4, p_val_cols, cluster_res04,avg_exp_threshold)
 #   return(p)
 # }
 
-# Filter out genes <1 log2FC & p-val.bonf >= 0.01 
+# Filter out genes p-val.bonf >= 0.01 
 print(dim(cluster_markers3))
 cluster_markers3 <- cluster_markers3 %>% 
-  filter((avg_log2FC > 1 | avg_log2FC < -1) & p_val.bonf < 0.01 )
+  # filter((avg_log2FC > 1 | avg_log2FC < -1) & p_val.bonf < 0.01 )
+  filter(p_val.bonf < 0.01 )
 print(dim(cluster_markers3))
-write.csv(cluster_markers3, file.path(figs_dir_path, paste0(cluster_res03,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
+# write.csv(cluster_markers3, file.path(figs_dir_path, paste0(cluster_res03,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
+write.csv(cluster_markers3, file.path(figs_dir_path, paste0(cluster_res03,"_padj0.01_DEG.csv")), row.names=FALSE)
 
 print(dim(cluster_markers4))
 cluster_markers4 <- cluster_markers4 %>% 
-  filter((avg_log2FC > 1 | avg_log2FC < -1) & p_val.bonf < 0.01)
+  # filter((avg_log2FC > 1 | avg_log2FC < -1) & p_val.bonf < 0.01)
+  filter(p_val.bonf < 0.01)
 print(dim(cluster_markers4))
-write.csv(cluster_markers4, file.path(figs_dir_path, paste0(cluster_res04,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
+# write.csv(cluster_markers4, file.path(figs_dir_path, paste0(cluster_res04,"_log2FC1_padj0.01_DEG.csv")), row.names=FALSE)
+write.csv(cluster_markers4, file.path(figs_dir_path, paste0(cluster_res04,"_padj0.01_DEG.csv")), row.names=FALSE)
 
 # p <- Heatmapplot(seurat.obj, cluster_markers3, cluster_res03)
 # ggsave(file.path(figs_dir_path, paste0( cluster_res03,"_heatmap.tiff")),

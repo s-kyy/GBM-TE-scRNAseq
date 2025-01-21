@@ -49,8 +49,11 @@ library(Seurat)
 library(Matrix)
 library(ggplot2)
 library(tidyverse) 
+library(dplyr)
 
-set.seed(108)
+options(warn=1) # print warning messages as they occur
+
+set.seed(108, kind = "L'Ecuyer-CMRG")
 options(warn=1) #print warning messages as they occur
 
 #### =========================================== ####
@@ -121,6 +124,9 @@ meta$log10GenesPerUMI <- log10(meta$nFeature_RNA) / log10(meta$nCount_RNA)
 meta$mitoRatio <- PercentageFeatureSet(object = seurat_obj_new, pattern = "^MT-")
 meta$mitoRatio <- meta$mitoRatio / 100
 
+# Correct dataframe output of PercentageFeatureSet
+if (class(meta$mitoRatio) == "data.frame") { meta$mitoRatio <- meta$mitoRatio[,1] } 
+
 # rename nCount_RNA and nFeature_RNA colnames
 meta <- meta %>% 
   dplyr::rename(
@@ -146,6 +152,7 @@ print(paste("unique samples to split by:", unique(seurat_obj$sample)))
 obj_list <- SplitObject(seurat_obj, split.by="sample")
 print(paste("Length of list", length(obj_list)))
 rm("seurat_obj")
+gc()
 
 #### ===================================================================== ####
 #### Normalize the RNA reads per tumor sample via Log Normalization method ####
@@ -191,6 +198,8 @@ obj_anchors <- FindIntegrationAnchors(
 seurat_obj <- IntegrateData(anchorset = obj_anchors, dims=1:ndims)
 # saveRDS(seurat_obj, file = file.path(subdir, paste0(filename, "_int.rds")) )
 print("Integration Complete")
+rm("obj_anchors")
+gc()
 
 ## ========================================= ##
 ## Scale and Reduce Dimensionality without regression ##
@@ -286,7 +295,7 @@ print("Exported UMAP by sample")
 seurat_obj <- FindNeighbors(seurat_obj,dims=1:min_pc,reduction="pca")
 seurat_obj <- FindClusters(seurat_obj, resolution = res1)
 seurat_obj <- FindClusters(seurat_obj, resolution = res2)
-cat("KNN clustering complete. Saved seurat objects to", subdir,"\n")
+print(paste("KNN clustering complete. Saved seurat objects to", subdir))
 
 #### =========================================== ####
 #### Find unique markers per cluster ####
@@ -319,7 +328,6 @@ markers <- FindAllMarkers(
   min.pct = 0.25, 
   logfc.threshold = 0.1)
 write.csv(markers, file = file.path(subdir, paste0(filename, "_markers_",res2,".csv")), row.names=TRUE)
-rm("markers")
 
 #### End of Script
 sessionInfo()

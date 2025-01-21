@@ -121,10 +121,10 @@ Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_gte_qc_integrated_uma
 Generate UMAPs colouring cells based on expression level of known celltype markers per cluster to identify cell type annotations. 
 
 ```bash
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_clustered.rds" ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_markers_0.3.csv" ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_markers_0.4.csv" *>gbm_ge_umap_celltypes_figs_dec03.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_clustered.rds" ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_markers_0.3.csv" ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_markers_0.4.csv" *>gbm_gte_umap_celltypes_figs_dec03.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_clustered.rds" ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_markers_0.3.csv" ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_markers_0.4.csv" *>healthy_ge_umap_celltypes_figs_dec03.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_clustered.rds" ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.3.csv" ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.4.csv" *>healthy_gte_umap_celltypes_figs_dec03.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_clustered.rds" ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_markers_0.3.csv" ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_markers_0.4.csv" *>gbm_ge_umap_celltypes_figs_dec03.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_clustered.rds" ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_markers_0.3.csv" ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_markers_0.4.csv" *>gbm_gte_umap_celltypes_figs_dec03.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_clustered.rds" ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_markers_0.3.csv" ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_markers_0.4.csv" *>healthy_ge_umap_celltypes_figs_dec03.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_clustered.rds" ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.3.csv" ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.4.csv" *>healthy_gte_umap_celltypes_figs_dec03.out
 ```
 
 ### Filter RBCs and Doublets `3.2-finddoublets.R` & `3.3-filterdoublets.R`
@@ -149,27 +149,57 @@ library(remotes)
 remotes::install_github(repo='chris-mcginnis-ucsf/DoubletFinder', ref = remotes::github_pull(176))
 ```
 
-Once doublets are annotated and completed, run `3.3-filterdoublets.R` script to remove and reprocess doublets, then run `3.4-finddoublets_validate.R` to generate summary tables and figures. Alternatively, `3.2-finddoublets.sh` and `3.3-filterdoublets.sh` bash scripts run `3.2-finddoublets.R` and `3.3-filterdoublets.R` scripts as slurm jobs, respectively. Also ran `2-clusteranalysis.R` to create figures on newly integrated and clsutered seurat objects. 
+Once doublets are annotated and completed, `3.3-filterdoublets.R` script can be run to remove annotated doublets and repreprocess. 
 
+#### (Test) Filtering of Dead Cells `3.5-filterDeadCells_gbm.R` with `3.5-filterDeadCells_gbm.sh`
+
+Cluster 12 of GBM_GE object had elevated expression level of MALAT1, mitochondrial genes. We suspected it was a cluster of dead or hypoxic cells. They were filtered out with `3.5-filterDeadCells_gbm.R` with `3.5-filterDeadCells_gbm.sh` (not provided)  then re-integrated and reprocessed with `3.6-reintegrate-recluster_nia.R` and `3.6-re-int_niagara_*.sh` with the Seurat workflow as in [RBC and doublet filtering steps](#filter-rbcs-and-doublets-32-finddoubletsr--33-filterdoubletsr). 
+
+- Genes expressed in less than 10 individual cells then re-integrated and prepocessed for further analysis. 
+- Scaled data matrix was exported in a seperate object. 
+- A higher resolution was used in FindClusters method (i.e. 0.5 and 0.6). 
+- Alternatively, to run on cedar use scripts: `3.6-reintegrate_recluster.R` with `3.6-re-int_cedar.sh`
+
+Results: clustering was less defined and a new hypoxic cluster was generated, suggesting that this cluster is inherent to the tumour dataset. Filter of dead cells was not retained for further analysis. 
+
+#### Removal of lowly expressed genes `3.6-reintegrate-recluster_nia.R` and `3.6-re-int_niagara_*.sh`
+
+- Genes expressed in less than 10 individual cells then re-integrated and prepocessed for further analysis. 
+- Scaled data matrix was exported in a seperate object. 
+- A higher resolution was used in FindClusters method (i.e. 0.5 and 0.6). 
+- Alternatively, to run on cedar use scripts: `3.6-reintegrate_recluster.R` with `3.6-re-int_cedar.sh`
 
 ### Cell Type Annotation 
 
-`3.4-finddoublets_validation.R` - generates UMAPs colouring cells by known cell markers, DotPlots of cells against known marker gene expression and exports CSVs for number of cells per sample and per cluster to generate corresponding barplots. 
+Run `2-clusteranalysis.R` and `3.4-finddoublets_validate.R` to generate summary tables (by sample or cluster) and figures. 
 
-`3.5-filterDeadCells_gbm.R` with `3.5-filterDeadCells_gbm.sh`- Cluster 12 of GBM_GE object had elevated MALAT1 and mitochondrial gene expression. They were filtered out then re-integrated and reprocessed (`3.6-reintegrate-recluster.R` with `3.6-filterDeadCells_gbm_re-int.sh`) with the Seurat workflow as in [RBC and doublet filtering steps](#filter-rbcs-and-doublets-32-finddoubletsr--33-filterdoubletsr). Scaled data matrix was exported in a seperate object. Resolutions 0.3 and 0.4 values for the FindClusters method. 
+- UMAPs colouring cells by known cell markers
+- DotPlots of cells against known marker gene expression and exports CSVs for number of cells per sample and per cluster to generate corresponding barplots. 
+
+Then run `3.7-celltypeannotation.R` with `3.7-celltypeannotation.sh` to annotate clusters by cell type and create corresponding figures. 
 
 ```bash
-## cluster analysis - post filtDC (resolution 0.5, 0.6)
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250110_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_ge_filtDC_int.rds" ".\20250110_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_ge_filtDC_markers_0.5.csv" ".\20250110_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_ge_filtDC_markers_0.6.csv" figs_clusteranalysis_ge integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_ge_filtDC_2figs0506_jan10.out
+## cluster analysis - post QC, filtRBC, filtDF (resolution 0.5, 0.6)
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_ge_logFCall integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_ge_filtDC_2figs0506_jan20.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250110_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_gte_filtDC_int.rds" ".\20250110_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_gte_filtDC_markers_0.5.csv" ".\20250110_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_gte_filtDC_markers_0.6.csv" figs_clusteranalysis_gte integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_gte_filtDC_2figs0506_jan10.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_gte_logFCall integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_gte_filtDC_2figs0506_jan20.out
 
-## cell type validation - post filtDC (resolution 0.5, 0.6)
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250110_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_ge_filtDC_int.rds" figs_validatecelltypes_ge_res05 integrated_snn_res.0.5 *>gbm_ge_filtDC_34figs05_jan10.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250110_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_gte_filtDC_int.rds" figs_validatecelltypes_gte_res05 integrated_snn_res.0.5 *>gbm_gte_filtDC_34figs05_jan10.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_ge integrated_snn_res.0.5 integrated_snn_res.0.6 *>healthy_ge_filtDC_2figs0506_jan15.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250110_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_ge_filtDC_int.rds" figs_validatecelltypes_ge_res06 integrated_snn_res.0.6 *>gbm_ge_filtDC_34figs06_jan10.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250110_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster_filtDC\gbm_gte_filtDC_int.rds" figs_validatecelltypes_gte_res06 integrated_snn_res.0.6 *>gbm_gte_filtDC_34figs06_jan10.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_gte integrated_snn_res.0.5 integrated_snn_res.0.6 *>healthy_gte_filtDC_2figs0506_jan15.out
+
+## cell type validation - post QC, filtRBC, filtDF (resolution 0.5, 0.6)
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res05 integrated_snn_res.0.5 *>gbm_ge_filtDC_34figs05_jan20.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res06 integrated_snn_res.0.6 *>gbm_ge_filtDC_34figs06_jan20.out
+
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res05 integrated_snn_res.0.5 *>gbm_gte_filtDC_34figs05_jan20.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res06 integrated_snn_res.0.6 *>gbm_gte_filtDC_34figs06_jan20.out
+
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res05 integrated_snn_res.0.5 *>healthy_ge_filtDC_34figs05_jan16.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res06 integrated_snn_res.0.6 *>healthy_ge_filtDC_34figs06_jan16.out
+
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res05 integrated_snn_res.0.5 *>healthy_gte_filtDC_34figs05_jan16.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res06 integrated_snn_res.0.6 *>healthy_gte_filtDC_34figs06_jan16.out
 ```
 
 `3.6-celltype annotations` 
@@ -178,6 +208,7 @@ Once doublets are annotated and completed, run `3.3-filterdoublets.R` script to 
 ### `-cnvanalysis.R`
 
 Install inferCNV with JAGS as a requirement. 
+
 ```R
 library(BiocManager) # v3.14
 BiocManager::install("infercnv") #v1.10.1

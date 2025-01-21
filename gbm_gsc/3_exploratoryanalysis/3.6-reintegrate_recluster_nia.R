@@ -140,6 +140,9 @@ meta$log10GenesPerUMI <- log10(meta$nFeature_RNA) / log10(meta$nCount_RNA)
 meta$mitoRatio <- PercentageFeatureSet(object = seurat_obj_new, pattern = "^MT-")
 meta$mitoRatio <- meta$mitoRatio / 100
 
+# Correct dataframe output of PercentageFeatureSet
+if (class(meta$mitoRatio) == "data.frame") { meta$mitoRatio <- meta$mitoRatio[,1] } 
+
 # rename nCount_RNA and nFeature_RNA colnames
 meta <- meta %>% 
   dplyr::rename(
@@ -344,6 +347,7 @@ print(paste("KNN clustering complete. Saved seurat objects to", subdir))
 ## Use normalized counts for DGE (Luecken & Theis 2019)
 DefaultAssay(seurat_obj) <- "RNA" 
 
+# Use normalized counts to perform differential gene analysis
 seurat_obj <- NormalizeData(seurat_obj, verbose = FALSE) # default: LogNormalize
 saveRDS(seurat_obj, file = file.path(subdir, paste0(filename, "_int.rds")))
 
