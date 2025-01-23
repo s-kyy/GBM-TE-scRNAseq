@@ -113,10 +113,10 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
 }
 
 level_celltypes <- c(
-  "NPC",
+  "NPC (+TNC)",
+  "NPC (-TNC)",
   "Progenitor",
   "Outer Radial Glia",
-  "Neuron", 
   "Ex. Neuron",
   "Ex. Neuron-NEUROD6",
   "In. Neuron",
@@ -133,12 +133,13 @@ level_celltypes <- c(
   "Oligodendrocyte", 
   "Microglia", 
   "Immune",
+  "Neuron", 
   "Endothelia",
   "Tumour Endothelia",
   "Purkinje",
-  "Cycling (uncontrolled)", 
   "Cycling G1.S", 
   "Cycling G2.M",
+  "Cycling (uncontrolled)", 
   "Dying Cell", # necrosis, cell death, unhealthy cells from the center of a tumor. high MALAT1
   "Unknown"
 )
@@ -232,9 +233,8 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
 
   known_markers <- c(
     'VIM','EGFR', # NPC
-    'HOPX','TNC','FAM107A','LIFR','PAX6', # RG
-    'STMN2','DCX', # 'NEUROD6', # MATURING/DEVELOPING NEURONS
-    'NRN1','HILPDA','VEGFA','NDRG1', # HYPOXIC/ NEURONAL STRESS (Neuron)
+    'NRN1','HILPDA','VEGFA','NDRG1', # HYPOXIC/ NEURONAL STRESS 
+    'HOPX','TNC','FAM107A','LIFR', # RG
     'AQP4','GFAP','SLC1A2','SLC1A3', # ASTROCYTE
     'OLIG1','OLIG2','SOX2', # PRE-OPC
     'PDGFRA','NES','HES6','DLL3', # OPC-EARLY : OLIG2
@@ -243,6 +243,7 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
     'C1QC', 'CX3CR1','PTPRC', # MG
     'CD27', 'CD79A', 'IGKC', 'IGHM', #B-cell
     'CD3D', 'CD3G', # T-cell
+    'STMN2','DCX','PAX6', # 'NEUROD6', # MATURING/DEVELOPING NEURONS
     'CLDN5', 'PECAM1', 'VWF', # ENDOTHELIAL
     'CD248','LUM', 'RGS5','PDGFRB', # ENDO. TUMOUR
     'MCM7', 'PCNA','MKI67','TOP2A', # proliferating cells
@@ -251,11 +252,11 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
   
   # GE
   celltypes <- c(
-    '0' = "NPC",
+    '0' = "NPC (+TNC)",
     '1' = "OPC Early",
     '2' = "Astroglial", 
     '3' = "Astroglial",
-    '4' = "Neurons (hypoxic)",
+    '4' = "NPC (-TNC)",#"Neurons (hypoxic)",
     '5' = "Microglia", 
     '6' = "Cycling G1.S", 
     '7' = "Cycling (uncontrolled)", 
