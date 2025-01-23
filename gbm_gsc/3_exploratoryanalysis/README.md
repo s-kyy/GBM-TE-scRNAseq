@@ -179,7 +179,7 @@ Run `2-clusteranalysis.R` and `3.4-finddoublets_validate.R` to generate summary 
 Then run `3.7-celltypeannotation.R` with `3.7-celltypeannotation.sh` to annotate clusters by cell type and create corresponding figures. 
 
 ```bash
-## cluster analysis - post QC, filtRBC, filtDF (resolution 0.5, 0.6)
+### cluster analysis - post QC, filtRBC, filtDF (resolution 0.5, 0.6)
 & 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_ge_logFCall integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_ge_filtDC_2figs0506_jan20.out
 
 & 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_gte_logFCall integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_gte_filtDC_2figs0506_jan20.out
@@ -188,7 +188,7 @@ Then run `3.7-celltypeannotation.R` with `3.7-celltypeannotation.sh` to annotate
 
 & 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_gte integrated_snn_res.0.5 integrated_snn_res.0.6 *>healthy_gte_filtDC_2figs0506_jan15.out
 
-## cell type validation - post QC, filtRBC, filtDF (resolution 0.5, 0.6)
+### cell type validation - post QC, filtRBC, filtDF (resolution 0.5, 0.6)
 & 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res05 integrated_snn_res.0.5 *>gbm_ge_filtDC_34figs05_jan20.out
 & 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res06 integrated_snn_res.0.6 *>gbm_ge_filtDC_34figs06_jan20.out
 
@@ -200,56 +200,31 @@ Then run `3.7-celltypeannotation.R` with `3.7-celltypeannotation.sh` to annotate
 
 & 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res05 integrated_snn_res.0.5 *>healthy_gte_filtDC_34figs05_jan16.out
 & 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res06 integrated_snn_res.0.6 *>healthy_gte_filtDC_34figs06_jan16.out
+
+### cell type annotation
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.7-celltypeannotation.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_celltype_anno06 integrated_snn_res.0.6 int06_celltypes *>gbm_ge_gte_filtDC_37celltypeanno06_jan22.out
+
 ```
 
-`3.6-celltype annotations` 
 
-
-### `-cnvanalysis.R`
+### `4-cnvanalysis.R`
 
 Install inferCNV with JAGS as a requirement. 
 
-```R
-library(BiocManager) # v3.14
-BiocManager::install("infercnv") #v1.10.1
-```
+Cedar Environment:
 
-Environment:
 ```bash
 module load StdEnv/2020
 module load jags/4.3.2
 module load r/4.1.0
 ```
 
-### `4-cnvanalysis.R`
-
-Install CONICSmat (standalone software) and related requirements ([Müller et al., 2018](https://academic.oup.com/bioinformatics/article/34/18/3217/4979546?login=false)). Add paths to required software in `CONICS.cfg`. 
-
-https://github.com/Neurosurgery-Brain-Tumor-Center-DiazLab/CONICS/wiki/Tutorial---CONICSmat;---Dataset:-SmartSeq2-scRNA-seq-of-Oligodendroglioma
-
-```
-module load StdEnv/2020
-module load python/3.10.2
-module load perl/5.30.2
-module load samtools/1.17
-module load bedtools/2.30.0
-```
-```
-beanplotv1.3.1 (2022-04-09) - https://www.rdocumentation.org/packages/beanplot/versions/1.3.1
-- Miktex (pdflatex in PATH)
-- qpdf (qpdf present in PATH)
-- Ghostscript in PATH
-- pandoc
+```R
+library(BiocManager) # v3.14
+BiocManager::install("infercnv") #v1.10.1 (if on Niagara/ using seperate R libs, add `force=TRUE`)
 ```
 
-```
-path_to_python="python"
-path_to_samtools="samtools"
-path_to_bedtools="bedtools"
-path_to_rscript="Rscript"
-path_to_bamreadcount="bam-readcount"
-mappingCutoff=40
-readCutoff=50000
-fdrCutoff=0.05
-genome="/path/to/genome.fa"
-```
+### Gene Ontology Analysis (GO) - validate celltypes
+
+### Gene Set Enrichment Analysis (GSEA) - GBM subtype analysis. 
+
