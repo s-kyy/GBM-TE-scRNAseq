@@ -241,8 +241,11 @@ meanExpressionPerCluster <- function(seurat.object, cluster_df, idents) {
 
   avg_exp_df <- as.data.frame(avg_exp_df$RNA)
   avg_exp_df <- rownames_to_column(avg_exp_df, var = "gene")
-  avg_exp_df <- melt(avg_exp_df, value.name="avg.exp", variable.name="cluster")
+  # melt columns of clusters to one column with cluster labels
+  avg_exp_df <- melt(avg_exp_df, value.name="avg.exp", variable.name="cluster") 
   avg_exp_df$cluster <- as.numeric(as.character(avg_exp_df$cluster))
+  
+  # add average expression dataframe to cluster_df
   cluster_df <- left_join(x = cluster_df, y = avg_exp_df, 
                           by = c("cluster", "gene"))
   cluster_df$p_val.bonf <- p.adjust(cluster_df$p_val, 

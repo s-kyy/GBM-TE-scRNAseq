@@ -102,7 +102,7 @@ infercnv_obj <- CreateInfercnvObject(
   annotations_file= cell_annotations_path,
   gene_order_file=gene_annotations_path,
   delim="\t",
-  ref_group_names=c("Immune","Oligodendrocyte", "Endothelia", 'Microglia')
+  ref_group_names=c("Immune","Oligodendrocyte", "Endothelia") #'Microglia' (removed as reference after preliminary run)
 ) 
 
 future::plan(multisession, workers = threads)
@@ -114,7 +114,6 @@ infercnv_obj <- infercnv::run(
   cutoff=0.1,  # cutoff=1 (Smart-seq2), cutoff=0.1 (10x Genomics)
   window_length=101, #default=101
   min_cells_per_gene=10, #Bhaduri et al. 2020 
-  # num_ref_groups=
   cluster_by_groups=TRUE, 
   denoise=TRUE,
   HMM=TRUE, HMM_type="i6", 

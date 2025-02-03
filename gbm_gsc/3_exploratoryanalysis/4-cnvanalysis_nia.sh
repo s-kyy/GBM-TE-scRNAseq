@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=5:00:00
+#SBATCH --time=8:00:00
 #SBATCH --account=xxx
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=40
@@ -20,7 +20,3 @@ echo "$(pwd)" #gbm_gsc/3_exploratoryanalysis
 if [[ $SLURM_ARRAY_TASK_ID == 0 ]] ; then
 Rscript --vanilla ./4-cnvanalysis.R ./20250117_gbm_ge_filtDf_cluster/gbm_ge_celltypes.rds ../data/refdata-gex-GRCh38-2020-A/genes/gene_annotations.gtf int06_celltypes 6 >0122_gbm_ge_cnv.out 2>&1
 fi
-
-# if [[ $SLURM_ARRAY_TASK_ID == 1 ]] ; then
-# Rscript --vanilla ./4-cnvanalysis.R ./20250117_gbm_gte_filtDf_cluster/gbm_ge_celltypes.rds ../data/refdata-gex-GRCh38-2020-A/genes/gene_annotations.gtf int06_celltype 6 >0122_gbm_gte_cnv.out 2>&1
-# fi

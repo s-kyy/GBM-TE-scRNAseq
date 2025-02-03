@@ -115,10 +115,11 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
 level_celltypes <- c(
   "NPC (+TNC)",
   "NPC (-TNC)",
-  "Progenitor",
   "Outer Radial Glia",
   "Ex. Neuron",
   "Ex. Neuron-NEUROD6",
+  "Ex. Neuron-SATB2",
+  "Ex. Neuron-Signaling",
   "In. Neuron",
   "In. Neuron-TP53I11",
   "In. Neuron-BCL11B",
@@ -140,7 +141,7 @@ level_celltypes <- c(
   "Cycling G1.S", 
   "Cycling G2.M",
   "Cycling (uncontrolled)", 
-  "Dying Cell", # necrosis, cell death, unhealthy cells from the center of a tumor. high MALAT1
+  "Dying Cell", # high MALAT1
   "Unknown"
 )
 
@@ -159,6 +160,8 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
   known_markers <- c(
     'SLC17A7','STMN2','NRN1',# excitatory neurons 
     'NEUROD6', #Ex. neuron (NeuroD6) 
+    'SATB2', # Ex. neuron (NeuroD6) 
+    'ENC1','TESPA1','GRIA2','GRIA4','HOPX', # Signaling neurons (+MEG3,+FAM153CP )
     'GAD1','DLX1','LHX6', # inhibitory neurons 
     'TP53I11', # in. neuron (TP53I11)
     'BCL11B', # in. neuron (BCL11B)
@@ -168,7 +171,6 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
     'APOD','MBP', 'MAG', 'MOG','CRYAB', # oligodendrocytes
     'C1QC', 'CX3CR1','PTPRC', # microglia
     'CLDN5', 'PECAM1', 'VWF','MUSTN1','VIM','RPS6', # endothelial
-    'HOPX','SATB2', #4,5 progenitor
     'PCP4' # Purkinje (motor neuron)
   )
 
@@ -178,8 +180,8 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
     '1' = "Astrocyte", 
     '2' = "Ex. Neuron",
     '3' = "OPC Late",
-    '4' = "Progenitor",
-    '5' = "Progenitor",
+    '4' = "Ex. Neuron-Signaling",#"Progenitor",
+    '5' = "Ex. Neuron-Signaling",#"Progenitor",
     '6' = "Ex. Neuron",
     '7' = "In. Neuron",
     '8' = "Ex. Neuron-NEUROD6",
@@ -195,7 +197,7 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
     '18' = "In. Neuron-BCL11B",
     '19' = "Ex. Neuron-NEUROD6",
     '20' = "Microglia",
-    '21' = "Unknown",
+    '21' = "Ex. Neuron-SATB2",
     '22' = "PVALB Interneuron",
     '23' = "Purkinje",
     '24' = "PVALB Interneuron",
@@ -226,7 +228,7 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
                                 col.name = cluster_col)
   # save rds
   saveRDS(seurat_obj_ge, file = file.path(subdir, paste0("healthy_ge_celltypes.rds")))
-  saveRDS(seurat_obj_gte, file = file.path(subdir, paste0("healthy_gte_celltypes.rds")))
+  saveRDS(seurat_obj_gte, file = file.path(subdir_2, paste0("healthy_gte_celltypes.rds")))
 
 # GBM
 } else if (grepl("gbm", subdir, fixed = TRUE)) {
@@ -247,7 +249,7 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
     'CLDN5', 'PECAM1', 'VWF', # ENDOTHELIAL
     'CD248','LUM', 'RGS5','PDGFRB', # ENDO. TUMOUR
     'MCM7', 'PCNA','MKI67','TOP2A', # proliferating cells
-    'MALAT1' #DEAD 
+    'MALAT1' #Unknown
   )
   
   # GE
@@ -266,7 +268,7 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
     '11' = "Cycling G2.M",
     '12' = "Oligodendrocyte", 
     '13' = "Immune",
-    '14' = "Dying Cell", # necrosis, cell death, unhealthy cells from the center of a tumor. high MALAT1
+    '14' = "Unknown", # high MALAT1
     '15' = "OPC Late",
     '16' = "Outer Radial Glia",
     '17' = "Endothelia",
@@ -316,7 +318,7 @@ p <- DotPlot(seurat_obj_ge, features = rev(unique(known_markers[condition]))) + 
       xlab("") + ylab("Cell Types") + coord_flip() + 
       theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))
 ggsave(file.path(figs_dir_path, paste0("celltypeXuniqueMarkers_DotPlot",cluster_col,".tiff")),
-    plot = p, units="in", width=size*1.5, height=size*1.7, dpi=300, compression = 'lzw')
+    plot = p, units="in", width=size*1.6, height=size*1.7, dpi=300, compression = 'lzw')
 
 DefaultAssay(seurat_obj_gte) <- "RNA"
 Idents(seurat_obj_gte) <- cluster_col
@@ -328,7 +330,7 @@ p <- DotPlot(seurat_obj_gte, features = rev(unique(known_markers[condition]))) +
       xlab("") + ylab("Cell Types") + coord_flip() + 
       theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))
 ggsave(file.path(figs_dir_path_2, paste0("celltypeXuniqueMarkers_DotPlot",cluster_col,".tiff")),
-    plot = p, units="in", width=size*1.5, height=size*1.7, dpi=300, compression = 'lzw')
+    plot = p, units="in", width=size*1.6, height=size*1.7, dpi=300, compression = 'lzw')
 
 
 #### =========================================== ####
