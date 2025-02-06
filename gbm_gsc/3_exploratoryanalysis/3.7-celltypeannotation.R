@@ -815,6 +815,18 @@ if (grepl("gbm", subdir, fixed = TRUE)) {
     grouped_counts_table <- cbind(grouped_counts_table, prop.table(grouped_counts_table, margin=1)*100)
     return(grouped_counts_table)
   }
+
+  stats_df <- seurat_obj_ge@meta.data %>% 
+    group_by(integrated_snn_res.0.6) %>% 
+    summarise(mean.s = mean(S.Score), sd.s = sd(S.Score), 
+              mean.g2m = mean(G2M.Score), sd.g2m = sd(G2M.Score), .groups = "drop")
+
+  grouped_counts_table <- calcProportions(seurat_obj_ge@meta.data, 'integrated_snn_res.0.6','Phase')
+  summary_df <- as.data.frame.matrix(grouped_counts_table)
+  colnames(summary_df) <- c("ncells.G1", "ncells.G2M", "ncells.S", "perc.G1", "perc.G2M", "perc.S")
+  write.csv(cbind(stats_df, summary_df),file.path(figs_dir_path,"cellcyclescore_summarystats.csv"), row.names = FALSE)
+  write.csv(cbind(stats_df, summary_df),file.path(figs_dir_path_2,"cellcyclescore_summarystats.csv"), row.names = FALSE)
+
   print("Exporting summary csvs for gsc and org labeled cells GE")
   write.csv(calcProportions(seurat_obj_ge@meta.data, 'integrated_snn_res.0.6', 'gsc'), file.path(figs_dir_path, paste0("summary_gsc_res0.6VSgsc.csv")))
   write.csv(calcProportions(seurat_obj_ge@meta.data, 'integrated_snn_res.0.6','oRG'), file.path(figs_dir_path, paste0("summary_gsc_res0.6VSoRG.csv")))
