@@ -1,6 +1,25 @@
 # Seurat Clustering and Exploratory Analysis
 
-### Requirements
+**Table of Contents**
+- [Software Requirements](#software-requirements)
+  - [Installation tips for monocle3 (v1.0.0) on RHEL/CENTOS7 cluster environment](#installation-tips-for-monocle3-v100-on-rhelcentos7-cluster-environment)
+- [Dimensionality Reduction with `1-pca_cluster.R`](#dimensionality-reduction-with-1-pca_clusterr)
+- [Cluster Analysis with `2-clusteranalysis.R`](#cluster-analysis-with-2-clusteranalysisr)
+- [Exploring Cell types with `3-celltypeanalysis.R` (Preliminary)](#exploring-cell-types-with-3-celltypeanalysisr-preliminary)
+- [Filter RBCs and Doublets with `3.2-finddoublets.R` \& `3.3-filterdoublets.R`](#filter-rbcs-and-doublets-with-32-finddoubletsr--33-filterdoubletsr)
+    - [(Test) Filtering of Dead Cells `3.5-filterDeadCells_gbm.R` with `3.5-filterDeadCells_gbm.sh`](#test-filtering-of-dead-cells-35-filterdeadcells_gbmr-with-35-filterdeadcells_gbmsh)
+    - [Removal of lowly expressed genes `3.6-reintegrate-recluster_nia.R` and `3.6-re-int_niagara_*.sh`](#removal-of-lowly-expressed-genes-36-reintegrate-recluster_niar-and-36-re-int_niagara_sh)
+- [Cell Type Annotations with `3.7-celltypeannotation.R`](#cell-type-annotations-with-37-celltypeannotationr)
+- [Copy Number Analysis with `4-cnvanalysis.R`](#copy-number-analysis-with-4-cnvanalysisr)
+  - [Installation tips of inferCNV for r/4.1.0](#installation-tips-of-infercnv-for-r410)
+- [Gene Ontology Analysis (GO) - validate celltypes](#gene-ontology-analysis-go---validate-celltypes)
+- [Gene Set Enrichment Analysis (GSEA) - validate celltypes annotation GBM subtype.](#gene-set-enrichment-analysis-gsea---validate-celltypes-annotation-gbm-subtype)
+  - [A. Prepare Input for GSEA: expression tables](#a-prepare-input-for-gsea-expression-tables)
+  - [B. Prepare Input for GSEA: phenotype labels](#b-prepare-input-for-gsea-phenotype-labels)
+  - [C. Prepare Input for GSEA: Genesets](#c-prepare-input-for-gsea-genesets)
+  - [Workflow](#workflow)
+
+## Software Requirements
 
 - viridis 0.6.5
 - future 1.34.0
@@ -14,7 +33,7 @@
   - vctrs_0.3.8
 <!-- - ComplexHeatmap 2.14 -->
 
-#### Installing monocle3 on RHEL/CENTOS7 cluster environment
+### Installation tips for monocle3 (v1.0.0) on RHEL/CENTOS7 cluster environment
 
 Load software
 
@@ -25,7 +44,7 @@ module load CCEnv arch/avx2 StdEnv/2020 gcc/9.3.0 gdal/3.5.1 geos/3.10.2 r/4.0.2
 module load StdEnv/2020 gcc/9.3.0 gdal/3.5.1 geos/3.10.2 r/4.0.2
 ```
 
-Install packages in R
+Install packages in R v4.0.2
 
 ```R
 install.packages("devtools")
@@ -38,14 +57,15 @@ install.packages("https://cran.r-project.org/src/contrib/Archive/Matrix.utils/Ma
 devtools::install_github('cole-trapnell-lab/leidenbase') #v0.1.9
 remotes::install_version("matrixStats", version="0.58.0")
 
-### Install sf
 ### ensure gdalv3.5.1+, geos/3.10.2, udunits/2.2.28 are available (and ideally no other version available)
-###  Installation when multiple gdal versions are installed: https://github.com/r-spatial/sf/issues/844#issuecomment-653935662
+### Installation tips when multiple gdal versions are installed: https://github.com/r-spatial/sf/issues/844#issuecomment-653935662
 remotes::install_version("udunits2", version="0.13.2.1")
 remotes::install_version("units", version="0.8-5")
+
+### Install sf
+### last arguement is a quick fix for a bug in R that fails installation of sf library when multiple gdal versions are installed
+### Prior version: remotes::install_version("sf", version="0.3.2")
 remotes::install_version("sf", version = '1.0-19', args="--no-test-load") 
-  # last arguement is a quick fix for a bug in R that fails installation of sf library when multiple gdal versions are installed
-  # Prior version: remotes::install_version("sf", version="0.3.2")
 
 ### Install spdep
 remotes::install_version("spdep", version="1.1-8") 
@@ -53,7 +73,6 @@ remotes::install_version("spdep", version="1.1-8")
 ### Install monocle3
 devtools::install_github("cole-trapnell-lab/monocle3", ref="1.0.0")
   # OR 
-  # devtools::install_github('cole-trapnell-lab/monocle3') 
   # devtools::install_github("cole-trapnell-lab/monocle3", ref="v1.3.1")
 
 ### Close and re-open new R session
@@ -67,7 +86,7 @@ devtools::install_github('satijalab/seurat-wrappers', ref="8510069") # v0.3.0 # 
   # remotes::install_github('satijalab/seurat-wrappers@community-vignette') # v0.2.0
 ``` 
 
-### `1-pca_cluster.R` 
+## Dimensionality Reduction with `1-pca_cluster.R` 
 
 Takes one path as input with an optional output sample name. Outputs a seurat object after cell clustering and two CSVs with unique markers from each cell cluster at two resolutions (0.3 and 0.4). 
 
@@ -92,7 +111,7 @@ Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20210902_merged_qc_bhaduriGBM_
 # ./20210902_merged_qc_bhaduriGBM_wangGBM
 ```
 
-### `2-clusteranalysis.R`
+## Cluster Analysis with `2-clusteranalysis.R`
 
 Figures Generated: 
 
@@ -116,7 +135,7 @@ Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_ge_qc_integrated_umap
 Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_clustered.rds ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_markers_0.3.csv ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_markers_0.4.csv >healthy_gte_umap_figs.out 2>&1
 ```
 
-### `3-celltypeanalysis.R` (Preliminary)
+## Exploring Cell types with `3-celltypeanalysis.R` (Preliminary)
 
 Generate UMAPs colouring cells based on expression level of known celltype markers per cluster to identify cell type annotations. 
 
@@ -127,7 +146,7 @@ Generate UMAPs colouring cells based on expression level of known celltype marke
 & 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_clustered.rds" ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.3.csv" ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.4.csv" *>healthy_gte_umap_celltypes_figs_dec03.out
 ```
 
-### Filter RBCs and Doublets `3.2-finddoublets.R` & `3.3-filterdoublets.R`
+## Filter RBCs and Doublets with `3.2-finddoublets.R` & `3.3-filterdoublets.R`
 
 Red Blood cell gene expression was identified in step 3. 
 
@@ -169,7 +188,7 @@ Results: clustering was less defined and a new hypoxic cluster was generated, su
 - A higher resolution was used in FindClusters method (i.e. 0.5 and 0.6). 
 - Alternatively, to run on cedar use scripts: `3.6-reintegrate_recluster.R` with `3.6-re-int_cedar.sh`
 
-### Cell Type Annotation `3.7-celltypeannotation.R`
+## Cell Type Annotations with `3.7-celltypeannotation.R`
 
 Run `2-clusteranalysis.R` and `3.4-finddoublets_validate.R` to generate summary tables (by sample or cluster) and figures. 
 
@@ -202,33 +221,73 @@ Then run `3.7-celltypeannotation.R` to annotate clusters by cell type and create
 & 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res06 integrated_snn_res.0.6 *>healthy_gte_filtDC_34figs06_jan16.out
 
 ### cell type annotation
-& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.7-celltypeannotation.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_celltype_anno06 integrated_snn_res.0.6 int06_celltypes *>gbm_ge_gte_filtDC_37celltypeanno06_jan22.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.7-celltypeannotation.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" "meta\cellcycle_genes_tirosh2015.csv" figs_celltype_anno06 0.6 *>gbm_ge_gte_filtDC_37celltypeanno06_jan22.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\3.7-celltypeannotation.R ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" "meta\cellcycle_genes_tirosh2015.csv" figs_celltype_anno06 0.6 *>healthy_ge_gte_filtDC_37celltypeanno06_jan22.out
 
 ```
 
 
-### Copy Number Analysis `4-cnvanalysis.R`
+## Copy Number Analysis with `4-cnvanalysis.R`
 
-Install inferCNV with JAGS as a requirement. 
-
-Cedar Environment:
+Install inferCNV with JAGS and r4.1.0 as requirements. 
 
 ```bash
-module load StdEnv/2020
+module load CCEnv arch/avx2 StdEnv/2023  gcc/12.3 gdal/3.9.1 geos/3.12.0
+    # gdal 3.7.2 also works with this environment
 module load jags/4.3.2
-module load r/4.1.0
+module load r/4.4.0
+```
+
+```R
+# r/4.4.0 
+install.packages(BiocManager) # Bioconductor version 3.20 (BiocManager 1.30.25), R 4.4.0 (2024-04-24)
+install.packages(remotes)
+BiocManager::install("future") # future 1.34.0
+
+# Install Seurat https://satijalab.org/seurat/articles/install_v5.html
+remotes::install_version("SeuratObject", "4.1.4", repos = c("https://satijalab.r-universe.dev", getOption("repos")))
+remotes::install_version("Seurat", "4.4.0", repos = c("https://satijalab.r-universe.dev", getOption("repos")))
+
+# Install inferCNV
+BiocManager::install("infercnv") # 1.22.0
+```
+
+Run `4.1-ordergenes.sh` to extract genes from GRCh38 reference GTF file (or GTF file of choice) to the current folder
+
+```bash
+cd refdata-gex-GRCh38-2020-A/genes
+4.1-ordergenes.sh ./genes.gtf
+```
+
+The seurat object and file of ordered unique genes are used as input for inferCNV. `4-cnvanalysis_nia_r4.4.sh` can be used to runs inferCNV on Niagara with the `4-cnvanalysis.R` script. 
+
+### Installation tips of inferCNV for r/4.1.0 
+
+Note that this version of inferCNV does not work with subclustering analysis (incompatibility with r-reticulate where R is unable to properly find python packages unless python environment is written explicitly [#359](https://github.com/broadinstitute/infercnv/issues/359), [#512](https://github.com/broadinstitute/infercnv/issues/512))
+
+```bash
+# Environment setup in Niagara
+module load CCEnv arch/avx2 StdEnv/2020 gcc/9.3.0 gdal/3.5.1 geos/3.10.2 jags/4.3.2 r/4.1.0
+# Environment setup in Cedar
+module load StdEnv/2020 jags/4.3.2 r/4.1.0
 ```
 
 ```R
 library(BiocManager) # v3.14
 BiocManager::install("infercnv") #v1.10.1 
+# other attached packages:
+#  [1] sp_1.5-0           SeuratObject_4.1.0 future_1.26.1      infercnv_1.10.1   
+#  [5] forcats_0.5.1      stringr_1.4.0      dplyr_1.0.9        purrr_0.3.4       
+#  [9] readr_2.1.2        tidyr_1.2.0        tibble_3.1.7       tidyverse_1.3.1   
+# [13] ggplot2_3.3.6      Matrix_1.4-1       fs_1.5.2     
 ```
 
-### Gene Ontology Analysis (GO) - validate celltypes
 
-### Gene Set Enrichment Analysis (GSEA) - validate celltypes annotation GBM subtype.
+## Gene Ontology Analysis (GO) - validate celltypes
 
-#### A. Prepare Input for GSEA: expression tables
+## Gene Set Enrichment Analysis (GSEA) - validate celltypes annotation GBM subtype.
+
+### A. Prepare Input for GSEA: expression tables
 
 1. Run `meanofratios2.R` with `slurm_meanofratios.sh`
    - The script uses 2 functions: `cellnamesbycluster()` and `meanofratios()`. 
@@ -256,12 +315,12 @@ sed -i 's/\tNA\t/\tna\t/g' GE_table.gct
 sed -i 's/\tNA\t/\tna\t/g' GTE_table.gct
 ```
 
-#### B. Prepare Input for GSEA: phenotype labels
+### B. Prepare Input for GSEA: phenotype labels
 
 The phenotype label files were created manually. 
 Two `.csl` files were written to make sure the number of clusters matched the corresponding datasets.
 
-#### C. Prepare Input for GSEA: Genesets
+### C. Prepare Input for GSEA: Genesets
 
 - H collection: Hallmark gene sets 2015
 - C4 subcollection : Curated Cancer Cell Atlas (2023) with Weizmann [Brain | 3CA](https://www.weizmann.ac.il/sites/3CA/brain) 
@@ -275,7 +334,7 @@ c8.all.v2023.2.Hs.symbols_brain.gmt
 gbmsubtype_genesets.gmx
 ```
 
-## Workflow
+### Workflow
 
 - Run python script `6-apply_gsea4.py` with python3 and the same parameters as when I first performed GSEA analysis. Ensured the filepaths were written correctly.
 
