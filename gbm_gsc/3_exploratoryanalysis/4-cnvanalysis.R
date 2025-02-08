@@ -2,7 +2,7 @@
 
 # Inputs
 # Counts matrix 
-# cell annotation file = tab-delimited, no headers.
+# Cell annotation file = tab-delimited, no headers.
 # Columns: cell barcode, celltype
 # gene annotation file = tab-delimited, no headers. See `4.1-ordergenes.sh`
 # Columns: gene name, chromosome, and gene span
@@ -85,6 +85,7 @@ ifelse(!dir.exists(file.path(subdir)),
         "Directory Exists")
 
 # generate and export cell annotations file
+# Default label by Sample, then overwrite cells that will be used as reference cells. 
 cell_annotations_path <- file.path(subdir,"cell_annotations.txt")
 reference_celltypes <- c("Immune","Oligodendrocyte", "Endothelia", 'Microglia')
 cell_annotations <- seurat_obj@meta.data['sample']
@@ -105,8 +106,7 @@ write.table(cell_annotations, cell_annotations_path,
 #### =========================================== ####
 
 infercnv_obj <- CreateInfercnvObject(
-  raw_counts_matrix= seurat_obj@assays$RNA@counts[,colnames(seurat_obj)],
-                      # GetAssayData(seurat_obj, slot="counts", assay="RNA"),
+  raw_counts_matrix= seurat_obj@assays$RNA@counts[,colnames(seurat_obj)], # OR GetAssayData(seurat_obj, slot="counts", assay="RNA"),
   annotations_file= cell_annotations_path,
   gene_order_file=gene_annotations_path,
   delim="\t",
@@ -128,8 +128,7 @@ infercnv_obj <- infercnv::run(
   denoise=TRUE,
   analysis_mode = "subclusters",
   tumor_subcluster_partition_method = "leiden",
-  leiden_resolution = 0.005, #default auto (~0.05)
-  # up_to_step = 15,
+  leiden_resolution = 0.0005, #default auto (~0.05)
   HMM=TRUE, HMM_type="i6", 
   BayesMaxPNormal = 0.2,
   resume_mode=FALSE,
@@ -137,15 +136,12 @@ infercnv_obj <- infercnv::run(
   num_threads=threads #default=4
 )
 
-# Object is saved as run.final.infercnv.obj in the output directory.
-# saveRDS(infercnv_obj, file=file.path(subdir, paste0(filename,"_infercnv.rds")))
-
-# infercnv::plot_per_group(infercnv_obj,
-#   on_references = TRUE,
-#   on_observations = TRUE,
-#   sample = FAlSE,
-#   out_dir = subdir
-# )
+infercnv::plot_per_group(infercnv_obj,
+  on_references = TRUE,
+  on_observations = TRUE,
+  sample = FALSE,
+  out_dir = subdir
+)
 
 #### End of Script
 sessionInfo()

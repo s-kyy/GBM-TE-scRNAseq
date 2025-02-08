@@ -4,7 +4,6 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=40
 #SBATCH --partition=compute
-#SBATCH --array=0-1
 
 ## infercnv uses a significant amount of memory: 
 ## https://www.biorxiv.org/content/10.1101/2024.12.18.629083v1.full
@@ -17,10 +16,4 @@ module load r/4.4.0
 cd ~/scratch/runs/3_exploratoryanalysis
 echo "$(pwd)" #gbm_gsc/3_exploratoryanalysis
 
-if [[ $SLURM_ARRAY_TASK_ID == 0 ]] ; then
-Rscript --vanilla ./4-cnvanalysis.R ./20250117_gbm_ge_filtDf_cluster/gbm_ge_celltypes.rds ../data/refdata-gex-GRCh38-2020-A/genes/gene_annotations.txt int06_celltypes 5 >0205_4.4_gbm_ge_cnv_celltypes.out 2>&1
-fi
-
-if [[ $SLURM_ARRAY_TASK_ID == 1 ]] ; then
 Rscript --vanilla ./4-cnvanalysis.R ./20250117_gbm_ge_filtDf_cluster/gbm_ge_celltypes.rds ../data/refdata-gex-GRCh38-2020-A/genes/gene_annotations.txt int06_gsctypes 5 >0205_4.4_gbm_ge_cnv_gsctypes.out 2>&1
-fi

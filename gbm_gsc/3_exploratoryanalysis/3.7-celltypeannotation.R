@@ -62,6 +62,8 @@ library(tidyverse)
 library(dplyr)
 library(viridis)
 library(rlang)
+library(reshape2)
+library(car)
 
 library(conflicted)
 conflict_prefer("select", "dplyr") ## required in %>% dplyr
@@ -121,11 +123,6 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
 level_celltypes <- c(
   "NPC (+TNC)",
   "NPC (-TNC)",
-  "Outer Radial Glia",
-  "Outer Radial Glia Cycling",
-  "Outer Radial Glia Cycling G2/M",
-  "Outer Radial Glia S Phase",
-  "Outer Radial Glia G2/M Phase",
   "Ex. Neuron",
   "Ex. Neuron-NEUROD6",
   "Ex. Neuron-SATB2",
@@ -136,14 +133,20 @@ level_celltypes <- c(
   "PVALB Interneuron",
   "Astrocyte", 
   "Stressed Astrocyte",
+  "Outer Radial Glia",
+  "Outer Radial Glia Cycling",
+  "Outer Radial Glia Cycling G2/M",
+  "Outer Radial Glia S Phase",
+  "Outer Radial Glia G2/M Phase",
   "Pre-OPC", 
   "OPC Early",
+  "OPC S Phase",
   "OPC G1.S",
   "OPC Late",
   "Oligodendrocyte", 
   "Microglia", 
-  "Neuron",
   "Immune",
+  "Neuron",
   "Endothelia",
   "Tumour Endothelia",
   "Purkinje",
@@ -151,7 +154,6 @@ level_celltypes <- c(
   "Cycling G1.S",
   "Cycling (uncontrolled)",
   "Cycling G2/M",
-  "OPC S Phase",
   "G2/M Phase",
   "Dying Cell", # high MALAT1
   "Unknown"
@@ -356,7 +358,7 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
   seurat_obj_gte@meta.data$S.Score <- seurat_obj_ge@meta.data$S.Score
   seurat_obj_gte@meta.data$G2M.Score <- seurat_obj_ge@meta.data$G2M.Score
   seurat_obj_gte@meta.data$Phase <- seurat_obj_ge@meta.data$Phase
-  prop.table(table(seurat_obj_ge@meta.data[c('integrated_snn_res.0.6','Phase')]),margin=1)*100
+  prop.table(table(seurat_obj_ge@meta.data[c(cluster_res,'Phase')]),margin=1)*100
 
   # Label Cycling oRGs & GSCs
   meta <- seurat_obj_ge@meta.data
@@ -371,19 +373,30 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
   meta[[cluster_col_gsc]][which(meta[[cluster_res]] == '11' )]  <- "G2/M Phase"
 
   barcode_org <- colnames(org)
-  for (cell in barcode_org) {
-    if (meta[cell, cluster_res] == 6) { 
+  for (cell in barcode_org){
+    if (meta[cell, "Phase"] == "S" && meta[cell, "Phase"] == "G2M") {
       meta[cell, cluster_col_gsc] <- "Outer Radial Glia Cycling" 
-    } else if (meta[cell, cluster_res] == 7) {
-      meta[cell, cluster_col_gsc] <- "Outer Radial Glia Cycling G2/M" 
-    } else if (meta[cell, cluster_res] == 10) {
-      meta[cell, cluster_col_gsc] <- "Outer Radial Glia S Phase" 
-    } else if (meta[cell, cluster_res] == 11) {
-      meta[cell, cluster_col_gsc] <- "Outer Radial Glia G2/M Phase" 
+    } else if (meta[cell, "Phase"] == "S") {
+      meta[cell, cluster_col_gsc] <- "Outer Radial Glia S Phase"
+    } else if (meta[cell, "Phase"] == "G2M") {
+      meta[cell, cluster_col_gsc] <- "Outer Radial Glia G2/M Phase"
     } else {
       meta[cell, cluster_col_gsc] <- "Outer Radial Glia"
     }
   }
+  # for (cell in barcode_org) {
+  #   if (meta[cell, cluster_res] == 6) { 
+  #     meta[cell, cluster_col_gsc] <- "Outer Radial Glia Cycling" 
+  #   } else if (meta[cell, cluster_res] == 7) {
+  #     meta[cell, cluster_col_gsc] <- "Outer Radial Glia Cycling G2/M" 
+  #   } else if (meta[cell, cluster_res] == 10) {
+  #     meta[cell, cluster_col_gsc] <- "Outer Radial Glia S Phase" 
+  #   } else if (meta[cell, cluster_res] == 11) {
+  #     meta[cell, cluster_col_gsc] <- "Outer Radial Glia G2/M Phase" 
+  #   } else {
+  #     meta[cell, cluster_col_gsc] <- "Outer Radial Glia"
+  #   }
+  # }
   
   meta[[cluster_col_gsc]] <- factor(meta[[cluster_col_gsc]], levels = level_celltypes)
   meta[[cluster_col_gsc]] <- droplevels(meta[[cluster_col_gsc]])
@@ -392,8 +405,8 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
   seurat_obj_gte <- AddMetaData(seurat_obj_gte, meta[cluster_col_gsc], col.name = cluster_col_gsc)
 
   # save rds
-  # saveRDS(seurat_obj_ge, file = file.path(subdir, paste0("gbm_ge_celltypes.rds")))
-  # saveRDS(seurat_obj_gte, file = file.path(subdir_2, paste0("gbm_gte_celltypes.rds")))
+  saveRDS(seurat_obj_ge, file = file.path(subdir, paste0("gbm_ge_celltypes.rds")))
+  saveRDS(seurat_obj_gte, file = file.path(subdir_2, paste0("gbm_gte_celltypes.rds")))
 }
 
 
@@ -786,7 +799,7 @@ if (grepl("gbm", subdir, fixed = TRUE)) {
   #   G2M  3990    20
   #   S    5995    95
 
-  table(seurat_obj_ge@meta.data[c('integrated_snn_res.0.6','oRG')])
+  table(seurat_obj_ge@meta.data[c(cluster_res,'oRG')])
   #                       oRG
   # integrated_snn_res.0.6    0    1
   #                     0  4344   57
@@ -817,35 +830,129 @@ if (grepl("gbm", subdir, fixed = TRUE)) {
   }
 
   stats_df <- seurat_obj_ge@meta.data %>% 
-    group_by(integrated_snn_res.0.6) %>% 
-    summarise(mean.s = mean(S.Score), sd.s = sd(S.Score), 
-              mean.g2m = mean(G2M.Score), sd.g2m = sd(G2M.Score), .groups = "drop")
+    group_by(!!sym(cluster_res)) %>% 
+    summarise(mean.s = mean(S.Score), sd.s = sd(S.Score, na.rm = TRUE), 
+              mean.g2m = mean(G2M.Score), sd.g2m = sd(G2M.Score, na.rm = TRUE),
+              t_pval = t.test(S.Score,G2M.Score, var.equal=TRUE)$p.value, #two-sided default
+              t_statistic = t.test(S.Score,G2M.Score, var.equal=TRUE)$statistic,
+              t_conf.int_min = t.test(S.Score,G2M.Score, var.equal=TRUE)$conf.int[1], # conf.level 0.95
+              t_conf.int_max = t.test(S.Score,G2M.Score, var.equal=TRUE)$conf.int[2], # conf.level 0.95
+              welch_pval = t.test(S.Score,G2M.Score, var.equal=FALSE)$p.value, #two-sided default
+              welch_statistic = t.test(S.Score,G2M.Score, var.equal=FALSE)$statistic,
+              welch_conf.int_min = t.test(S.Score,G2M.Score, var.equal=FALSE)$conf.int[1], # conf.level 0.95
+              welch_conf.int_max = t.test(S.Score,G2M.Score, var.equal=FALSE)$conf.int[2], # conf.level 0.95
+              .groups = "drop") #two-sided default
 
-  grouped_counts_table <- calcProportions(seurat_obj_ge@meta.data, 'integrated_snn_res.0.6','Phase')
+  var_tests <- seurat_obj_ge@meta.data %>% select(!!sym(cluster_res), S.Score, G2M.Score) %>%
+    melt(value.name = "scores", id = cluster_res) %>%
+    group_by(!!sym(cluster_res)) %>% 
+    summarise( levene_pval = leveneTest(scores~variable, center=mean)$`Pr(>F)`[1], .groups = "drop" )
+
+  grouped_counts_table <- calcProportions(seurat_obj_ge@meta.data, cluster_res,'Phase')
   summary_df <- as.data.frame.matrix(grouped_counts_table)
   colnames(summary_df) <- c("ncells.G1", "ncells.G2M", "ncells.S", "perc.G1", "perc.G2M", "perc.S")
-  write.csv(cbind(stats_df, summary_df),file.path(figs_dir_path,"cellcyclescore_summarystats.csv"), row.names = FALSE)
-  write.csv(cbind(stats_df, summary_df),file.path(figs_dir_path_2,"cellcyclescore_summarystats.csv"), row.names = FALSE)
+  write.csv(cbind(stats_df, var_tests[,2], summary_df),file.path(figs_dir_path,paste0("cellcyclescore_summarystats",cluster_res,".csv")), row.names = FALSE)
+  write.csv(cbind(stats_df, var_tests[,2], summary_df),file.path(figs_dir_path_2,paste0("cellcyclescore_summarystats",cluster_res,".csv")), row.names = FALSE)
 
   print("Exporting summary csvs for gsc and org labeled cells GE")
-  write.csv(calcProportions(seurat_obj_ge@meta.data, 'integrated_snn_res.0.6', 'gsc'), file.path(figs_dir_path, paste0("summary_gsc_res0.6VSgsc.csv")))
-  write.csv(calcProportions(seurat_obj_ge@meta.data, 'integrated_snn_res.0.6','oRG'), file.path(figs_dir_path, paste0("summary_gsc_res0.6VSoRG.csv")))
-  write.csv(calcProportions(seurat_obj_ge@meta.data, 'integrated_snn_res.0.6','Phase'), file.path(figs_dir_path, paste0("summary_gsc_res0.6VSccphase.csv")))
-  write.csv(calcProportions(seurat_obj_ge@meta.data, 'integrated_snn_res.0.6',cluster_col_gsc), file.path(figs_dir_path, paste0("summary_gsc_res0.6VS",cluster_col_gsc,".csv")))
+  write.csv(calcProportions(seurat_obj_ge@meta.data, cluster_res, 'gsc'), file.path(figs_dir_path, paste0("summary_gsc_res0.6VSgsc.csv")))
+  write.csv(calcProportions(seurat_obj_ge@meta.data, cluster_res,'oRG'), file.path(figs_dir_path, paste0("summary_gsc_res0.6VSoRG.csv")))
+  write.csv(calcProportions(seurat_obj_ge@meta.data, cluster_res,'Phase'), file.path(figs_dir_path, paste0("summary_gsc_res0.6VSccphase.csv")))
+  write.csv(calcProportions(seurat_obj_ge@meta.data, cluster_res,cluster_col_gsc), file.path(figs_dir_path, paste0("summary_gsc_res0.6VS",cluster_col_gsc,".csv")))
   write.csv(calcProportions(seurat_obj_ge@meta.data, 'Phase','gsc'), file.path(figs_dir_path, paste0("summary_gsc_ccphaseVSgsc.csv")))
   write.csv(calcProportions(seurat_obj_ge@meta.data, 'Phase','oRG'), file.path(figs_dir_path, paste0("summary_gsc_ccphaseVSoRG.csv")))
   write.csv(calcProportions(seurat_obj_ge@meta.data, 'sample','oRG'), file.path(figs_dir_path, paste0("summary_gsc_ccphaseVSoRG.csv")))
   write.csv(calcProportions(seurat_obj_ge@meta.data, 'sample',cluster_col_gsc), file.path(figs_dir_path, paste0("summary_gsc_sampleVS",cluster_col_gsc,".csv")))
 
   print("Exporting summary csvs for gsc and org labeled cells GTE")
-  write.csv(calcProportions(seurat_obj_gte@meta.data, 'integrated_snn_res.0.6', 'gsc'), file.path(figs_dir_path_2, paste0("summary_gsc_res0.6VSgsc.csv")))
-  write.csv(calcProportions(seurat_obj_gte@meta.data, 'integrated_snn_res.0.6','oRG'), file.path(figs_dir_path_2, paste0("summary_gsc_res0.6VSoRG.csv")))
-  write.csv(calcProportions(seurat_obj_gte@meta.data, 'integrated_snn_res.0.6','Phase'), file.path(figs_dir_path_2, paste0("summary_gsc_res0.6VSccphase.csv")))
-  write.csv(calcProportions(seurat_obj_gte@meta.data, 'integrated_snn_res.0.6',cluster_col_gsc), file.path(figs_dir_path_2, paste0("summary_gsc_res0.6VS",cluster_col_gsc,".csv")))
+  write.csv(calcProportions(seurat_obj_gte@meta.data, cluster_res, 'gsc'), file.path(figs_dir_path_2, paste0("summary_gsc_res0.6VSgsc.csv")))
+  write.csv(calcProportions(seurat_obj_gte@meta.data, cluster_res,'oRG'), file.path(figs_dir_path_2, paste0("summary_gsc_res0.6VSoRG.csv")))
+  write.csv(calcProportions(seurat_obj_gte@meta.data, cluster_res,'Phase'), file.path(figs_dir_path_2, paste0("summary_gsc_res0.6VSccphase.csv")))
+  write.csv(calcProportions(seurat_obj_gte@meta.data, cluster_res,cluster_col_gsc), file.path(figs_dir_path_2, paste0("summary_gsc_res0.6VS",cluster_col_gsc,".csv")))
   write.csv(calcProportions(seurat_obj_gte@meta.data, 'Phase','gsc'), file.path(figs_dir_path_2, paste0("summary_gsc_ccphaseVSgsc.csv")))
   write.csv(calcProportions(seurat_obj_gte@meta.data, 'Phase','oRG'), file.path(figs_dir_path_2, paste0("summary_gsc_ccphaseVSoRG.csv")))
   write.csv(calcProportions(seurat_obj_gte@meta.data, 'sample','oRG'), file.path(figs_dir_path_2, paste0("summary_gsc_ccphaseVSoRG.csv")))
   write.csv(calcProportions(seurat_obj_gte@meta.data, 'sample',cluster_col_gsc), file.path(figs_dir_path_2, paste0("summary_gsc_sampleVS",cluster_col_gsc,".csv")))
+
+  # Create Barplot for CellCycleScore (grouped by cluster)
+  library(reshape2)
+  print(stats_df)
+  if (colnames(stats_df)[1] != cluster_res) { # convert row names to columns if column name doesn't exist
+    stats_df <- rownames_to_column(stats_df, var = cluster_res) 
+  }
+  summary_means <- stats_df %>% select(!!sym(cluster_res), mean.s, mean.g2m) %>%
+    melt(value.name = "means", id = cluster_res)
+  summary_sd <- stats_df %>% select(!!sym(cluster_res), sd.s, sd.g2m) %>%
+    melt(value.name = "sds", id = cluster_res)
+  summary_stats <- cbind(summary_means, summary_sd[,3])
+  colnames(summary_stats)[2] <- "phase"
+  colnames(summary_stats)[4] <- "sds"
+
+  p <- summary_stats %>% ggplot(aes(x=.data[[cluster_res]], y=means, fill=factor(phase)) ) +  
+    geom_bar(position=position_dodge(), stat="identity", colour='black') +
+    scale_fill_viridis_d(labels=c('Mean(S Phase Score)', 'Mean(G2/M Phase Score)')) + theme_classic()+
+    labs(x="", y = "Mean(Cell Cycle Phase Score)", fill="Phase") + #NoLegend() + 
+    guides(fill = guide_legend(position = "inside")) +
+    theme(axis.text.x = element_text(size=12), axis.text.y = element_text(size=12),
+          axis.title.y = element_text(size = 14),
+          legend.position.inside = c(0.3, 0.9)) +
+    geom_errorbar(aes(ymin=means-sds, ymax=means+sds), width=.2, position = position_dodge(0.9)) 
+  ggsave(file.path(figs_dir_path, paste0("barplot_ccphasescore_",cluster_res,".tiff")),
+      plot = p, units="in", width=size*1, height=size*0.7, dpi=300, compression = 'lzw')  
+
+  # Create Barplot for CellCycleScore (grouped by gsctypes)
+  stats_df <- seurat_obj_ge@meta.data %>% 
+    group_by(!!sym(cluster_col_gsc)) %>% 
+    summarise(mean.s = mean(S.Score), sd.s = sd(S.Score, na.rm = TRUE), 
+              mean.g2m = mean(G2M.Score), sd.g2m = sd(G2M.Score, na.rm = TRUE),
+              t_pval = t.test(S.Score,G2M.Score, var.equal=TRUE)$p.value, #two-sided default
+              t_statistic = t.test(S.Score,G2M.Score, var.equal=TRUE)$statistic,
+              t_conf.int_min = t.test(S.Score,G2M.Score, var.equal=TRUE)$conf.int[1], # conf.level 0.95
+              t_conf.int_max = t.test(S.Score,G2M.Score, var.equal=TRUE)$conf.int[2], # conf.level 0.95
+              welch_pval = t.test(S.Score,G2M.Score, var.equal=FALSE)$p.value, #two-sided default
+              welch_statistic = t.test(S.Score,G2M.Score, var.equal=FALSE)$statistic,
+              welch_conf.int_min = t.test(S.Score,G2M.Score, var.equal=FALSE)$conf.int[1], # conf.level 0.95
+              welch_conf.int_max = t.test(S.Score,G2M.Score, var.equal=FALSE)$conf.int[2], # conf.level 0.95
+              .groups = "drop") #two-sided default
+
+  var_tests <- seurat_obj_ge@meta.data %>% select(!!sym(cluster_col_gsc), S.Score, G2M.Score) %>%
+    melt(value.name = "scores", id = cluster_col_gsc) %>%
+    group_by(!!sym(cluster_col_gsc)) %>% 
+    summarise( levene_pval = leveneTest(scores~variable, center=mean)$`Pr(>F)`[1], .groups = "drop" )
+
+  grouped_counts_table <- calcProportions(seurat_obj_ge@meta.data, cluster_col_gsc,'Phase')
+  summary_df <- as.data.frame.matrix(grouped_counts_table)
+  colnames(summary_df) <- c("ncells.G1", "ncells.G2M", "ncells.S", "perc.G1", "perc.G2M", "perc.S")
+  write.csv(cbind(stats_df, var_tests[,2], summary_df),file.path(figs_dir_path,paste0("cellcyclescore_summarystats_",cluster_col_gsc,".csv")), row.names = FALSE)
+  write.csv(cbind(stats_df, var_tests[,2], summary_df),file.path(figs_dir_path_2,paste0("cellcyclescore_summarystats_",cluster_col_gsc,".csv")), row.names = FALSE)
+
+  library(reshape2)
+  print(stats_df)
+  if (colnames(stats_df)[1] != cluster_col_gsc) { # convert row names to columns if column name doesn't exist
+    stats_df <- rownames_to_column(stats_df, var = cluster_col_gsc) 
+  }
+  summary_means <- stats_df %>% select(!!sym(cluster_col_gsc), mean.s, mean.g2m) %>%
+    melt(value.name = "means", id = cluster_col_gsc)
+  summary_sd <- stats_df %>% select(!!sym(cluster_col_gsc), sd.s, sd.g2m) %>%
+    melt(value.name = "sds", id = cluster_col_gsc)
+  summary_stats <- cbind(summary_means, summary_sd[,3])
+  colnames(summary_stats)[2] <- "phase"
+  colnames(summary_stats)[4] <- "sds"
+
+  p <- summary_stats %>% ggplot(aes(x=.data[[cluster_col_gsc]], y=means, fill=factor(phase)) ) +  
+    geom_bar(position=position_dodge(0.9), stat="identity", colour='black') +
+    scale_fill_viridis_d(labels=c('Mean(S Phase Score)', 'Mean(G2/M Phase Score)')) + theme_classic()+
+    labs(x="", y = "Mean(Cell Cycle Phase Score)", fill="Phase") + #NoLegend() + 
+    guides(fill = guide_legend(position = "inside")) +
+    theme(axis.text.x = element_text(size=12, angle = 40, vjust = 1, hjust=1), 
+          axis.text.y = element_text(size=12),
+          axis.title.y = element_text(size = 14),
+          legend.position.inside = c(0.5, 0.8)) +
+    geom_errorbar(aes(ymin=means-sds, ymax=means+sds), width=.2, position = position_dodge(0.9)) 
+  ggsave(file.path(figs_dir_path, paste0("barplot_ccphasescore_",cluster_col_gsc,".tiff")),
+      plot = p, units="in", width=size*1.3, height=size*0.9, dpi=300, compression = 'lzw')  
+  ggsave(file.path(figs_dir_path_2, paste0("barplot_ccphasescore_",cluster_col_gsc,".tiff")),
+      plot = p, units="in", width=size*1.3, height=size*0.9, dpi=300, compression = 'lzw')  
 }
 
 ### End of Script
