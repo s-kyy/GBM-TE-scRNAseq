@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=28:00:00
+#SBATCH --time=8:00:00
 #SBATCH --account=xxx
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -18,9 +18,5 @@ cd ~/scratch/runs/3_exploratoryanalysis
 echo "$(pwd)" #gbm_gsc/3_exploratoryanalysis
 
 if [[ $SLURM_ARRAY_TASK_ID == 0 ]] ; then
-Rscript --vanilla ./4-cnvanalysis.R ./20250117_gbm_ge_filtDf_cluster/filtDf_cluster_int.rds gbm_ge >0122_gbm_ge_cnv.out 2>&1
-fi
-
-if [[ $SLURM_ARRAY_TASK_ID == 0 ]] ; then
-Rscript --vanilla ./4-cnvanalysis.R ./20250117_gbm_gte_filtDf_cluster/filtDf_cluster_int.rds gbm_ge >0122_gbm_gte_cnv.out 2>&1
+Rscript --vanilla ./4-cnvanalysis.R ./20250117_gbm_ge_filtDf_cluster/gbm_ge_celltypes.rds ../data/refdata-gex-GRCh38-2020-A/genes/gene_annotations.txt int06_gsctypes 6 >0205_4.4_gbm_ge_cnv_gsctypes.out 2>&1
 fi

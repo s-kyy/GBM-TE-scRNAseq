@@ -128,7 +128,7 @@ infercnv_obj <- infercnv::run(
   denoise=TRUE,
   analysis_mode = "subclusters",
   tumor_subcluster_partition_method = "leiden",
-  leiden_resolution = 0.0005, #default auto (~0.05)
+  leiden_resolution = 0.0001, #default auto (~0.05)
   HMM=TRUE, HMM_type="i6", 
   BayesMaxPNormal = 0.2,
   resume_mode=FALSE,
