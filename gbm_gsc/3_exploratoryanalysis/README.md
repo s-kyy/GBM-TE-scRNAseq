@@ -287,40 +287,28 @@ BiocManager::install("infercnv") #v1.10.1
 
 ## Gene Set Enrichment Analysis (GSEA) - validate celltypes annotation GBM subtype.
 
-### A. Prepare Input for GSEA: expression tables
+Performed GSEA 
 
-1. Run `meanofratios2.R` with `slurm_meanofratios.sh`
-   - The script uses 2 functions: `cellnamesbycluster()` and `meanofratios()`. 
-   - Outputs  `GE_gsea-table.txt` and `GTE_gsea_table.txt` 
+Software:
+
+- GSEAPreranked (comes with GSEA v4.1.0)
+- R v4.0.2
+  - tidyverse
+  - dplyr
+  - stringr
+- Python 3.10.2 (only base libraries needed)
+
+### A. Export Ranked Gene Lists 
+
+- Perform Differential gene analysis with `6.0-findmarkers.R` and `6.0-findmarkers.sh` slurm script
+- Extract gene lists per cluster or celltype with `gsea-prep.R`
+  - Compute rank metrics : log2FC * -log10(p+ 1e-310) (with unadjusted pvalues) 
 
 ```bash
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\6.0-gseaprep.R ".\20250117_gbm_ge_filtDf_cluster\gbm_ge_celltypes.rds" gsea *>gbm_ge_filtDf_60gseaprep_jan30.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\6.0-gseaprep.R ".\20250117_gbm_gte_filtDf_cluster\gbm_gte_celltypes.rds" gsea *>gbm_gte_filtDf_60gseaprep_jan30.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\6.0-gseaprep.R ".\20250115_healthy_ge_filtDf_cluster\healthy_ge_celltypes.rds" gsea *>healthy_ge_filtDf_60gseaprep_jan30.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\6.0-gseaprep.R ".\20250115_healthy_gte_filtDf_cluster\healthy_gte_celltypes.rds" gsea *>healthy_gte_filtDf_60gseaprep_jan30.out
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla ./6.1-gseaprep.R ".\20250117_gbm_ge_filtDf_cluster\celltype_markers\gbm_ge_celltypes_markers_all.csv" rankedgenes *>gbm_ge_gseaprep.out
 ```
 
-2. Prepend metadata in gsea mean expression tables.
-   - Output files: `GE_gsea-table.gct` and `GTE_gsea-table.gct`.
-
-
-```bash
-sed -i '1s/^/#1.2\n31527\t11\n/' GE_gsea-table.txt 
-sed -i '1s/^/#1.2\n32501\t10\n/' GTE_gsea-table.txt
-mv GE_gsea-table.txt GE_table.gct
-mv GTE_gsea-table.txt GTE_table.gct
-sed -i 's/"//g' GE_table.gct
-sed -i 's/"//g' GTE_table.gct
-sed -i 's/\tNA\t/\tna\t/g' GE_table.gct
-sed -i 's/\tNA\t/\tna\t/g' GTE_table.gct
-```
-
-### B. Prepare Input for GSEA: phenotype labels
-
-The phenotype label files were created manually. 
-Two `.csl` files were written to make sure the number of clusters matched the corresponding datasets.
-
-### C. Prepare Input for GSEA: Genesets
+### B. Prepare Input for GSEA: Genesets
 
 - H collection: Hallmark gene sets 2015
 - C4 subcollection : Curated Cancer Cell Atlas (2023) with Weizmann [Brain | 3CA](https://www.weizmann.ac.il/sites/3CA/brain) 
@@ -334,29 +322,18 @@ c8.all.v2023.2.Hs.symbols_brain.gmt
 gbmsubtype_genesets.gmx
 ```
 
+### C. Generate GSEAPreranked scripts
+
+Run python script `6.2-apply_gseaprerank.py` with the following example command
+
+```bash
+python 6.2-apply_gseaprerank.py -i 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/rankedgenes/ -
+g meta/genesets/ -l gbm_ge -o 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results/ >0214_gbm_ge_gseaprerank.out 2>&1
+```
+
 ### Workflow
 
 - Run python script `6-apply_gsea4.py` with python3 and the same parameters as when I first performed GSEA analysis. Ensured the filepaths were written correctly.
-
-
-
-GE : 
-```
-python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GE_table.gct /home/samkyy/scratch/gsea/phenotypes_ge.cls /home/samkyy/scratch/gsea/genesets/c4.3ca.v2023.2.Hs.symbols.gmt c4-3ca gene_set 500 5 160
-python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GE_table.gct /home/samkyy/scratch/gsea/phenotypes_ge.cls /home/samkyy/scratch/gsea/genesets/c6.all.v2023.2.Hs.symbols.gmt c6-all gene_set 500 5 160
-python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GE_table.gct /home/samkyy/scratch/gsea/phenotypes_ge.cls /home/samkyy/scratch/gsea/genesets/c7.immunesigdb.v2023.2.Hs.symbols.gmt c7-immune gene_set 500 5 160
-python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GE_table.gct /home/samkyy/scratch/gsea/phenotypes_ge.cls /home/samkyy/scratch/gsea/genesets/c8.all.v2023.2.Hs.symbols.gmt c8-all gene_set 500 5 160
-python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GE_table.gct /home/samkyy/scratch/gsea/phenotypes_ge.cls /home/samkyy/scratch/gsea/genesets/h.all.v2023.2.Hs.symbols.gmt c8-all gene_set 500 5 160
-```
-
-GTE : 
-```
-python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GTE_table.gct /home/samkyy/scratch/gsea/phenotypes_gte.cls /home/samkyy/scratch/gsea/genesets/c4.3ca.v2023.2.Hs.symbols.gmt c4-3ca gene_set 500 5 160
-python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GTE_table.gct /home/samkyy/scratch/gsea/phenotypes_gte.cls /home/samkyy/scratch/gsea/genesets/c6.all.v2023.2.Hs.symbols.gmt c6-all gene_set 500 5 160
-python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GTE_table.gct /home/samkyy/scratch/gsea/phenotypes_gte.cls /home/samkyy/scratch/gsea/genesets/c7.immunesigdb.v2023.2.Hs.symbols.gmt c7-immune gene_set 500 5 160
-python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GTE_table.gct /home/samkyy/scratch/gsea/phenotypes_gte.cls /home/samkyy/scratch/gsea/genesets/c8.all.v2023.2.Hs.symbols.gmt c8-all gene_set 500 5 160
-python3 ~/scratch/gsea/apply_gsea4.py /home/samkyy/scratch/gsea/GTE_table.gct /home/samkyy/scratch/gsea/phenotypes_gte.cls /home/samkyy/scratch/gsea/genesets/h.all.v2023.2.Hs.symbols.gmt c8-all gene_set 500 5 160
-```
 
 - Sbatch resulting scripts to create GSEA results. 
 - Ran bash script `extGSEAReports.sh` to generate .tsv files. 
