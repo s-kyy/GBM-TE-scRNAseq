@@ -87,25 +87,36 @@ set_min = str(returnValue(args.min))
 seed = str(returnValue(args.seed))
 
 # ==============================================================================
-# Extract list of filenames from rnk_dir (.gct)
+# Extract list of filenames 
 # ==============================================================================
 
-rnk_files = []
-for root, dirs, filenames in os.walk(rnk_dir):
-    for filename in filenames:
-        if filename.endswith(".rnk"):
-            rnk_files.append(filename)
+def getFilePaths(dir, file_ext):
+    """
+    return a list of file paths with desired extension. 
+    file paths are renamed if it contains spaces
+    """
+    file_list = []
+    for root, dirs, filenames in os.walk(dir):
+        for filename in filenames:
+            if filename.endswith(file_ext):
+                
+                filename_renamed = filename.replace(" ","")
+                filename_renamed = filename_renamed.replace("(","")
+                filename_renamed = filename_renamed.replace(")","")
+                if (filename_renamed != filename): 
+                    os.rename(
+                        os.path.join(root, filename),
+                        os.path.join(root, filename_renamed)
+                    )
+                filepath = os.path.join(root, filename_renamed)
+
+                file_list.append(filepath)
+    return file_list
+
+rnk_files = getFilePaths(rnk_dir, (".rnk"))
 print(rnk_files)
 
-# ==============================================================================
-# Extract list of filenames from geneset_dir (.gmx, .gmt)
-# ==============================================================================
-
-geneset_files = []
-for root, dirs, files in os.walk(geneset_dir):
-    for file in files:
-        if file.endswith(".gmx") or file.endswith(".gmt"):
-            geneset_files.append(file)
+geneset_files = getFilePaths(geneset_dir, (".gmx",".gmt"))
 print(geneset_files)
 
 # # ==============================================================================
@@ -140,11 +151,11 @@ try:
     with open(out_script, 'w') as script:
         script.write("#!/bin/bash\n")
         print("Wrote shebang")
-        script.write("#SBATCH --time=00:30:00\n")
+        script.write("#SBATCH --time=00:5:00\n")
         script.write("#SBATCH --account=xxx\n")
         script.write("#SBATCH --ntasks=1\n")
         script.write("#SBATCH --cpus-per-task=1\n")
-        script.write("#SBATCH --mem-per-cpu=2G\n")
+        script.write("#SBATCH --mem-per-cpu=1G\n")
         script.write("#SBATCH --array=0-")
         script.write(str( num_jobs -1 ) + "\n")  
         print("Wrote script paramters")
@@ -173,10 +184,10 @@ for geneset_file in geneset_files:
                 print("writing job number ", str(i))
 
                 script.write("if [[ $SLURM_ARRAY_TASK_ID == " + str(i) + " ]] ; then\n")
-                script.write("~/scratch/runs/3_exploratoryanaysis/6.3-run_gseaprerank.sh " +
-                                rnk_file + " " +    # RES=$1      #[expression_dataset] filepath
+                script.write("~/scratch/runs/3_exploratoryanalysis/6.3-run_gseaprerank.sh \"" +
+                                rnk_file + "\" \"" +    # RES=$1      #[expression_dataset] filepath
                                 # "#" + sample_names[sample_name_id] + "_versus_REST " +
-                                geneset_file + " " +     # GENESET=$2  #[geneset] filepath
+                                geneset_file + "\" " +     # GENESET=$2  #[geneset] filepath
                                 rpt_label + "_" + sample_names[sample_name_id] + "_" + os.path.splitext(os.path.basename(geneset_file))[0] + " " +
                                                     # LABEL=$3    # Report Label
                                 set_max + " " +     # MAX=$4      #[set-max] default = 500

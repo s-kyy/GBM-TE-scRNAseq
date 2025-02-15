@@ -327,16 +327,11 @@ gbmsubtype_genesets.gmx
 Run python script `6.2-apply_gseaprerank.py` with the following example command
 
 ```bash
-python 6.2-apply_gseaprerank.py -i 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/rankedgenes/ -
-g meta/genesets/ -l gbm_ge -o 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results/ >0214_gbm_ge_gseaprerank.out 2>&1
+python 6.2-apply_gseaprerank.py -i 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/rankedgenes/ -g meta/genesets/ -l gbm_ge -o 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results/ >0214_gbm_ge_gseaprerank.out 2>&1
+sbatch "tmp_scripts/gbm_ge_gsea_date_time.sh"
 ```
 
-### Workflow
-
-- Run python script `6-apply_gsea4.py` with python3 and the same parameters as when I first performed GSEA analysis. Ensured the filepaths were written correctly.
-
-- Sbatch resulting scripts to create GSEA results. 
-- Ran bash script `extGSEAReports.sh` to generate .tsv files. 
+Run bash script `extGSEAReports.sh` to generate .tsv summary report tables. 
 
 ```bash
 # assign interative node
