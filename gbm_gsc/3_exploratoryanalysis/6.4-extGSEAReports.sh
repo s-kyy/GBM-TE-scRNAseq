@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -euxo pipefail
+
 # Author: Samantha Yuen
 # Created: 2024-08-07
 # PURPOSE: Summarize GSEA Results of GBMSC (+TE) PC20r0.3 scRNA-seq
@@ -9,50 +11,70 @@
 # OUTPUT: .tsv file combining .tsv files for all clusters. Includes mapping information. .tsv files
 # Example command: source ./extGSEAReports.sh ~/scratch/gsea/job_outputs/ ~/scratch/gsea/
 
-GSEA_PATH=${1}
-OUTPUT_PATH=${2}
+if [ $# -eq 0 ]; then
+  echo >&2 "No arguments supplied. Exiting..."
+  exit 1
+elif [ $# -eq 1 ]; then
+  echo >&2 "Only one arguement supplied. Exiting..."
+  exit 1
+elif [ -d ${1} ]; then
+  echo "GSEA Directory exists. Processing ...\n\n"
+  GSEA_PATH=$(readlink -f ${1})   # Obtain absolute path
+  GSEA_PATH="${GSEA_PATH}/"
+else 
+  echo >&2 "GSEA Directory does not exist. Exiting..."
+  exit 1
+fi
 
-echo "creating output folder"
-cd $OUTPUT_PATH
-mkdir "summary"
-cd summary
-OUTPUT_PATH="$(pwd)"
+# Trim trailing spaces and underscores from experiment name (e.g. gbm_ge)
+SAMPLE=$(sed 's/^[_[:space:]]*//; s/[_[:space:]]*$//' <<< "${2}") 
 
-echo "moving to gsea path"
-cd $GSEA_PATH
+echo "Inputed Path: ${GSEA_PATH}"
+echo "Experiment Name: ${SAMPLE}"
 
-# loop through each output folder (store name)
+# if output tsv file doesn't exist (removing fives an error), then generate tsv file with directory name.
+GSEA_DIR_NAME=${GSEA_PATH%*/}                   # remove the trailing "/"
+GSEA_DIR_NAME="${GSEA_DIR_NAME##*/}"            # print everything after the final "/"
+OUTPUT="${GSEA_PATH}${GSEA_DIR_NAME}.tsv"
+if [ -f "${OUTPUT}" ] && rm "${OUTPUT}"; then   # Create and/or overwrite output file of the same name
+    echo "Creating Output File: ${OUTPUT}\n\n"
+    touch "${OUTPUT}"
+fi
 
-for dir in ${GSEA_PATH}*/     # list directories 
-do
-    DIR_PATH=${dir%*/}      # remove the trailing "/"
-    DIR_NAME="${DIR_PATH##*/}"    # print everything after the final "/"
+# loop through each folder (store name)
+for dir in ${GSEA_PATH}*/ ; do      # list directories 
 
-    echo "Summarizing folder: ${DIR_PATH}"
-    echo "${OUTPUT_PATH}/${DIR_NAME}"
-
-    if [ -f "${OUTPUT_PATH}/${DIR_NAME}.tsv" ] && rm "${OUTPUT_PATH}/${DIR_NAME}.tsv"; then 
-    	touch "${OUTPUT_PATH}/${DIR_NAME}.tsv"
-    fi
-
-    cd ${DIR_PATH}
+    DIR_PATH=${dir%*/}              # remove the trailing "/"
+    DIR_NAME="${DIR_PATH##*/}"      # print everything after the final "/"
     
-    IFS=$'\n' files=($(find -path "*_table*/gsea_report*.tsv" -type f))
-    # loop through each cluster and output to folder
+    # Parse Directory name for celltype, cluster and geneset names
+    TYPE=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.]*)_([A-Za-z0-9\.-]*)_(.*).GseaPreranked(.*)/\1/p")
+    CLUSTER=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.*)_([A-Za-z0-9\.-]*)_(.*).GseaPreranked(.*)/\2/p")
+    GENESET=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.]*)_([A-Za-z0-9\.-]*)_(.*).GseaPreranked(.*)/\3/p")
 
+    echo "Seperated Directory name into: ${TYPE} ${CLUSTER} ${GENESET}\n"
+    
+    IFS=$'\n' files=($(find "${DIR_PATH}" -type f -name "gsea_report*.tsv"))
+    
+    # loop through each tsv and output to file 
     for file in "${files[@]}"; do
-        cluster=($(echo "${file}" | sed 's/.*\(cluster[[:digit:]]*\).*/\1/'))
-	    echo "${file} and ${cluster}"
-        cut -f1,4- ${file} | tail -n +2 | sed "s/^/${DIR_NAME}\t${cluster}\t/" >> "${OUTPUT_PATH}/${DIR_NAME}.tsv"
-    done # cluster loop end
-
-    HEADER=$(cut -f1,4- ${file} | head -n 1)
-    sed -i "1s/^/map\tcluster\t${HEADER}\n/" "${OUTPUT_PATH}/${DIR_NAME}.tsv"
-    
-    echo "Extraction of GSEA files ${DIR_NAME} complete"
-
+        if [ -f ${file} ]; then
+            # using `head -n 1` here instead of awk with `set -euxo pipeline` will result in faulty exit code 141
+            HEADER=$(cut -f1,4- ${file} |  awk 'FNR <= 1') 
+        fi
+	    echo "Exporting ${file}"
+        cut -f1,4- ${file} |    # Skip 2-3 columns in tab-delimited file
+            tail -n +2 |        # Skip header
+            sed "s/^/${TYPE}\t${CLUSTER}\t${GENESET}\t/" >> "${OUTPUT}"
+                                # Insert metadata from experiment and append to output file. 
+    done # experiment loop end
 done # dir loop end
 
-echo "See output gseaResults.tsv in ${OUTPUT_PATH}"
+# Add header
+sed -i "1s/^/Type\tCluster\tGenset\t${HEADER}\n/" "${OUTPUT}"
 
-# save and end script
+echo "\n\nExtraction of GSEA files ${DIR_NAME} complete"
+echo "\n\nSee output gseaResults.tsv in ${GSEA_PATH}"
+
+# undo script exit settings
+set +euxo pipefail
