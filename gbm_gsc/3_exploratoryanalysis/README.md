@@ -324,18 +324,15 @@ gbmsubtype_genesets.gmx
 
 ### C. Generate GSEAPreranked scripts
 
-Run python script `6.2-apply_gseaprerank.py` with the following example command
+To generate the sbatch script that calls `6.3-run_gseaprerank.sh`, run python script `6.2-apply_gseaprerank.py` with the following example command:
 
 ```bash
 python 6.2-apply_gseaprerank.py -i 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/rankedgenes/ -g meta/genesets/ -l gbm_ge -o 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results/ >0214_gbm_ge_gseaprerank.out 2>&1
 sbatch "tmp_scripts/gbm_ge_gsea_date_time.sh"
 ```
 
-Run bash script `extGSEAReports.sh` to generate .tsv summary report tables. 
+Run bash script `6.4-extGSEAReports.sh` to generate .tsv summary report tables. 
 
 ```bash
-# assign interative node
-salloc --time=4:0:0 --ntasks=1 --cpus-per-task=1 --mem-per-cpu=2G --account=def-ytanaka 
-# run script
-source ./extGSEAReports.sh ~/scratch/gsea/job_outputs/ ~/scratch/gsea/ > stdouterr 2>&1
+source ./6.4-extGSEAReports.sh 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results2/  gbm_ge >stderr 2>&1
 ```

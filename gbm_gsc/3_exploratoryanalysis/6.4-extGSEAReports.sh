@@ -48,9 +48,9 @@ for dir in ${GSEA_PATH}*/ ; do      # list directories
     DIR_NAME="${DIR_PATH##*/}"      # print everything after the final "/"
     
     # Parse Directory name for celltype, cluster and geneset names
-    TYPE=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.]*)_([A-Za-z0-9\.-]*)_(.*).GseaPreranked(.*)/\1/p")
-    CLUSTER=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.*)_([A-Za-z0-9\.-]*)_(.*).GseaPreranked(.*)/\2/p")
-    GENESET=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.]*)_([A-Za-z0-9\.-]*)_(.*).GseaPreranked(.*)/\3/p")
+    TYPE=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.]*)_([A-Za-z0-9\.-\+]*)_(.*).GseaPreranked(.*)/\1/p")
+    CLUSTER=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.]*)_([A-Za-z0-9\.-\+]*)_(.*).GseaPreranked(.*)/\2/p")
+    GENESET=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.]*)_([A-Za-z0-9\.-\+]*)_(.*).GseaPreranked(.*)/\3/p")
 
     echo "Seperated Directory name into: ${TYPE} ${CLUSTER} ${GENESET}\n"
     
@@ -59,14 +59,14 @@ for dir in ${GSEA_PATH}*/ ; do      # list directories
     # loop through each tsv and output to file 
     for file in "${files[@]}"; do
         if [ -f ${file} ]; then
-            # using `head -n 1` here instead of awk with `set -euxo pipeline` will result in faulty exit code 141
-            HEADER=$(cut -f1,4- ${file} |  awk 'FNR <= 1') 
-        fi
-	    echo "Exporting ${file}"
-        cut -f1,4- ${file} |    # Skip 2-3 columns in tab-delimited file
-            tail -n +2 |        # Skip header
-            sed "s/^/${TYPE}\t${CLUSTER}\t${GENESET}\t/" >> "${OUTPUT}"
+          # using `head -n 1` here instead of awk with `set -euxo pipeline` will result in faulty exit code 141
+          HEADER=$(cut -f1,4- ${file} |  awk 'FNR <= 1') 
+          echo "Exporting ${file}"
+          cut -f1,4- ${file} |  # Skip columns 2-3 in tab-delimited file
+          tail -n +2 |          # Skip header
+          sed "s/^/${TYPE}\t${CLUSTER}\t${GENESET}\t/" >> "${OUTPUT}"
                                 # Insert metadata from experiment and append to output file. 
+        fi
     done # experiment loop end
 done # dir loop end
 

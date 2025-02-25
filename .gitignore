@@ -10,6 +10,7 @@
 *.tar 
 *.xlsx
 *.rnk
+*.tsv
 
 # Images
 *.svg
