@@ -48,9 +48,9 @@ for dir in ${GSEA_PATH}*/ ; do      # list directories
     DIR_NAME="${DIR_PATH##*/}"      # print everything after the final "/"
     
     # Parse Directory name for celltype, cluster and geneset names
-    TYPE=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.]*)_([A-Za-z0-9\.-\+]*)_(.*).GseaPreranked(.*)/\1/p")
-    CLUSTER=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.]*)_([A-Za-z0-9\.-\+]*)_(.*).GseaPreranked(.*)/\2/p")
-    GENESET=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.]*)_([A-Za-z0-9\.-\+]*)_(.*).GseaPreranked(.*)/\3/p")
+    TYPE=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.\+-]*)_([A-Za-z0-9\.\+-]*)_(.*).GseaPreranked(.*)/\1/p")
+    CLUSTER=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.\+-]*)_([A-Za-z0-9\.\+-]*)_(.*).GseaPreranked(.*)/\2/p")
+    GENESET=$(echo "${DIR_NAME}" | sed -En "s/^${SAMPLE}_([A-Za-z0-9\.\+-]*)_([A-Za-z0-9\.\+-]*)_(.*).GseaPreranked(.*)/\3/p")
 
     echo "Seperated Directory name into: ${TYPE} ${CLUSTER} ${GENESET}\n"
     
