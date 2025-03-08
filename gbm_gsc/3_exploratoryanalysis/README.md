@@ -289,7 +289,7 @@ BiocManager::install("infercnv") #v1.10.1
 
 Performed GSEA 
 
-Software:
+Software used:
 
 - GSEAPreranked (comes with GSEA v4.1.0)
 - R v4.0.2
@@ -313,11 +313,13 @@ Software:
 - H collection: Hallmark gene sets 2015
 - C4 subcollection : Curated Cancer Cell Atlas (2023) with Weizmann [Brain | 3CA](https://www.weizmann.ac.il/sites/3CA/brain) 
 	- Metamodules for: [[R- Neftel2019_IntegrativeModel|Neftel 2019]], [[R- Couturier2020_SinglecellRNAseq|Couturier 2020]], Tirosh 2016, etc
+- C5-GO subcollection: Gene Ontology annotations updated from Jan 2024
 - C8 cell type signature gene sets
 
 ```
 h.all.v2023.2.Hs.symbols.gmt
 c4.3ca.v2023.2.Hs.symbols.gmt
+c5.go.v2024.1.Hs.symbols.gmt
 c8.all.v2023.2.Hs.symbols_brain.gmt
 gbmsubtype_genesets.gmx
 ```
@@ -328,7 +330,7 @@ To generate the sbatch script that calls `6.3-run_gseaprerank.sh`, run python sc
 
 ```bash
 python 6.2-apply_gseaprerank.py -i 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/rankedgenes/ -g meta/genesets/ -l gbm_ge -o 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results/ >0214_gbm_ge_gseaprerank.out 2>&1
-sbatch "tmp_scripts/gbm_ge_gsea_date_time.sh"
+sbatch "tmp_scripts/gbm_ge_gsea_DATE_TIME.sh"
 ```
 
 Run bash script `6.4-extGSEAReports.sh` to generate .tsv summary report tables. 

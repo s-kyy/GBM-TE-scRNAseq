@@ -137,7 +137,7 @@ meta$cells <- rownames(meta)
 meta$log10GenesPerUMI <- log10(meta$nFeature_RNA) / log10(meta$nCount_RNA)
 
 # mitochondrial ratio
-meta$mitoRatio <- PercentageFeatureSet(object = seurat_obj_new, pattern = "^MT-")
+meta$mitoRatio <- PercentageFeatureSet(object = seurat_obj_new, pattern = "^MT-")[,1]
 meta$mitoRatio <- meta$mitoRatio / 100
 
 # Correct dataframe output of PercentageFeatureSet

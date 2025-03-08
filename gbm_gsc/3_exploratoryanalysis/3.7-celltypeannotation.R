@@ -40,10 +40,12 @@ if (length(args)<2) {
     cluster_res_symbol <- unlist(strsplit(as.character(cluster_res_num), ".", fixed=TRUE))
     cluster_col <- paste0("int",cluster_res_symbol[1],cluster_res_symbol[2], "_celltypes")
     cluster_col_gsc <- paste0("int",cluster_res_symbol[1],cluster_res_symbol[2], "_gsctypes")
+    cluster_col_gsc_cc <- paste0(cluster_col_gsc,"_cc")
   } else {
     cluster_res <- "integrated_snn_res.0.4"
     cluster_col <- "int04_celltypes"
     cluster_col_gsc <- "int04_gsctypes"
+    cluster_col_gsc_cc <- "int04_gsctypes_cc"
   }
 
 } else {
@@ -121,8 +123,10 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
 }
 
 level_celltypes <- c(
-  "NPC (+TNC)",
-  "NPC (-TNC)",
+  # "NPC (+TNC)",
+  # "NPC (-TNC)",
+  "Mesenchymal",
+  "Hypoxic",
   "Ex. Neuron",
   "Ex. Neuron-NEUROD6",
   "Ex. Neuron-SATB2",
@@ -132,28 +136,39 @@ level_celltypes <- c(
   "In. Neuron-BCL11B",
   "PVALB Interneuron",
   "Astrocyte", 
-  "Stressed Astrocyte",
+  "Radial Glia 1",
+  "Radial Glia 2",
+  # "Stressed Astrocyte",
   "Outer Radial Glia",
   "Outer Radial Glia Cycling",
-  "Outer Radial Glia Cycling G2/M",
-  "Outer Radial Glia S Phase",
-  "Outer Radial Glia G2/M Phase",
+  "Outer Radial Glia Cycling S.G2-M",
+  "Outer Radial Glia Cycling S",
+  "Outer Radial Glia Cycling G2-M",
+  # "Outer Radial Glia S",
+  # "Outer Radial Glia G2/M",
   "Pre-OPC", 
   "OPC Early",
-  "OPC S Phase",
-  "OPC G1.S",
+  # "OPC S Phase",
+  "OPC Early Cycling",
+  "OPC Early Cycling S",
   "OPC Late",
   "Oligodendrocyte", 
   "Microglia", 
   "Immune",
-  "Neuron",
+  "Migrating Neuron",
   "Endothelia",
   "Tumour Endothelia",
   "Purkinje",
-  "Cycling",
-  "Cycling G1.S",
-  "Cycling (uncontrolled)",
-  "Cycling G2/M",
+  "Cycling 1",
+  "Cycling 1 S.G2-M",
+  "Cycling 2",
+  "Cycling 2 G2-M",
+  "Mixed Cycling",
+  "Mixed Cycling S.G2-M",
+  # "Cycling",
+  # "Cycling G1.S",
+  # "Cycling (uncontrolled)",
+  # "Cycling G2/M",
   "G2/M Phase",
   "Dying Cell", # high MALAT1
   "Unknown"
@@ -238,6 +253,29 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
   seurat_obj_gte <- AddMetaData(seurat_obj_gte, 
                                 meta[cluster_col], 
                                 col.name = cluster_col)
+  # save metadata
+  if (class(meta$mitoRatio) == "data.frame") { 
+    # meta$mitoRatio <- meta$mitoRatio[,1] 
+    meta$mitoRatio <- NULL
+  } else if (class(meta$mitoRatio) == "list") {
+    # meta$mitoRatio <- meta$mitoRatio[[1]]
+    meta$mitoRatio <- NULL
+  }
+  meta <- meta %>% dplyr::mutate(across(everything(), as.character))
+  write.csv(meta, file.path(figs_dir_path, paste0("metadata_ge.csv")))
+  
+  meta <- seurat_obj_gte@meta.data
+  meta <- meta %>% dplyr::mutate(across(everything(), as.character))
+  if (class(meta$mitoRatio) == "data.frame") { 
+    # meta$mitoRatio <- meta$mitoRatio[,1] 
+    meta$mitoRatio <- NULL
+  } else if (class(meta$mitoRatio) == "list") {
+    # meta$mitoRatio <- meta$mitoRatio[[1]]
+    meta$mitoRatio <- NULL
+  }
+  write.csv(meta, file.path(figs_dir_path_2, paste0("metadata_gte.csv")))
+  rm("meta")
+
   # save rds
   saveRDS(seurat_obj_ge, file = file.path(subdir, paste0("healthy_ge_celltypes.rds")))
   saveRDS(seurat_obj_gte, file = file.path(subdir_2, paste0("healthy_gte_celltypes.rds")))
@@ -266,25 +304,25 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
   
   # GE
   celltypes <- c(
-    '0' = "NPC (+TNC)",
-    '1' = "OPC Early",
-    '2' = "Astrocyte", 
-    '3' = "Astrocyte",
-    '4' = "NPC (-TNC)",#"Neurons (hypoxic)",
-    '5' = "Microglia", 
-    '6' = "Cycling G1.S", 
-    '7' = "Cycling (uncontrolled)", 
-    '8' = "Neuron", 
-    '9' = "Pre-OPC", 
-    '10' = "OPC G1.S",
-    '11' = "Cycling G2/M",
-    '12' = "Oligodendrocyte", 
-    '13' = "Immune",
-    '14' = "Unknown", # high MALAT1
-    '15' = "OPC Late",
-    '16' = "Stressed Astrocyte", # with stress genes, less FAM107A
-    '17' = "Endothelia",
-    '18' = "Tumour Endothelia"
+    '0'  = "Mesenchymal", # "NPC (+TNC)",
+    '1'  = "OPC Early", # "OPC Early",
+    '2'  = "Astrocyte", # "Astrocyte", 
+    '3'  = "Radial Glia 1", # "Astrocyte",
+    '4'  = "Hypoxic", # "NPC (-TNC)",#"Neurons (hypoxic)",
+    '5'  = "Microglia", # "Microglia", 
+    '6'  = "Cycling 1", # "Cycling G1.S", 
+    '7'  = "Mixed Cycling", # "Cycling (uncontrolled)", 
+    '8'  = "Migrating Neuron", # "Neuron", 
+    '9'  = "Pre-OPC", # "Pre-OPC", 
+    '10' = "OPC Early Cycling", # "OPC G1.S",
+    '11' = "Cycling 2", # "Cycling G2/M",
+    '12' = "Oligodendrocyte", # "Oligodendrocyte", 
+    '13' = "Immune", # "Immune",
+    '14' = "Unknown", # "Unknown", # high MALAT1
+    '15' = "OPC Late", # "OPC Late",
+    '16' = "Radial Glia 2", # "Stressed Astrocyte", # with stress genes, less FAM107A
+    '17' = "Endothelia", # "Endothelia",
+    '18' = "Tumour Endothelia" # "Tumour Endothelia"
   )
   print(known_markers)
   print(celltypes)
@@ -360,51 +398,85 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
   seurat_obj_gte@meta.data$Phase <- seurat_obj_ge@meta.data$Phase
   prop.table(table(seurat_obj_ge@meta.data[c(cluster_res,'Phase')]),margin=1)*100
 
-  # Label Cycling oRGs & GSCs
+  # Label cluster_col_gsc & cluster_col_gsc_cc
   meta <- seurat_obj_ge@meta.data
   if (is.factor(meta[[cluster_col]])) { meta[[cluster_col]] <- as.character(meta[[cluster_col]]) }
-  meta[[cluster_col_gsc]] <- meta[[cluster_col]]
-
   if (is.factor(meta[[cluster_res]])) { meta[[cluster_res]] <- as.character(meta[[cluster_res]]) }
-
-  meta[[cluster_col_gsc]][which(meta[[cluster_res]] == '6' )]  <- "Cycling"
-  meta[[cluster_col_gsc]][which(meta[[cluster_res]] == '7' )]  <- "Cycling G2/M"
-  meta[[cluster_col_gsc]][which(meta[[cluster_res]] == '10' )]  <- "OPC S Phase"
-  meta[[cluster_col_gsc]][which(meta[[cluster_res]] == '11' )]  <- "G2/M Phase"
+  meta[[cluster_col_gsc]] <- meta[[cluster_col]]
+  meta[[cluster_col_gsc_cc]] <- meta[[cluster_col]]
 
   barcode_org <- colnames(org)
   for (cell in barcode_org){
-    if (meta[cell, "Phase"] == "S" && meta[cell, "Phase"] == "G2M") {
+    if (meta[cell, "Phase"] == "S" || meta[cell, "Phase"] == "G2M") {
       meta[cell, cluster_col_gsc] <- "Outer Radial Glia Cycling" 
-    } else if (meta[cell, "Phase"] == "S") {
-      meta[cell, cluster_col_gsc] <- "Outer Radial Glia S Phase"
-    } else if (meta[cell, "Phase"] == "G2M") {
-      meta[cell, cluster_col_gsc] <- "Outer Radial Glia G2/M Phase"
     } else {
       meta[cell, cluster_col_gsc] <- "Outer Radial Glia"
     }
   }
-  # for (cell in barcode_org) {
-  #   if (meta[cell, cluster_res] == 6) { 
-  #     meta[cell, cluster_col_gsc] <- "Outer Radial Glia Cycling" 
-  #   } else if (meta[cell, cluster_res] == 7) {
-  #     meta[cell, cluster_col_gsc] <- "Outer Radial Glia Cycling G2/M" 
-  #   } else if (meta[cell, cluster_res] == 10) {
-  #     meta[cell, cluster_col_gsc] <- "Outer Radial Glia S Phase" 
-  #   } else if (meta[cell, cluster_res] == 11) {
-  #     meta[cell, cluster_col_gsc] <- "Outer Radial Glia G2/M Phase" 
-  #   } else {
-  #     meta[cell, cluster_col_gsc] <- "Outer Radial Glia"
-  #   }
-  # }
-  
+
   meta[[cluster_col_gsc]] <- factor(meta[[cluster_col_gsc]], levels = level_celltypes)
   meta[[cluster_col_gsc]] <- droplevels(meta[[cluster_col_gsc]])
 
+  # Label Cycling oRGs & GSCs
+  # meta <- seurat_obj_ge@meta.data
+  if (is.factor(meta[[cluster_col]])) { meta[[cluster_col]] <- as.character(meta[[cluster_col]]) }
+  if (is.factor(meta[[cluster_res]])) { meta[[cluster_res]] <- as.character(meta[[cluster_res]]) }
+  meta[[cluster_col_gsc_cc]] <- meta[[cluster_col]]
+
+  meta[[cluster_col_gsc_cc]][which(meta[[cluster_res]] == '6' )]  <-  "Cycling 1 S.G2-M" # "Cycling"
+  meta[[cluster_col_gsc_cc]][which(meta[[cluster_res]] == '7' )]  <-  "Mixed Cycling S.G2-M" # "Cycling G2/M"
+  meta[[cluster_col_gsc_cc]][which(meta[[cluster_res]] == '10' )]  <- "OPC Early Cycling S" # "OPC S Phase"
+  meta[[cluster_col_gsc_cc]][which(meta[[cluster_res]] == '11' )]  <- "Cycling 2 G2-M" # "G2/M Phase"
+
+  barcode_org <- colnames(org)
+  for (cell in barcode_org){
+    if (meta[cell, "Phase"] == "S" && meta[cell, "Phase"] == "G2M") {
+      meta[cell, cluster_col_gsc_cc] <- "Outer Radial Glia Cycling S.G2-M" 
+    } else if (meta[cell, "Phase"] == "S") {
+      meta[cell, cluster_col_gsc_cc] <- "Outer Radial Glia Cycling S"
+    } else if (meta[cell, "Phase"] == "G2M") {
+      meta[cell, cluster_col_gsc_cc] <- "Outer Radial Glia Cycling G2-M"
+    } else {
+      meta[cell, cluster_col_gsc_cc] <- "Outer Radial Glia"
+    }
+  }
+  
+  meta[[cluster_col_gsc_cc]] <- factor(meta[[cluster_col_gsc_cc]], levels = level_celltypes)
+  meta[[cluster_col_gsc_cc]] <- droplevels(meta[[cluster_col_gsc_cc]])
+
   seurat_obj_ge <- AddMetaData(seurat_obj_ge, meta[cluster_col_gsc], col.name = cluster_col_gsc)
   seurat_obj_gte <- AddMetaData(seurat_obj_gte, meta[cluster_col_gsc], col.name = cluster_col_gsc)
+  seurat_obj_ge <- AddMetaData(seurat_obj_ge, meta[cluster_col_gsc_cc], col.name = cluster_col_gsc_cc)
+  seurat_obj_gte <- AddMetaData(seurat_obj_gte, meta[cluster_col_gsc_cc], col.name = cluster_col_gsc_cc)
+
+  glimpse(seurat_obj_ge@meta.data)
+  glimpse(seurat_obj_gte@meta.data)
+
+  if (class(meta$mitoRatio) == "data.frame") { 
+    # meta$mitoRatio <- meta$mitoRatio[,1] 
+    meta$mitoRatio <- NULL
+  } else if (class(meta$mitoRatio) == "list") {
+    # meta$mitoRatio <- meta$mitoRatio[[1]]
+    meta$mitoRatio <- NULL
+  }
+  meta <- meta %>% dplyr::mutate(across(everything(), as.character))
+  write.csv(meta, file.path(figs_dir_path, paste0("metadata_ge.csv")))
+  
+  meta <- seurat_obj_gte@meta.data
+  meta <- meta %>% dplyr::mutate(across(everything(), as.character))
+  if (class(meta$mitoRatio) == "data.frame") { 
+    # meta$mitoRatio <- meta$mitoRatio[,1] 
+    meta$mitoRatio <- NULL
+  } else if (class(meta$mitoRatio) == "list") {
+    # meta$mitoRatio <- meta$mitoRatio[[1]]
+    meta$mitoRatio <- NULL
+  }
+  write.csv(meta, file.path(figs_dir_path_2, paste0("metadata_gte.csv")))
+  rm("meta")
 
   # save rds
+  if (class(seurat_obj_ge@meta.data$mitoRatio) == "data.frame" || class(seurat_obj_ge@meta.data$mitoRatio) == "list") { seurat_obj_ge@meta.data$mitoRatio$mitoRatio <- NULL } 
+  if (class(seurat_obj_gte@meta.data$mitoRatio) == "data.frame"|| class(seurat_obj_gte@meta.data$mitoRatio) == "list") { seurat_obj_gte@meta.data$mitoRatio$mitoRatio <- NULL } 
   saveRDS(seurat_obj_ge, file = file.path(subdir, paste0("gbm_ge_celltypes.rds")))
   saveRDS(seurat_obj_gte, file = file.path(subdir_2, paste0("gbm_gte_celltypes.rds")))
 }
@@ -952,6 +1024,64 @@ if (grepl("gbm", subdir, fixed = TRUE)) {
   ggsave(file.path(figs_dir_path, paste0("barplot_ccphasescore_",cluster_col_gsc,".tiff")),
       plot = p, units="in", width=size*1.3, height=size*0.9, dpi=300, compression = 'lzw')  
   ggsave(file.path(figs_dir_path_2, paste0("barplot_ccphasescore_",cluster_col_gsc,".tiff")),
+      plot = p, units="in", width=size*1.3, height=size*0.9, dpi=300, compression = 'lzw')  
+
+  #### =========================================== ####
+  #### Stem Cell Scores (cc celltypes) ####
+  #### =========================================== ####
+
+  # Create Barplot for CellCycleScore (grouped by gsctypes)
+  stats_df <- seurat_obj_ge@meta.data %>% 
+    group_by(!!sym(cluster_col_gsc_cc)) %>% 
+    summarise(mean.s = mean(S.Score), sd.s = sd(S.Score, na.rm = TRUE), 
+              mean.g2m = mean(G2M.Score), sd.g2m = sd(G2M.Score, na.rm = TRUE),
+              t_pval = t.test(S.Score,G2M.Score, var.equal=TRUE)$p.value, #two-sided default
+              t_statistic = t.test(S.Score,G2M.Score, var.equal=TRUE)$statistic,
+              t_conf.int_min = t.test(S.Score,G2M.Score, var.equal=TRUE)$conf.int[1], # conf.level 0.95
+              t_conf.int_max = t.test(S.Score,G2M.Score, var.equal=TRUE)$conf.int[2], # conf.level 0.95
+              welch_pval = t.test(S.Score,G2M.Score, var.equal=FALSE)$p.value, #two-sided default
+              welch_statistic = t.test(S.Score,G2M.Score, var.equal=FALSE)$statistic,
+              welch_conf.int_min = t.test(S.Score,G2M.Score, var.equal=FALSE)$conf.int[1], # conf.level 0.95
+              welch_conf.int_max = t.test(S.Score,G2M.Score, var.equal=FALSE)$conf.int[2], # conf.level 0.95
+              .groups = "drop") #two-sided default
+
+  var_tests <- seurat_obj_ge@meta.data %>% select(!!sym(cluster_col_gsc_cc), S.Score, G2M.Score) %>%
+    melt(value.name = "scores", id = cluster_col_gsc_cc) %>%
+    group_by(!!sym(cluster_col_gsc_cc)) %>% 
+    summarise( levene_pval = leveneTest(scores~variable, center=mean)$`Pr(>F)`[1], .groups = "drop" )
+
+  grouped_counts_table <- calcProportions(seurat_obj_ge@meta.data, cluster_col_gsc_cc,'Phase')
+  summary_df <- as.data.frame.matrix(grouped_counts_table)
+  colnames(summary_df) <- c("ncells.G1", "ncells.G2M", "ncells.S", "perc.G1", "perc.G2M", "perc.S")
+  write.csv(cbind(stats_df, var_tests[,2], summary_df),file.path(figs_dir_path,paste0("cellcyclescore_summarystats_",cluster_col_gsc_cc,".csv")), row.names = FALSE)
+  write.csv(cbind(stats_df, var_tests[,2], summary_df),file.path(figs_dir_path_2,paste0("cellcyclescore_summarystats_",cluster_col_gsc_cc,".csv")), row.names = FALSE)
+
+  library(reshape2)
+  print(stats_df)
+  if (colnames(stats_df)[1] != cluster_col_gsc_cc) { # convert row names to columns if column name doesn't exist
+    stats_df <- rownames_to_column(stats_df, var = cluster_col_gsc_cc) 
+  }
+  summary_means <- stats_df %>% select(!!sym(cluster_col_gsc_cc), mean.s, mean.g2m) %>%
+    melt(value.name = "means", id = cluster_col_gsc_cc)
+  summary_sd <- stats_df %>% select(!!sym(cluster_col_gsc_cc), sd.s, sd.g2m) %>%
+    melt(value.name = "sds", id = cluster_col_gsc_cc)
+  summary_stats <- cbind(summary_means, summary_sd[,3])
+  colnames(summary_stats)[2] <- "phase"
+  colnames(summary_stats)[4] <- "sds"
+
+  p <- summary_stats %>% ggplot(aes(x=.data[[cluster_col_gsc_cc]], y=means, fill=factor(phase)) ) +  
+    geom_bar(position=position_dodge(0.9), stat="identity", colour='black') +
+    scale_fill_viridis_d(labels=c('Mean(S Phase Score)', 'Mean(G2/M Phase Score)')) + theme_classic()+
+    labs(x="", y = "Mean(Cell Cycle Phase Score)", fill="Phase") + #NoLegend() + 
+    guides(fill = guide_legend(position = "inside")) +
+    theme(axis.text.x = element_text(size=12, angle = 40, vjust = 1, hjust=1), 
+          axis.text.y = element_text(size=12),
+          axis.title.y = element_text(size = 14),
+          legend.position.inside = c(0.5, 0.8)) +
+    geom_errorbar(aes(ymin=means-sds, ymax=means+sds), width=.2, position = position_dodge(0.9)) 
+  ggsave(file.path(figs_dir_path, paste0("barplot_ccphasescore_",cluster_col_gsc_cc,".tiff")),
+      plot = p, units="in", width=size*1.3, height=size*0.9, dpi=300, compression = 'lzw')  
+  ggsave(file.path(figs_dir_path_2, paste0("barplot_ccphasescore_",cluster_col_gsc_cc,".tiff")),
       plot = p, units="in", width=size*1.3, height=size*0.9, dpi=300, compression = 'lzw')  
 }
 
