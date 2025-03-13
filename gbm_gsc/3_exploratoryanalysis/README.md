@@ -229,7 +229,7 @@ Then run `3.7-celltypeannotation.R` to annotate clusters by cell type and create
 
 ## Copy Number Analysis with `4-cnvanalysis.R`
 
-Install inferCNV with JAGS and r4.1.0 as requirements. 
+Install inferCNV with JAGS and R v4.4.0 as requirements (can use R v4.1.0, but some features would be broken [see tips](#installation-tips-of-infercnv-for-r410)).
 
 ```bash
 module load CCEnv arch/avx2 StdEnv/2023  gcc/12.3 gdal/3.9.1 geos/3.12.0
