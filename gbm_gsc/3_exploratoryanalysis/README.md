@@ -287,8 +287,6 @@ BiocManager::install("infercnv") #v1.10.1
 
 ## Gene Set Enrichment Analysis (GSEA) - validate celltypes annotation GBM subtype.
 
-Performed GSEA 
-
 Software used:
 
 - GSEAPreranked (comes with GSEA v4.1.0)
@@ -337,4 +335,18 @@ Run bash script `6.4-extGSEAReports.sh` to generate .tsv summary report tables.
 
 ```bash
 source ./6.4-extGSEAReports.sh 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results2/  gbm_ge >stderr 2>&1
+```
+
+Label tumour cells 
+
+```bash
+### cnv label annotation
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\4.2-cnvlabel.R ".\20250117_gbm_ge_filtDf_cluster\gbm_ge_celltypes.rds" ".\20250117_gbm_gte_filtDf_cluster\gbm_gte_celltypes.rds" "20250117_gbm_ge_filtDf_cluster\infercnv_int06_gsctypesleiden0.0001_full\17_HMM_predHMMi6.leiden.hmm_mode-subclusters.cell_groupings" figs_cnvlabel 0.6 *>gbm_ge_gte_filtDC_37celltypeanno06_oRG_ccscores_cnvlabels.out
+```
+
+### D. Label GBM subtypes from GSEA results
+
+```bash
+### gbm subtype annotation
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\6.6-gsealabel.R ".\20250117_gbm_ge_filtDf_cluster\gbm_ge_celltypes_cnv.rds" ".\20250117_gbm_gte_filtDf_cluster\gbm_gte_celltypes_cnv.rds" figs_gbmlabel 0.6 *>gbm_ge_gte_filtDC_37celltypeanno06_oRG_ccscores_gbmlabels.out
 ```

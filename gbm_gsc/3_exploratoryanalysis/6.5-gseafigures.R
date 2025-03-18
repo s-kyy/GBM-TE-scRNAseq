@@ -105,7 +105,7 @@ if ("significance" %in% names(gsea_df)) {
     # geom_bar(stat="identity") +
     geom_point() +
     scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
-    labs(x="Cluster", y="", colour="-log10(FDR q-value)")+
+    labs(x="Cluster", y="", colour="FDR q-value")+
     facet_grid(Collection ~ . ,scales="free",space = "free",labeller = as_labeller(wrap_label))+
     geom_text(aes(label = Size), colour = "black", vjust=-1.25, fontface = "bold", size=2.5)+
     theme_minimal() +
@@ -116,7 +116,6 @@ if ("significance" %in% names(gsea_df)) {
   ggsave(file.path(figs_dir_path, paste0(filename,"_full_bar.tiff")),
       plot = p, units="in", width=size*1.6, height=size*num_terms*0.1, dpi=300, compression = 'lzw')
 }
-
 
 ## End of script
 sessionInfo()

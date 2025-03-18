@@ -463,7 +463,6 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
   write.csv(meta, file.path(figs_dir_path, paste0("metadata_ge.csv")))
   
   meta <- seurat_obj_gte@meta.data
-  meta <- meta %>% dplyr::mutate(across(everything(), as.character))
   if (class(meta$mitoRatio) == "data.frame") { 
     # meta$mitoRatio <- meta$mitoRatio[,1] 
     meta$mitoRatio <- NULL
@@ -471,12 +470,13 @@ if (grepl("healthy", subdir, fixed = TRUE)) {
     # meta$mitoRatio <- meta$mitoRatio[[1]]
     meta$mitoRatio <- NULL
   }
+  meta <- meta %>% dplyr::mutate(across(everything(), as.character))
   write.csv(meta, file.path(figs_dir_path_2, paste0("metadata_gte.csv")))
   rm("meta")
 
   # save rds
-  if (class(seurat_obj_ge@meta.data$mitoRatio) == "data.frame" || class(seurat_obj_ge@meta.data$mitoRatio) == "list") { seurat_obj_ge@meta.data$mitoRatio$mitoRatio <- NULL } 
-  if (class(seurat_obj_gte@meta.data$mitoRatio) == "data.frame"|| class(seurat_obj_gte@meta.data$mitoRatio) == "list") { seurat_obj_gte@meta.data$mitoRatio$mitoRatio <- NULL } 
+  if (class(seurat_obj_ge@meta.data$mitoRatio) == "data.frame" || class(seurat_obj_ge@meta.data$mitoRatio) == "list") { seurat_obj_ge@meta.data$mitoRatio <- NULL } 
+  if (class(seurat_obj_gte@meta.data$mitoRatio) == "data.frame"|| class(seurat_obj_gte@meta.data$mitoRatio) == "list") { seurat_obj_gte@meta.data$mitoRatio <- NULL } 
   saveRDS(seurat_obj_ge, file = file.path(subdir, paste0("gbm_ge_celltypes.rds")))
   saveRDS(seurat_obj_gte, file = file.path(subdir_2, paste0("gbm_gte_celltypes.rds")))
 }
@@ -640,9 +640,42 @@ p <- cluster_summary %>%
 ggsave(file.path(figs_dir_path_2, paste0("barplot_clusterbysample_",cluster_res,".tiff")),
     plot = p, units="in", width=size*1.1, height=size*0.7, dpi=300, compression = 'lzw')  
 
-
 #### =========================================== ####
 #### UMAP of celltypes ####
+#### =========================================== ####
+
+makeUMAPPlot <- function(obj, ident, labels=FALSE) {
+  DefaultAssay(obj) <- "integrated"
+  Idents(obj) <- ident
+  p <- DimPlot(obj, reduction = "umap", group.by = ident, label=labels, label.size = 3.5) 
+  p <- p + theme(axis.line=element_blank(),
+          axis.text.x=element_blank(),axis.text.y=element_blank(),
+          axis.ticks=element_blank(),
+          axis.title.x=element_blank(),axis.title.y=element_blank(),
+          panel.background=element_blank(),
+          panel.border=element_blank(),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          plot.background=element_blank())
+  return(p)
+}
+
+p <- makeUMAPPlot(obj = seurat_obj_ge, ident = cluster_col)
+ggsave(file.path(figs_dir_path, paste0("cluster_DimPlot_defaultcols_nolabels",cluster_col,".tiff")),
+  plot = p, units="in", width=size*1.2, height=size*1.2, dpi=300, compression = 'lzw')
+p <- makeUMAPPlot(obj = seurat_obj_ge, ident = cluster_col, labels = TRUE)
+ggsave(file.path(figs_dir_path, paste0("cluster_DimPlot_defaultcols",cluster_col,".tiff")),
+  plot = p, units="in", width=size*1.2, height=size*1.2, dpi=300, compression = 'lzw')
+
+p <- makeUMAPPlot(obj = seurat_obj_gte, ident = cluster_col)
+ggsave(file.path(figs_dir_path_2, paste0("cluster_DimPlot_defaultcols_nolabels",cluster_col,".tiff")),
+  plot = p, units="in", width=size*1.2, height=size*1.2, dpi=300, compression = 'lzw')
+p <- makeUMAPPlot(obj = seurat_obj_gte, ident = cluster_col, labels = TRUE)
+ggsave(file.path(figs_dir_path_2, paste0("cluster_DimPlot_defaultcols",cluster_col,".tiff")),
+  plot = p, units="in", width=size*1.2, height=size*1.2, dpi=300, compression = 'lzw')
+
+#### =========================================== ####
+#### UMAP of celltypes viridis_d ####
 #### =========================================== ####
 
 makeUMAPPlot <- function(obj, ident, labels=FALSE) {
