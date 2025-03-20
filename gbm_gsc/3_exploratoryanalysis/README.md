@@ -350,3 +350,27 @@ Label tumour cells
 ### gbm subtype annotation
 & 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\6.6-gsealabel.R ".\20250117_gbm_ge_filtDf_cluster\gbm_ge_celltypes_cnv.rds" ".\20250117_gbm_gte_filtDf_cluster\gbm_gte_celltypes_cnv.rds" figs_gbmlabel 0.6 *>gbm_ge_gte_filtDC_37celltypeanno06_oRG_ccscores_gbmlabels.out
 ```
+
+## Retrotransposon analysis
+
+Packages:
+- rtracklayer v1.50.0 from BiocManager v"1.30.12 (Help handle GRanges of GTF files) `BiocManager::install("rtracklayer", force=TRUE)`
+
+```bash
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\7.0-te_classes.R "..\0_downloads\GRCh38_Ensembl_rmsk_TE_v23.gtf" *>mar20_te_extract_classes.out
+
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\7-gsealabel.R ".\20250117_gbm_gte_filtDf_cluster\gbm_gte_celltypes_cnv.rds" ".\20250117_gbm_gte_filtDf_cluster\figs_clusteranalysis_gte_logFCall\integrated_snn_res.0.6_padj0.01_DEG.csv" "..\0_downloads\GRCh38_Ensembl_rmsk_TE_v23.gtf" figs_te_analysis 0.6 *>gbm_gte_mar20_teanalysis.out
+
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla .\7-gsealabel.R ".\20250115_healthy_gte_filtDf_cluster\healthy_gte_celltypes.rds" ".\20250115_healthy_gte_filtDf_cluster\figs_clusteranalysis_gte_logFCall\integrated_snn_res.0.6_padj0.01_DEG.csv" "..\0_downloads\GRCh38_Ensembl_rmsk_TE_v23.gtf" figs_te_analysis 0.6 *>healthy_gte_mar20_teanalysis.out
+```
+
+## Pseudotime Anaylsis
+
+See above for [installation tips for Monocle3 and SeuratWrappers](#installation-tips-for-monocle3-v100-on-rhelcentos7-cluster-environment)
+
+```bash
+module load CCEnv arch/avx2 StdEnv/2020 r/4.0.2 ; cd ~/scratch/runs/3_exploratoryanalysis ; 
+Rscript --vanilla ./8.1-monocle.R ./20250117_gbm_gte_filtDf_cluster/gbm_gte_celltypes_cnv_gbm.rds 0.6 figs_monocle
+# check partition to use for pseudotime calculations
+Rscript --vanilla ./8.1-monocle.R ./20250117_gbm_gte_filtDf_cluster/gbm_gte_celltypes_cnv_gbm_monocle.rds 0.6 figs_monocle >0320_gbm_gte_monocle_pseudotime.out 2>&1
+```

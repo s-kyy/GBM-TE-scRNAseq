@@ -37,6 +37,7 @@
 **/*_cache/
 **/*GSEA*/
 **/tmp_scripts/
+**/*_geneNames.txt
 
 # Uninignored Files
 !**/aggr_*.csv
