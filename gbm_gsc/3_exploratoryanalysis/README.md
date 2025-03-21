@@ -366,7 +366,8 @@ Packages:
 
 ## Pseudotime Anaylsis
 
-See above for [installation tips for Monocle3 and SeuratWrappers](#installation-tips-for-monocle3-v100-on-rhelcentos7-cluster-environment)
+See above for [installation tips for Monocle3 and SeuratWrappers](#installation-tips-for-monocle3-v100-on-rhelcentos7-cluster-environment).
+Scripts were adapted from [the seuratwrapper tutorial](https://github.com/satijalab/seurat-wrappers/blob/master/docs/monocle3.Rmd)
 
 ```bash
 module load CCEnv arch/avx2 StdEnv/2020 r/4.0.2 ; cd ~/scratch/runs/3_exploratoryanalysis ; 

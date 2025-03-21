@@ -245,13 +245,13 @@ seurat_obj_gte <- AddMetaData(seurat_obj_gte, meta[cluster_col_gbm_tcga], col.na
 #### =========================================== ####
 glimpse(meta)
 
-# write.csv(meta, file.path(figs_dir_path, paste0("metadata_ge_cnv_gbm.csv")))
-# write.csv(meta, file.path(figs_dir_path_2, paste0("metadata_gte_cnv_gbm.csv")))
-# rm("meta")
+write.csv(meta, file.path(figs_dir_path, paste0("metadata_ge_cnv_gbm.csv")))
+write.csv(meta, file.path(figs_dir_path_2, paste0("metadata_gte_cnv_gbm.csv")))
+rm("meta")
 
-# # save rds
-# saveRDS(seurat_obj_ge, file = file.path(subdir, paste0("gbm_ge_celltypes_cnv_gbm.rds")))
-# saveRDS(seurat_obj_gte, file = file.path(subdir_2, paste0("gbm_gte_celltypes_cnv_gbm.rds")))
+# save rds
+saveRDS(seurat_obj_ge, file = file.path(subdir, paste0("gbm_ge_celltypes_cnv_gbm.rds")))
+saveRDS(seurat_obj_gte, file = file.path(subdir_2, paste0("gbm_gte_celltypes_cnv_gbm.rds")))
 
 # print("Objects saved. Making figures")
 

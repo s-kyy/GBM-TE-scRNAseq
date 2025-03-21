@@ -99,7 +99,7 @@ ifelse(!dir.exists(figs_dir_path),
 #### Subset out non-tumour and immune cells. ####
 #### ===================================================================== ####
 
-seurat_obj <- subset(x = seurat_obj, subset = (!!sym(cluster_col_tumour) == 1) & (!!sym(cluster_col_gsc) != "Tumour Endothelia"))
+seurat_obj <- subset(x = seurat_obj, subset = (!!sym(cluster_col_gsc) != "Immune") & (!!sym(cluster_col_gsc) != "Oligodendrocyte"))
 
 dim(seurat_obj)
 unique(seurat_obj$int06_celltypes)
@@ -115,7 +115,7 @@ print("Seurat Object subsetted")
 
 ## Extract sparse matrix, metadata and gene labels to create monocle object
 cds <- as.cell_data_set(seurat_obj)
-cds <- cluster_cells(cds)
+cds <- cluster_cells(cds, k=8) # Default: Leiden clustering
 print("Monocle object clustered. Exporting UMAPs and saving object...")
 
 # Export cluster and partition figures
