@@ -65,6 +65,8 @@ library(tidyverse)
 library(dplyr)
 library(viridis)
 library(ggpubr) # stats in ggplot2
+library(ggbreak) 
+library(ggh4x) # scale breaks on facets
 
 library(conflicted)
 conflict_prefer("select", "dplyr") ## required in %>% dplyr
@@ -113,10 +115,57 @@ glimpse(seurat_obj@meta.data)
 #### Histogram of TE-types expressed across different celltypes ####
 #### ===================================================================== ####
 
-te_df$type <- factor(te_df$type, levels=c("LINE", "SINE", "LTR", "Other"))
+te_types <- c("LINE", "SINE", "LTR", "Other")
+te_colours <- c("#F8766D", "#7CAE00", "#00BFC4", "#C77CFF")
+te_df$type <- factor(te_df$type, levels=te_types)
+if (grepl("healthy", parent_dir_name_obj, fixed = TRUE)) {
+  te_scale_y_min <- c(10,3,60,20)
+  te_scale_y_max <- c(149,59,449,239)
+  tick_temp <- c(150,60,410,235)
+} else if (grepl("gbm", parent_dir_name_obj, fixed = TRUE)) {
+  te_scale_y_min <- c(15,3,101,26)
+  te_scale_y_max <- c(134,59,369,179)
+  tick_temp <- c(136,59,372,188)
+}
+
+te_df_plot <- te_df %>% 
+  group_by(type, num_celltypes) %>% 
+  summarize(n=n(), .groups = 'drop') 
+te_df_plot$type <- factor(te_df_plot$type, levels=te_types)
+
+round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy} #from plyr package
+
+for (i in 1:length(te_types)) {
+  temp <- subset(te_df_plot, type == te_types[i])
+  p <- ggplot(temp, aes(x=factor(num_celltypes,levels=c(0:max(temp$num_celltypes))), y=n),) + 
+    geom_bar(stat = "identity", alpha=0.5, color=te_colours[i], fill=te_colours[i]) +
+    # geom_col() +
+    labs(x="Number of Cell Types", y="Number of TE subfamilies Expressed") +
+    scale_x_discrete(breaks=factor(0:max(temp$num_celltypes)), limits = factor(0:max(temp$num_celltypes))) +
+    # theme_classic()+
+    theme(axis.text.x = element_text(size= 12,color="black",angle = 45, vjust = 1, hjust=1), 
+        axis.text.x.top = element_blank(),
+        axis.ticks.x.top = element_blank(),
+        axis.text.y = element_text(size=12,color="black"),
+        axis.title.y = element_text(size = 14, angle=90),
+        axis.title.x = element_text(size = 14),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line(colour="grey90"),
+        panel.grid.minor = element_blank(),
+        plot.background = element_blank(),
+        panel.background = element_blank(),
+        axis.line.y.left = element_line(),
+        axis.line.x.bottom = element_line(colour="black"))
+  p <- p + scale_y_break(breaks=c(te_scale_y_min[i],te_scale_y_max[i]), scales=0.4, space=0.1, ticklabels=c(as.numeric(tick_temp[i]),round_any( max(temp$n), 5)))
+  ggsave(file.path(figs_dir_path, paste0("hist_num_celltypes_",te_types[i],".tiff")),
+      plot = p, units="in", width=size*1.3, height=size*0.4, dpi=300, compression = 'lzw')  
+}
+
+
+# Basic figure without breaks in y-axis. 
 p <- te_df  %>% ggplot(aes(x=num_celltypes, color=type, fill=type)) + 
   geom_histogram(binwidth=1, alpha=0.5) +
-  labs(x="Number of Cell Types", y="Expressed TE subfamilies from Raw Counts",
+  labs(x="Number of Cell Types", y="Number of TE subfamilies Expressed",
     color="TE Type", fill="TE Type") +
   facet_grid(vars(type),scales="free")+
   scale_x_continuous(breaks=seq(0, max(te_df$num_celltypes)+1, by=1), 
@@ -131,6 +180,7 @@ p <- te_df  %>% ggplot(aes(x=num_celltypes, color=type, fill=type)) +
 ggsave(file.path(figs_dir_path, paste0("hist_num_celltypes_splitby-TEtypes.tiff")),
     plot = p, units="in", width=size*1.3, height=size*0.9, dpi=300, compression = 'lzw')  
 
+write.csv(te_df_plot, file.path(figs_dir_path, paste0("te_df_plot_",filename,".csv")),row.names=FALSE)
 
 #### ===================================================================== ####
 #### Percentage of counts per TE type per cell ####
