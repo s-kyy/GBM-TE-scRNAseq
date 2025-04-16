@@ -7,20 +7,20 @@ Single cell analysis will be performed on two feature-cellbarcode matrices. One 
 - Linux: CentOS7 with GCC 9.3.0, Intel 2020.1, and Open MPI 4.0.3 ([StdEnv/2020](https://docs.alliancecan.ca/wiki/Standard_software_environments#StdEnv/2020)).
   - Niagara: `module load CCEnv arch/avx2 StdEnv/2020`
 - R 4.0.2
-- BiocManager 1.30.12
-- sctransform 0.3.2
-- uwot 0.1.10
-- SeuratObject 4.0.0
-- Matrix 1.3.-2
-- Seurat 4.0.1 (see note below)
-- tidyverse 1.3.1
-- dplyr 1.07
-- ggplot2 3.3.5
-- ggpp 0.5.8-1
-- ggpmisc 0.6.1
-- scales 1.1.1
-- conflicted 1.1.0
-- fs 1.5.0
+  - BiocManager 1.30.12
+  - sctransform 0.3.2
+  - uwot 0.1.10
+  - SeuratObject 4.0.0
+  - Matrix 1.3.-2
+  - Seurat 4.0.1 (see note below)
+  - tidyverse 1.3.1
+  - dplyr 1.07
+  - ggplot2 3.3.5
+  - ggpp 0.5.8-1
+  - ggpmisc 0.6.1
+  - scales 1.1.1
+  - conflicted 1.1.0
+  - fs 1.5.0
 <!-- - renv 0.13.2 -->
 <!-- - See comprehensive list of requirements in: `renv.lock` -->
 
