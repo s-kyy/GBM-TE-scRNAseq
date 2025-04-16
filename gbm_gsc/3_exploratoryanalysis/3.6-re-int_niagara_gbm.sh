@@ -14,9 +14,9 @@ cd ~/scratch/runs/3_exploratoryanalysis
 echo "$(pwd)" #gbm_gsc/3_exploratoryanalysis
 
 if [[ $SLURM_ARRAY_TASK_ID == 0 ]] ; then
-Rscript --vanilla ./3.6-reintegrate_recluster_nia.R ./20250103_gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets/merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster.rds 0.5 0.6 gbm_ge figs_filtDC_int >0116_gbm_ge_re-integrate.out 2>&1
+Rscript --vanilla ./3.6-reintegrate_recluster_nia.R ./gbm_merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets/merged_ge_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster.rds 0.5 0.6 gbm_ge figs_filtDC_int >gbm_ge_re-integrate.out 2>&1
 fi
 
 if [[ $SLURM_ARRAY_TASK_ID == 1 ]] ; then
-Rscript --vanilla ./3.6-reintegrate_recluster_nia.R ./20250103_gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets/merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster.rds 0.5 0.6 gbm_gte figs_filtDC_int >0116_gbm_gte_re-integrate.out 2>&1
+Rscript --vanilla ./3.6-reintegrate_recluster_nia.R ./gbm_merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets/merged_gte_qc_integrated_integrated_umap_clustered_ANNdoublets_filtDf_cluster.rds 0.5 0.6 gbm_gte figs_filtDC_int >gbm_gte_re-integrate.out 2>&1
 fi

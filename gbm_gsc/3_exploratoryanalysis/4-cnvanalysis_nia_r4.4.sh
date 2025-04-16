@@ -16,4 +16,4 @@ module load r/4.4.0
 cd ~/scratch/runs/3_exploratoryanalysis
 echo "$(pwd)" #gbm_gsc/3_exploratoryanalysis
 
-Rscript --vanilla ./4-cnvanalysis.R ./20250117_gbm_ge_filtDf_cluster/gbm_ge_celltypes.rds ../data/refdata-gex-GRCh38-2020-A/genes/gene_annotations.txt int06_gsctypes 6 >0205_4.4_gbm_ge_cnv_gsctypes.out 2>&1
+Rscript --vanilla ./4-cnvanalysis.R ./gbm_ge_filtDf_cluster/gbm_ge_celltypes.rds ../data/refdata-gex-GRCh38-2020-A/genes/gene_annotations.txt int06_gsctypes 6 >4.4_gbm_ge_cnv_gsctypes.out 2>&1

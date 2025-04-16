@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=00:05:00
-#SBATCH --account=def-ytanaka
+#SBATCH --account=xxx
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=15G

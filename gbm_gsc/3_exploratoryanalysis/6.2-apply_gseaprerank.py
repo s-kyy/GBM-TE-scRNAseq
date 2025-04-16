@@ -5,8 +5,6 @@
 
 # Author: Samantha Yuen
 # Adapted from: apply_cellranger6.py
-# Created: Tuesday May 18, 2021
-# Modified: Tuesday Feb 14, 2024
 
 # Project: RetroTransposon scRNA-seq analysis on adult human glioblastoma 
 

@@ -13,17 +13,17 @@ cd ~/scratch/runs/3_exploratoryanalysis
 echo "$(pwd)" #gbm_gsc/3_exploratoryanalysis
 
 if [[ $SLURM_ARRAY_TASK_ID == 0 ]] ; then
-Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20241122_merged_bhaduriGBM_wangGBM/20241203_gbm_int_umap/20241224_gbm_ge_dimred/merged_ge_qc_integrated_integrated_umap.rds gbm >1227_gbm_ge_pca.out 2>&1
+Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/merged_bhaduriGBM_wangGBM/gbm_int_umap/gbm_ge_dimred/merged_ge_qc_integrated_integrated_umap.rds gbm >gbm_ge_pca.out 2>&1
 fi
 
 if [[ $SLURM_ARRAY_TASK_ID == 1 ]] ; then
-Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20241122_merged_bhaduriGBM_wangGBM/20241203_gbm_int_umap/20241224_gbm_gte_dimred/merged_gte_qc_integrated_integrated_umap.rds gbm >1227_gbm_gte_pca.out 2>&1
+Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/merged_bhaduriGBM_wangGBM/gbm_int_umap/gbm_gte_dimred/merged_gte_qc_integrated_integrated_umap.rds gbm >gbm_gte_pca.out 2>&1
 fi
 
 if [[ $SLURM_ARRAY_TASK_ID == 2 ]] ; then
-Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20230320_healthy/20241203_healthy_int_umap/20241224_healthy_ge_dimred/ge_qc_integrated_integrated_umap.rds healthy >1227_healthy_ge_pca.out 2>&1
+Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/healthy/healthy_int_umap/healthy_ge_dimred/ge_qc_integrated_integrated_umap.rds healthy >healthy_ge_pca.out 2>&1
 fi
 
 if [[ $SLURM_ARRAY_TASK_ID == 3 ]] ; then
-Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20230320_healthy/20241203_healthy_int_umap/20241224_healthy_gte_dimred/gte_qc_integrated_integrated_umap.rds healthy >1227_healthy_gte_pca.out 2>&1
+Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/healthy/healthy_int_umap/healthy_gte_dimred/gte_qc_integrated_integrated_umap.rds healthy >healthy_gte_pca.out 2>&1
 fi
