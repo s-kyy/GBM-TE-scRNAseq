@@ -57,30 +57,30 @@ cd ./gbm_gsc/2_seuratqc
 
 Rscript --vanilla ./1-createSeuratObj-bhaduri.R >bhadurigbm_1.out 2>&1 
   # outputs:
-  # ./gbm_gsc/2_seuratqc/20210329_bhaduriGBM/gte.rds
-  # ./gbm_gsc/2_seuratqc/20210329_bhaduriGBM/ge.rds
+  # ./gbm_gsc/2_seuratqc/bhaduriGBM/gte.rds
+  # ./gbm_gsc/2_seuratqc/bhaduriGBM/ge.rds
 
-Rscript --vanilla ./1-createSeuratObj.R ../0_downloads/2021-05-28_wang/samples.csv \ 
-../1_scrna-seq_mapping/2021-06-10_wang_aggr_ge \
-../1_scrna-seq_mapping/2021-06-10_wang_aggr_te \
+Rscript --vanilla ./1-createSeuratObj.R ../0_downloads/wang/samples.csv \ 
+../1_scrna-seq_mapping/wang_aggr_ge \
+../1_scrna-seq_mapping/wang_aggr_te \
 wangGBM >wanggbm_1.out 2>&1 
   # outputs:
-  # ./gbm_gsc/2_seuratqc/20210611_wangGBM/gte.rds
-  # ./gbm_gsc/2_seuratqc/20210611_wangGBM/ge.rds
+  # ./gbm_gsc/2_seuratqc/wangGBM/gte.rds
+  # ./gbm_gsc/2_seuratqc/wangGBM/ge.rds
 
-Rscript --vanilla ./1-createSeuratObj.R ../0_downloads/2023-03-06_bhaduri_healthy/samples.csv \ 
-../1_scrna-seq_mapping/2023-03-06_healthy_aggr_ge \
-../1_scrna-seq_mapping/2023-03-06_healthy_aggr_te \
+Rscript --vanilla ./1-createSeuratObj.R ../0_downloads/bhaduri_healthy/samples.csv \ 
+../1_scrna-seq_mapping/healthy_aggr_ge \
+../1_scrna-seq_mapping/healthy_aggr_te \
 healthy >healthy_1.out 2>&1 
   # outputs:
-  # ./gbm_gsc/2_seuratqc/20230320_healthy/gte.rds
-  # ./gbm_gsc/2_seuratqc/20230320_healthy/ge.rds
+  # ./gbm_gsc/2_seuratqc/healthy/gte.rds
+  # ./gbm_gsc/2_seuratqc/healthy/ge.rds
 ```
 
 Example of Running script on Windows (Powershell 7)
 
 ```bash
-& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla 1-createSeuratObj.R "..\0_downloads\2021-05-28_wang\samples.csv" "..\1_scrna-seq_mapping\2021-06-10_wang_aggr_ge" "..\1_scrna-seq_mapping\2021-06-10_wang_aggr_te" "wangGBM" *>"wanggbm_1.out" 
+& 'C:\Program Files\R\R-4.0.2\bin\Rscript.exe' --vanilla 1-createSeuratObj.R "..\0_downloads\wang\samples.csv" "..\1_scrna-seq_mapping\wang_aggr_ge" "..\1_scrna-seq_mapping\wang_aggr_te" "wangGBM" *>"wanggbm_1.out" 
 ```
 
 ### `2-mergeSeuratObj.R`
@@ -91,16 +91,16 @@ Commands and scripts used to merge GBM datasets from Bhaduri et al., 2020 and Wa
 cd ./gbm_gsc/2_seuratqc
 
 Rscript --vanilla 2-mergeSeuratObj.R \
-./20210329_bhaduriGBM/gte.rds \ 
-./20210611_wangGBM/gte.rds bhaduriGBM wangGBM >merge_bhaduri_wang_gte.out 2>&1 
+./bhaduriGBM/gte.rds \ 
+./wangGBM/gte.rds bhaduriGBM wangGBM >merge_bhaduri_wang_gte.out 2>&1 
   # outputs:
-  # ./20230611_merged_bhaduriGBM_wangGBM/merged_gte.rds
+  # ./merged_bhaduriGBM_wangGBM/merged_gte.rds
 
 Rscript --vanilla 2-mergeSeuratObj.R \
-./20210329_bhaduriGBM/ge.rds \
-./20210611_wangGBM/ge.rds bhaduriGBM wangGBM >merge_bhaduri_wang_ge.out 2>&1 
+./bhaduriGBM/ge.rds \
+./wangGBM/ge.rds bhaduriGBM wangGBM >merge_bhaduri_wang_ge.out 2>&1 
   # outputs:
-  # ./20230611_merge_bhaduriGBM_wangGBM/merged_ge.rds
+  # ./merge_bhaduriGBM_wangGBM/merged_ge.rds
 ```
 
 ### `qcfigs_bhaduri.R` and `qcfigs_wang.R`
@@ -120,16 +120,16 @@ Commands to generate quality control figures before quality control steps.
 cd ./gbm_gsc/2_seuratqc
 
 Rscript --vanilla qc-figs_bhaduriwang.R \
-./20230611_merged_bhaduriGBM_wangGBM/merged_gte.rds >qcfigs_merged.out 2>&1 
+./merged_bhaduriGBM_wangGBM/merged_gte.rds >qcfigs_merged.out 2>&1 
 
 Rscript --vanilla qc-figs_bhaduriwang.R \
-./20230611_merge_bhaduriGBM_wangGBM/merged_ge.rds >qcfigs_merged.out 2>&1 
+./merge_bhaduriGBM_wangGBM/merged_ge.rds >qcfigs_merged.out 2>&1 
 
 Rscript --vanilla qc-figs_healthy.R \
-./20230320_healthy/gte.rds >qcfigs_healthygte.out 2>&1 
+./healthy/gte.rds >qcfigs_healthygte.out 2>&1 
 
 Rscript --vanilla qc-figs_healthy.R \
-./20230320_healthy/ge.rds >qcfigs_healthyge.out 2>&1 
+./healthy/ge.rds >qcfigs_healthyge.out 2>&1 
 ```
 
 ### `3-filter_gbm.R` and `3-filter_healthy.R`
@@ -139,15 +139,15 @@ Since the healthy samples are single nucleotide RNA-seq samples, slightly modifi
 Some code has been commented out to filter possible doublets / triplets use 3-5 times the median absolute deviations of genes and UMI detected. However this was omitted in favor of using a unified R package to simulate and filter doublets (i.e. DoubletFinder). 
 
 ```bash
-Rscript --vanilla 3-filter_gbm.R ./20230611_merge_bhaduriGBM_wangGBM/merged_ge.rds ./20230611_merge_bhaduriGBM_wangGBM/merged_gte.rds >filter_gbm.out 2>&1
+Rscript --vanilla 3-filter_gbm.R ./merge_bhaduriGBM_wangGBM/merged_ge.rds ./merge_bhaduriGBM_wangGBM/merged_gte.rds >filter_gbm.out 2>&1
   # outputs:
-  # ./20230611_merge_bhaduriGBM_wangGBM/merged_ge_qc.rds
-  # ./20230611_merge_bhaduriGBM_wangGBM/merged_gte_qc.rds
+  # ./merge_bhaduriGBM_wangGBM/merged_ge_qc.rds
+  # ./merge_bhaduriGBM_wangGBM/merged_gte_qc.rds
 
-Rscript --vanilla 3-filter_gbm.R ./20230320_healthy/ge.rds ./20230320_healthy/gte.rds >filter_healthy.out 2>&1
+Rscript --vanilla 3-filter_gbm.R ./healthy/ge.rds ./healthy/gte.rds >filter_healthy.out 2>&1
   # outputs:
-  # ./20230320_healthy/ge_qc.rds
-  # ./20230320_healthy/gte_qc.rds
+  # ./healthy/ge_qc.rds
+  # ./healthy/gte_qc.rds
 ```
 
 ### `4-integrate.R`
@@ -161,13 +161,13 @@ We included an example job script: `4-integrate_job.sh`.
 ```bash
 cd ./gbm_gsc/2_seuratqc
 
-Rscript --vanilla ./4-integrate.R ./20230320_healthy/ge_qc.rds ./cellcycle_genes.csv >healthy_ge_qc_integrate.out 2>&1
-Rscript --vanilla ./4-integrate.R ./20230320_healthy/gte_qc.rds ./cellcycle_genes.csv >healthy_gte_qc_integrate.out 2>&1
-# 20230320_healthy/ --> location of saved RDS files
-# 20230320_healthy/figs --> location of figures
+Rscript --vanilla ./4-integrate.R ./healthy/ge_qc.rds ./cellcycle_genes.csv >healthy_ge_qc_integrate.out 2>&1
+Rscript --vanilla ./4-integrate.R ./healthy/gte_qc.rds ./cellcycle_genes.csv >healthy_gte_qc_integrate.out 2>&1
+# healthy/ --> location of saved RDS files
+# healthy/figs --> location of figures
 
-Rscript --vanilla ./4-integrate.R ./20230611_merged_bhaduriGBM_wangGBM/merged_ge_qc.rds ./cellcycle_genes.csv >gbm_ge_qc_integrate.out 2>&1
-Rscript --vanilla ./4-integrate.R ./20230611_merged_bhaduriGBM_wangGBM/merged_gte_qc.rds ./cellcycle_genes.csv >gbm_gte_qc_integrate.out 2>&1
-# 20230611_merged_bhaduriGBM_wangGBM/ -> location of saved RDS files
-# 20230611_merged_bhaduriGBM_wangGBM/figs/ -> location of figures 
+Rscript --vanilla ./4-integrate.R ./merged_bhaduriGBM_wangGBM/merged_ge_qc.rds ./cellcycle_genes.csv >gbm_ge_qc_integrate.out 2>&1
+Rscript --vanilla ./4-integrate.R ./merged_bhaduriGBM_wangGBM/merged_gte_qc.rds ./cellcycle_genes.csv >gbm_gte_qc_integrate.out 2>&1
+# merged_bhaduriGBM_wangGBM/ -> location of saved RDS files
+# merged_bhaduriGBM_wangGBM/figs/ -> location of figures 
 ```

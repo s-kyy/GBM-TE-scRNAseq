@@ -36,14 +36,12 @@ Mapping of single cell or single nuclei RNA-seq datasets was performed on linux-
 - cellranger v3.0.2 (TE mapping) - https://support.10xgenomics.com/single-cell-gene-expression/software/downloads/3.0/
 - R v4.0.2 
     - Seurat v4.0
-    <!-- - Monocle v3  -->
-    <!-- - See `renv.lock` for full list of R packages -->
 - R v4.4 
   - inferCNV
   - Seurat v4.4.0
   - SeuratObject v4.1.4
 - Python v3.9
-<!-- - HMM_CE v0.1 - [https://github.com/ytanaka-bio/HMM_CE](https://github.com/ytanaka-bio/HMM_CE) -->
+
 
 See the `README.md` under each numbered directory for more detailed notes on software requirements and script documentation. 
 

@@ -2,7 +2,6 @@
 
 **Table of Contents**
 - [Software Requirements](#software-requirements)
-  - [Installation tips for monocle3 (v1.0.0) on RHEL/CENTOS7 cluster environment](#installation-tips-for-monocle3-v100-on-rhelcentos7-cluster-environment)
 - [Dimensionality Reduction with `1-pca_cluster.R`](#dimensionality-reduction-with-1-pca_clusterr)
 - [Cluster Analysis with `2-clusteranalysis.R`](#cluster-analysis-with-2-clusteranalysisr)
 - [Exploring Cell types with `3-celltypeanalysis.R` (Preliminary)](#exploring-cell-types-with-3-celltypeanalysisr-preliminary)
@@ -12,29 +11,19 @@
 - [Cell Type Annotations with `3.7-celltypeannotation.R`](#cell-type-annotations-with-37-celltypeannotationr)
 - [Copy Number Analysis with `4-cnvanalysis.R`](#copy-number-analysis-with-4-cnvanalysisr)
   - [Installation tips of inferCNV for r/4.1.0](#installation-tips-of-infercnv-for-r410)
-- [Gene Ontology Analysis (GO) - validate celltypes](#gene-ontology-analysis-go---validate-celltypes)
 - [Gene Set Enrichment Analysis (GSEA) - validate celltypes annotation GBM subtype.](#gene-set-enrichment-analysis-gsea---validate-celltypes-annotation-gbm-subtype)
   - [A. Export Ranked Gene Lists](#a-export-ranked-gene-lists)
   - [B. Prepare Input for GSEA: Genesets](#b-prepare-input-for-gsea-genesets)
   - [C. Generate GSEAPreranked scripts](#c-generate-gseapreranked-scripts)
   - [D. Label GBM subtypes from GSEA results](#d-label-gbm-subtypes-from-gsea-results)
 - [Retrotransposon analysis](#retrotransposon-analysis)
-<!-- - [Pseudotime Anaylsis](#pseudotime-anaylsis) -->
+
 
 ## Software Requirements
 
-- R 4.0.2 (compute cluster analysis)
-  - viridis 0.6.5
-  - future 1.34.0
-  - future.apply 1.11.3
-  - monocle3 1.3.1 with devtools. (see section below)
-  - SeuratWrappers 0.3.0. requires...
-    - ellipsis 0.3.2
-    - pillar 1.6.2
-    - viridisLite 0.4.0
-    - vctrs 0.3.8
+- R 4.0.1 -- requirements for further preprocessing are the same as in 2_seuratqc section 
 
-- R 4.2.2 (generation of figures on Windows 10)
+- R 4.2.2 -- generation of figures on Windows 10
   - conflicted 1.1.0
   - viridis 0.6.5
   - dplyr 1.1.4
@@ -66,58 +55,6 @@
 
 Installation of inferCNV is described [below](#installation-tips-of-infercnv-for-r410) for R 4.1.0.
 
-### Installation tips for monocle3 (v1.0.0) on RHEL/CENTOS7 cluster environment
-
-Load software
-
-```bash
-# on Niagara system
-module load CCEnv arch/avx2 StdEnv/2020 gcc/9.3.0 gdal/3.5.1 geos/3.10.2 r/4.0.2
-# on Cedar system
-module load StdEnv/2020 gcc/9.3.0 gdal/3.5.1 geos/3.10.2 r/4.0.2
-```
-
-Install packages in R v4.0.2
-
-```R
-install.packages("devtools")
-install.packages("remotes")
-remotes::install_version("BiocManager", version="1.30.12")
-library(BiocManager)
-BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats','limma', 'S4Vectors', 'SingleCellExperiment', 'SummarizedExperiment', 'batchelor'))
-install.packages("https://cran.r-project.org/src/contrib/Archive/Matrix.utils/Matrix.utils_0.9.8.tar.gz", type = "source", repos = NULL)
-
-devtools::install_github('cole-trapnell-lab/leidenbase') #v0.1.9
-remotes::install_version("matrixStats", version="0.58.0")
-
-### ensure gdalv3.5.1+, geos/3.10.2, udunits/2.2.28 are available (and ideally no other version available)
-### Installation tips when multiple gdal versions are installed: https://github.com/r-spatial/sf/issues/844#issuecomment-653935662
-remotes::install_version("udunits2", version="0.13.2.1")
-remotes::install_version("units", version="0.8-5")
-
-### Install sf
-### last arguement is a quick fix for a bug in R that fails installation of sf library when multiple gdal versions are installed
-### Prior version: remotes::install_version("sf", version="0.3.2")
-remotes::install_version("sf", version = '1.0-19', args="--no-test-load") 
-
-### Install spdep
-remotes::install_version("spdep", version="1.1-8") 
-
-### Install monocle3
-devtools::install_github("cole-trapnell-lab/monocle3", ref="1.0.0")
-  # OR 
-  # devtools::install_github("cole-trapnell-lab/monocle3", ref="v1.3.1")
-
-### Close and re-open new R session
-
-### Install SeuratWrappers
-remotes::install_version("R.utils", version="2.11.0")
-devtools::install_github('satijalab/seurat-wrappers', ref="8510069") # v0.3.0 # still need to do as of 2025-01-15: https://github.com/satijalab/seurat-wrappers/commit/8510069e76ae8f39c91250d67784e4b8ab4a9386
-  # OR alternatively 
-  # devtools::install_github('satijalab/seurat-wrappers')
-  # remotes::install_github('satijalab/seurat-wrappers@community-vignette') # v0.2.0
-``` 
-
 ## Dimensionality Reduction with `1-pca_cluster.R` 
 
 Takes one path as input with an optional output sample name. Outputs a seurat object after cell clustering and two CSVs with unique markers from each cell cluster at two resolutions (0.3 and 0.4). 
@@ -134,13 +71,11 @@ Commands used:
 ```bash
 cd gbm_gsc/3_exploratoryanalysis
 
-Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20230320_healthy/20241203_healthy_int_umap/ge_qc_integrated.rds >healthy_ge_qc_rcc_pca.out 2>&1
-Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20230320_healthy/20241203_healthy_int_umap/gte_qc_integrated.rds >healthy_gte_qc_rcc_pca.out 2>&1
-# ./202421128_healthy/ <-- Output folder
+Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/healthy/healthy_int_umap/ge_qc_integrated.rds >healthy_ge_qc_rcc_pca.out 2>&1
+Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/healthy/healthy_int_umap/gte_qc_integrated.rds >healthy_gte_qc_rcc_pca.out 2>&1
 
-Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20210902_merged_qc_bhaduriGBM_wangGBM/20241203_gbm_int_umap/merged_ge_qc_integrated.rds >gbm_ge_qc_rcc_pca.out 2>&1
-Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/20210902_merged_qc_bhaduriGBM_wangGBM/20241203_gbm_int_umap/merged_gte_qc_integrated.rds >gbm_ge_qc_rcc_pca.out 2>&1
-# ./20210902_merged_qc_bhaduriGBM_wangGBM
+Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/merged_qc_bhaduriGBM_wangGBM/gbm_int_umap/merged_ge_qc_integrated.rds >gbm_ge_qc_rcc_pca.out 2>&1
+Rscript --vanilla ./1-pca_cluster.R ../2_seuratqc/merged_qc_bhaduriGBM_wangGBM/gbm_int_umap/merged_gte_qc_integrated.rds >gbm_ge_qc_rcc_pca.out 2>&1
 ```
 
 ## Cluster Analysis with `2-clusteranalysis.R`
@@ -158,13 +93,13 @@ Commands to generate quality control figures after filtering out low quality cel
 
 ```bash
 # Produce figures and summary CSVs after filtering low-quality cells. 
-Rscript --vanilla ./2-clusteranalysis.R ./20241203_gbm_merged_ge_qc_integrated_umap/merged_ge_qc_integrated_umap_clustered.rds ./20241203_gbm_merged_ge_qc_integrated_umap/merged_ge_qc_integrated_umap_markers_0.3.csv ./20241203_gbm_merged_ge_qc_integrated_umap/merged_ge_qc_integrated_umap_markers_0.4.csv >gbm_ge_umap_figs.out 2>&1
+Rscript --vanilla ./2-clusteranalysis.R ./gbm_merged_ge_qc_integrated_umap/merged_ge_qc_integrated_umap_clustered.rds ./gbm_merged_ge_qc_integrated_umap/merged_ge_qc_integrated_umap_markers_0.3.csv ./gbm_merged_ge_qc_integrated_umap/merged_ge_qc_integrated_umap_markers_0.4.csv >gbm_ge_umap_figs.out 2>&1
 
-Rscript --vanilla ./2-clusteranalysis.R ./20241203_gbm_merged_gte_qc_integrated_umap/merged_gte_qc_integrated_umap_clustered.rds ./20241203_gbm_merged_gte_qc_integrated_umap/merged_gte_qc_integrated_umap_markers_0.3.csv ./20241203_gbm_merged_gte_qc_integrated_umap/merged_gte_qc_integrated_umap_markers_0.4.csv >gbm_gte_umap_figs.out 2>&1
+Rscript --vanilla ./2-clusteranalysis.R ./gbm_merged_gte_qc_integrated_umap/merged_gte_qc_integrated_umap_clustered.rds ./gbm_merged_gte_qc_integrated_umap/merged_gte_qc_integrated_umap_markers_0.3.csv ./gbm_merged_gte_qc_integrated_umap/merged_gte_qc_integrated_umap_markers_0.4.csv >gbm_gte_umap_figs.out 2>&1
 
-Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_ge_qc_integrated_umap/ge_qc_integrated_umap_clustered.rds ./20241203_healthy_ge_qc_integrated_umap/ge_qc_integrated_umap_markers_0.3.csv ./20241203_healthy_ge_qc_integrated_umap/ge_qc_integrated_umap_markers_0.4.csv >healthy_ge_umap_figs.out 2>&1
+Rscript --vanilla ./2-clusteranalysis.R ./healthy_ge_qc_integrated_umap/ge_qc_integrated_umap_clustered.rds ./healthy_ge_qc_integrated_umap/ge_qc_integrated_umap_markers_0.3.csv ./healthy_ge_qc_integrated_umap/ge_qc_integrated_umap_markers_0.4.csv >healthy_ge_umap_figs.out 2>&1
 
-Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_clustered.rds ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_markers_0.3.csv ./20241203_healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_markers_0.4.csv >healthy_gte_umap_figs.out 2>&1
+Rscript --vanilla ./2-clusteranalysis.R ./healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_clustered.rds ./healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_markers_0.3.csv ./healthy_gte_qc_integrated_umap/gte_qc_integrated_umap_markers_0.4.csv >healthy_gte_umap_figs.out 2>&1
 ```
 
 ## Exploring Cell types with `3-celltypeanalysis.R` (Preliminary)
@@ -172,10 +107,10 @@ Rscript --vanilla ./2-clusteranalysis.R ./20241203_healthy_gte_qc_integrated_uma
 Generate UMAPs colouring cells based on expression level of known celltype markers per cluster to identify cell type annotations. 
 
 ```bash
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_clustered.rds" ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_markers_0.3.csv" ".\20241203_gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_markers_0.4.csv" *>gbm_ge_umap_celltypes_figs_dec03.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_clustered.rds" ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_markers_0.3.csv" ".\20241203_gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_markers_0.4.csv" *>gbm_gte_umap_celltypes_figs_dec03.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_clustered.rds" ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_markers_0.3.csv" ".\20241203_healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_markers_0.4.csv" *>healthy_ge_umap_celltypes_figs_dec03.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_clustered.rds" ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.3.csv" ".\20241203_healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.4.csv" *>healthy_gte_umap_celltypes_figs_dec03.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_clustered.rds" ".\gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_markers_0.3.csv" ".\gbm_merged_ge_qc_integrated_umap\merged_ge_qc_integrated_umap_markers_0.4.csv" *>gbm_ge_umap_celltypes_figs.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_clustered.rds" ".\gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_markers_0.3.csv" ".\gbm_merged_gte_qc_integrated_umap\merged_gte_qc_integrated_umap_markers_0.4.csv" *>gbm_gte_umap_celltypes_figs.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_clustered.rds" ".\healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_markers_0.3.csv" ".\healthy_ge_qc_integrated_umap\ge_qc_integrated_umap_markers_0.4.csv" *>healthy_ge_umap_celltypes_figs.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3-celltypeanalysis.R ".\healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_clustered.rds" ".\healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.3.csv" ".\healthy_gte_qc_integrated_umap\gte_qc_integrated_umap_markers_0.4.csv" *>healthy_gte_umap_celltypes_figs.out
 ```
 
 ## Filter RBCs and Doublets with `3.2-finddoublets.R` & `3.3-filterdoublets.R`
@@ -231,30 +166,30 @@ Then run `3.7-celltypeannotation.R` to annotate clusters by cell type and create
 
 ```bash
 ### cluster analysis - post QC, filtRBC, filtDF (resolution 0.5, 0.6)
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_ge_logFCall integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_ge_filtDC_2figs0506_jan20.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\gbm_ge_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\gbm_ge_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_ge_logFCall integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_ge_filtDC_2figs0506.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_gte_logFCall integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_gte_filtDC_2figs0506_jan20.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" ".\gbm_gte_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\gbm_gte_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_gte_logFCall integrated_snn_res.0.5 integrated_snn_res.0.6 *>gbm_gte_filtDC_2figs0506.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_ge integrated_snn_res.0.5 integrated_snn_res.0.6 *>healthy_ge_filtDC_2figs0506_jan15.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\healthy_ge_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\healthy_ge_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_ge integrated_snn_res.0.5 integrated_snn_res.0.6 *>healthy_ge_filtDC_2figs0506.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_gte integrated_snn_res.0.5 integrated_snn_res.0.6 *>healthy_gte_filtDC_2figs0506_jan15.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\2-clusteranalysis.R ".\healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" ".\healthy_gte_filtDf_cluster\filtDf_cluster_markers_0.5.csv" ".\healthy_gte_filtDf_cluster\filtDf_cluster_markers_0.6.csv" figs_clusteranalysis_gte integrated_snn_res.0.5 integrated_snn_res.0.6 *>healthy_gte_filtDC_2figs0506.out
 
 ### cell type validation - post QC, filtRBC, filtDF (resolution 0.5, 0.6)
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res05 integrated_snn_res.0.5 *>gbm_ge_filtDC_34figs05_jan20.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res06 integrated_snn_res.0.6 *>gbm_ge_filtDC_34figs06_jan20.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res05 integrated_snn_res.0.5 *>gbm_ge_filtDC_34figs05.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res06 integrated_snn_res.0.6 *>gbm_ge_filtDC_34figs06.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res05 integrated_snn_res.0.5 *>gbm_gte_filtDC_34figs05_jan20.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res06 integrated_snn_res.0.6 *>gbm_gte_filtDC_34figs06_jan20.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res05 integrated_snn_res.0.5 *>gbm_gte_filtDC_34figs05.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res06 integrated_snn_res.0.6 *>gbm_gte_filtDC_34figs06.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res05 integrated_snn_res.0.5 *>healthy_ge_filtDC_34figs05_jan16.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res06 integrated_snn_res.0.6 *>healthy_ge_filtDC_34figs06_jan16.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res05 integrated_snn_res.0.5 *>healthy_ge_filtDC_34figs05.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_ge_res06 integrated_snn_res.0.6 *>healthy_ge_filtDC_34figs06.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res05 integrated_snn_res.0.5 *>healthy_gte_filtDC_34figs05_jan16.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res06 integrated_snn_res.0.6 *>healthy_gte_filtDC_34figs06_jan16.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res05 integrated_snn_res.0.5 *>healthy_gte_filtDC_34figs05.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.4-finddoublets_validate.R ".\healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" figs_validatecelltypes_gte_res06 integrated_snn_res.0.6 *>healthy_gte_filtDC_34figs06.out
 
 ### cell type annotation
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.7-celltypeannotation.R ".\20250117_gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250117_gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" "meta\cellcycle_genes_tirosh2015.csv" figs_celltype_anno06 0.6 *>gbm_ge_gte_filtDC_37celltypeanno06_jan22.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.7-celltypeannotation.R ".\20250115_healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\20250115_healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" "meta\cellcycle_genes_tirosh2015.csv" figs_celltype_anno06 0.6 *>healthy_ge_gte_filtDC_37celltypeanno06_jan22.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.7-celltypeannotation.R ".\gbm_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\gbm_gte_filtDf_cluster\filtDf_cluster_int.rds" "meta\cellcycle_genes_tirosh2015.csv" figs_celltype_anno06 0.6 *>gbm_ge_gte_filtDC_37celltypeanno06.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\3.7-celltypeannotation.R ".\healthy_ge_filtDf_cluster\filtDf_cluster_int.rds" ".\healthy_gte_filtDf_cluster\filtDf_cluster_int.rds" "meta\cellcycle_genes_tirosh2015.csv" figs_celltype_anno06 0.6 *>healthy_ge_gte_filtDC_37celltypeanno06.out
 
 ```
 
@@ -332,7 +267,7 @@ Software used:
   - Compute rank metrics : log2FC * -log10(p+ 1e-310) (with unadjusted pvalues) 
 
 ```bash
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla ./6.1-gseaprep.R ".\20250117_gbm_ge_filtDf_cluster\celltype_markers\gbm_ge_celltypes_markers_all.csv" rankedgenes *>gbm_ge_gseaprep.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla ./6.1-gseaprep.R ".\gbm_ge_filtDf_cluster\celltype_markers\gbm_ge_celltypes_markers_all.csv" rankedgenes *>gbm_ge_gseaprep.out
 ```
 
 ### B. Prepare Input for GSEA: Genesets
@@ -356,28 +291,28 @@ gbmsubtype_genesets.gmx
 To generate the sbatch script that calls `6.3-run_gseaprerank.sh`, run python script `6.2-apply_gseaprerank.py` with the following example command:
 
 ```bash
-python 6.2-apply_gseaprerank.py -i 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/rankedgenes/ -g meta/genesets/ -l gbm_ge -o 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results/ >0214_gbm_ge_gseaprerank.out 2>&1
+python 6.2-apply_gseaprerank.py -i gbm_ge_celltypes_markers_all_avgexp_bygroup/rankedgenes/ -g meta/genesets/ -l gbm_ge -o gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results/ >0214_gbm_ge_gseaprerank.out 2>&1
 sbatch "tmp_scripts/gbm_ge_gsea_DATE_TIME.sh"
 ```
 
 Run bash script `6.4-extGSEAReports.sh` to generate .tsv summary report tables. 
 
 ```bash
-source ./6.4-extGSEAReports.sh 20250214_gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results2/  gbm_ge >stderr 2>&1
+source ./6.4-extGSEAReports.sh gbm_ge_celltypes_markers_all_avgexp_bygroup/gsea_results2/  gbm_ge >stderr 2>&1
 ```
 
 Label tumour cells 
 
 ```bash
 ### cnv label annotation
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\4.2-cnvlabel.R ".\20250117_gbm_ge_filtDf_cluster\gbm_ge_celltypes.rds" ".\20250117_gbm_gte_filtDf_cluster\gbm_gte_celltypes.rds" "20250117_gbm_ge_filtDf_cluster\infercnv_int06_gsctypesleiden0.0001_full\17_HMM_predHMMi6.leiden.hmm_mode-subclusters.cell_groupings" figs_cnvlabel 0.6 *>gbm_ge_gte_filtDC_37celltypeanno06_oRG_ccscores_cnvlabels.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\4.2-cnvlabel.R ".\gbm_ge_filtDf_cluster\gbm_ge_celltypes.rds" ".\gbm_gte_filtDf_cluster\gbm_gte_celltypes.rds" "gbm_ge_filtDf_cluster\infercnv_int06_gsctypesleiden0.0001_full\17_HMM_predHMMi6.leiden.hmm_mode-subclusters.cell_groupings" figs_cnvlabel 0.6 *>gbm_ge_gte_filtDC_37celltypeanno06_oRG_ccscores_cnvlabels.out
 ```
 
 ### D. Label GBM subtypes from GSEA results
 
 ```bash
 ### gbm subtype annotation
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\6.6-gsealabel.R ".\20250117_gbm_ge_filtDf_cluster\gbm_ge_celltypes_cnv.rds" ".\20250117_gbm_gte_filtDf_cluster\gbm_gte_celltypes_cnv.rds" figs_gbmlabel 0.6 *>gbm_ge_gte_filtDC_37celltypeanno06_oRG_ccscores_gbmlabels.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\6.6-gsealabel.R ".\gbm_ge_filtDf_cluster\gbm_ge_celltypes_cnv.rds" ".\gbm_gte_filtDf_cluster\gbm_gte_celltypes_cnv.rds" figs_gbmlabel 0.6 *>gbm_ge_gte_filtDC_37celltypeanno06_oRG_ccscores_gbmlabels.out
 ```
 
 ## Retrotransposon analysis
@@ -387,40 +322,28 @@ Packages:
 
 ```bash
 # extract te metadata from gtf feature file
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\7.0-te_classes.R "..\0_downloads\GRCh38_Ensembl_rmsk_TE_v23.gtf" *>mar20_te_extract_classes.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\7.0-te_classes.R "..\0_downloads\GRCh38_Ensembl_rmsk_TE_v23.gtf" *>te_extract_classes.out
 
 # compute TE count metrics gbm
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.1-te_analysis.R "20250117_gbm_gte_filtDf_cluster/gbm_gte_celltypes_cnv_gbm.rds" "meta/GRCh38_Ensembl_rmsk_TE_v23_geneNames.txt" 0.6 figs_te_analysis  *>gbm_gte_mar20_teanalysis.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.1-te_analysis.R "gbm_gte_filtDf_cluster/gbm_gte_celltypes_cnv_gbm.rds" "meta/GRCh38_Ensembl_rmsk_TE_v23_geneNames.txt" 0.6 figs_te_analysis  *>gbm_gte_teanalysis.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\7.1-te_analysis.R "20250115_healthy_gte_filtDf_cluster/healthy_gte_celltypes.rds" "meta/GRCh38_Ensembl_rmsk_TE_v23_geneNames.txt" 0.6 figs_te_analysis  *>healthy_gte_mar26_teanalysis.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla .\7.1-te_analysis.R "healthy_gte_filtDf_cluster/healthy_gte_celltypes.rds" "meta/GRCh38_Ensembl_rmsk_TE_v23_geneNames.txt" 0.6 figs_te_analysis  *>healthy_gteteanalysis.out
 
 # te figure with breaks
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.2-te_figs.R "20250117_gbm_gte_filtDf_cluster/gbm_gte_celltypes_cnv_gbm.rds" "20250117_gbm_gte_filtDf_cluster/figs_te_analysis/te_df_numclusters_int06_gsctypes.csv" 0.6 figs_te_analysis_breaks  *>gbm_gte_apr04_tefigures.out
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.2-te_figs.R "20250115_healthy_gte_filtDf_cluster/healthy_gte_celltypes.rds" "20250115_healthy_gte_filtDf_cluster/figs_te_analysis/te_df_numclusters_int06_celltypes.csv" 0.6 figs_te_analysis_breaks  *>healthy_gte_apr04_tefigures.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.2-te_figs.R "gbm_gte_filtDf_cluster/gbm_gte_celltypes_cnv_gbm.rds" "gbm_gte_filtDf_cluster/figs_te_analysis/te_df_numclusters_int06_gsctypes.csv" 0.6 figs_te_analysis_breaks  *>gbm_gtetefigures.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.2-te_figs.R "healthy_gte_filtDf_cluster/healthy_gte_celltypes.rds" "healthy_gte_filtDf_cluster/figs_te_analysis/te_df_numclusters_int06_celltypes.csv" 0.6 figs_te_analysis_breaks  *>healthy_gtetefigures.out
 
 # generate Volcano plots per cell type 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.3-te_volcano.R "20250117_gbm_gte_filtDf_cluster/filtDf_cluster_markers_0.6.csv" figs_volcano int0.6 *>gbm_gte_mar26_tevolcano.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.3-te_volcano.R "gbm_gte_filtDf_cluster/filtDf_cluster_markers_0.6.csv" figs_volcano int0.6 *>gbm_gtetevolcano.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.3-te_volcano.R "20250117_gbm_gte_filtDf_cluster/celltype_markers/gbm_gte_celltypes_markers_oRG.csv" figs_volcano oRG  *>gbm_gte_mar26_tevolcano_oRG.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.3-te_volcano.R "gbm_gte_filtDf_cluster/celltype_markers/gbm_gte_celltypes_markers_oRG.csv" figs_volcano oRG  *>gbm_gtetevolcano_oRG.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.3-te_volcano.R "20250115_healthy_gte_filtDf_cluster/filtDf_cluster_markers_0.6.csv" figs_volcano int0.6 *>healthy_gte_mar26_tevolcano.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.3-te_volcano.R "healthy_gte_filtDf_cluster/filtDf_cluster_markers_0.6.csv" figs_volcano int0.6 *>healthy_gtetevolcano.out
 
 # Extract Differentially Expressed TEs from full table of differentially expressed genes
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.4-te_degs.R "20250117_gbm_gte_filtDf_cluster/filtDf_cluster_markers_0.6.csv" "20250117_gbm_gte_filtDf_cluster/figs_te_analysis/te_df_numclusters_int06_gsctypes.csv" figs_volcano int0.6 *>gbm_gte_mar27_tedegs.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.4-te_degs.R "gbm_gte_filtDf_cluster/filtDf_cluster_markers_0.6.csv" "gbm_gte_filtDf_cluster/figs_te_analysis/te_df_numclusters_int06_gsctypes.csv" figs_volcano int0.6 *>gbm_gtetedegs.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.4-te_degs.R "20250117_gbm_gte_filtDf_cluster/celltype_markers/gbm_gte_celltypes_markers_oRG.csv" "20250117_gbm_gte_filtDf_cluster/figs_te_analysis/te_df_numclusters_int06_gsctypes.csv" figs_volcano oRG  *>gbm_gte_mar27_tedegs_oRG.out
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.4-te_degs.R "gbm_gte_filtDf_cluster/celltype_markers/gbm_gte_celltypes_markers_oRG.csv" "gbm_gte_filtDf_cluster/figs_te_analysis/te_df_numclusters_int06_gsctypes.csv" figs_volcano oRG  *>gbm_gtetedegs_oRG.out
 
-& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.4-te_degs.R "20250115_healthy_gte_filtDf_cluster/filtDf_cluster_markers_0.6.csv" "20250115_healthy_gte_filtDf_cluster/figs_te_analysis/te_df_numclusters_int06_celltypes.csv" figs_volcano int0.6 *>healthy_gte_mar27_tedegs.out
-```
-
-## Pseudotime Anaylsis
-
-See above for [installation tips for Monocle3 and SeuratWrappers](#installation-tips-for-monocle3-v100-on-rhelcentos7-cluster-environment).
-Scripts were adapted from [the seuratwrapper tutorial](https://github.com/satijalab/seurat-wrappers/blob/master/docs/monocle3.Rmd)
-
-```bash
-module load CCEnv arch/avx2 StdEnv/2020 r/4.0.2 ; cd ~/scratch/runs/3_exploratoryanalysis ; 
-Rscript --vanilla ./8.1-monocle.R ./20250117_gbm_gte_filtDf_cluster/gbm_gte_celltypes_cnv_gbm.rds 0.6 figs_monocle
-# check partition to use for pseudotime calculations
-Rscript --vanilla ./8.1-monocle.R ./20250117_gbm_gte_filtDf_cluster/gbm_gte_celltypes_cnv_gbm_monocle.rds 0.6 figs_monocle >0320_gbm_gte_monocle_pseudotime.out 2>&1
+& 'C:\Program Files\R\R-4.2.2\bin\Rscript.exe' --vanilla 7.4-te_degs.R "healthy_gte_filtDf_cluster/filtDf_cluster_markers_0.6.csv" "healthy_gte_filtDf_cluster/figs_te_analysis/te_df_numclusters_int06_celltypes.csv" figs_volcano int0.6 *>healthy_gtetedegs.out
 ```

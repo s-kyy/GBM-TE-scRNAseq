@@ -60,11 +60,11 @@ module load sra-toolkit/2.10.8
 
 chmod +x bhaduri2020_healthy_download.sh
 chmod +x bhaduri2020_healthy_zip.sh
-cd ./2023-03-06_bhaduri_healthy
+cd ./<date>_bhaduri_healthy
 ./bhaduri2020_healthy
 ./bhaduri2020_healthy_download_rename.sh ./samples.csv > tmp.out
 ./make_pigz_job.py
-sbatch ./pigz_2023-03-07_14h52m.sh
+sbatch ./pigz_<date_time>.sh
 
 # usage: make_pigz_job.py [-h] -i INPUT_FOLDER [-c CORES] [-m MEM]
 
@@ -78,7 +78,7 @@ sbatch ./pigz_2023-03-07_14h52m.sh
 #   -m MEM           mempercore value used in SBATCH (e.g. 10, 12, 15) (default: 10)
 ```
 
-Note: File compression takes around 30min to 4h depending on file size. The generated script used in this project is provided in this repo: `pigz_2023-03-07_14h52m.sh`. Absolute paths were modified to relative paths for privacy purposes. 
+Note: File compression takes around 30min to 4h depending on file size. The generated script used in this project is provided in this repo: `pigz_<date_time>.sh`. Absolute paths were modified to relative paths for privacy purposes. 
 
 # Download reference annotations
 
