@@ -22,10 +22,6 @@ Training sets:
 Healthy Brain controls: 
 - Bhaduri et al. 2020. Cell: Stem Cell [SRP132816](https://www.ncbi.nlm.nih.gov/Traces/study/?acc=SRP132816&o=acc_s%3Aa)
 
-Validation sets:
-
-TCGA sets:  
-
 ## Requirements
 
 Mapping of single cell or single nuclei RNA-seq datasets was performed on linux-based cluster resources (CentOS7). Analysis of read counts was performed on CentOS7 Linux-based remote cluster and Windows 10 operating systems. 
